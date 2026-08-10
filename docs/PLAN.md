@@ -38,46 +38,23 @@ Three constraints shape every decision:
 
 ---
 
-## 0. What changed from v0.1
-
-The project was re-scoped mid-planning from "a library of hand-authored animations for 8 fixed
-concepts" to "a live Python execution visualizer that animates whatever code the user types."
-
-**Discarded:** hand-authored per-concept trace generators; the concept list as scope boundary; the
-"recorded traces with editable inputs only" decision.
-
-**Carried over:** the React/TypeScript/Vite/Framer Motion/Tailwind stack; the frame model (frames are
-now *produced by the engine* rather than hand-written); playback control semantics;
-predict-the-next-step and race mode; the per-section acceptance-criteria discipline.
-
-**Note on the reversal:** v0.1 rejected live code execution as "a compiler-sized project." That
-pricing assumed *writing an interpreter*. Using real CPython compiled to WebAssembly (Pyodide)
-removes that cost entirely, which invalidated the original objection.
-
----
-
 ## Status board
 
-| # | Section | Status |
-|---|---------|--------|
-| 1 | Supported Python subset | 🟢 **LOCKED** |
-| 2 | Execution engine | 🟢 **LOCKED** |
-| 3 | Trace → event pipeline | 🟢 **LOCKED** (Tier 1) |
-| 4 | Mode A / Mode B taxonomy | 🟢 **LOCKED** |
-| 5 | Drawing rules | 🟢 **LOCKED** |
-| 6 | Renderers | ⚪ Absorbed into §5 |
-| 7 | Playback controls | 🟢 **LOCKED** |
-| 8 | Code editor & errors | 🟢 **LOCKED** |
-| 9 | Game layer | 🟢 **LOCKED** |
-| 10 | Lessons | 🟢 **LOCKED** |
-| 11 | Landing page & navigation | 🟢 **LOCKED** |
-| 12 | Testing, CI, deployment | 🟢 **LOCKED** |
-| 13 | Claude Code working agreement | 🟢 **LOCKED** |
-| 14 | Mobile/native port handoff doc | 🟢 **LOCKED** |
+**All 14 sections are LOCKED** with written acceptance criteria. §6 (Renderers) is absorbed into §5
+and has no separate content. Any section that reopens gets listed here with its status; an empty
+list below means nothing is open.
+
+| Section | Status | Reopened by |
+|---|---|---|
+| *(none currently open)* | | |
 
 **Reopening rule:** changing a LOCKED section requires an entry in `docs/decisions/` stating what
-changed, why, and which sections it invalidates. Those revert to open and must be re-locked before
-building resumes.
+changed, why, and which sections it invalidates. Those revert to open, get listed above, and must be
+re-locked before building resumes.
+
+> Project history — the mid-planning re-scope from hand-authored animations to live Python
+> execution, and why — is in `docs/DESIGN_RATIONALE.md`, not here. This document is the spec;
+> that one is the reasoning.
 
 ### Decisions
 
@@ -85,18 +62,18 @@ building resumes.
 |---|---|
 | D1 | Game layer: predict-the-next-step (core) + compare-the-algorithms (originally "race mode", renamed by D30). Craft-the-input parked, not rejected; guess-the-cost later brought into v1. |
 | D2 | Desktop-first, tablet-usable, polite small-screen notice on phones. Native mobile out of v1. |
-| D3 | Re-scope to live Python execution (supersedes v0.1). |
+| D3 | *(historical)* Re-scope to live Python execution, superseding the original hand-authored-animation plan. Reasoning in `docs/DESIGN_RATIONALE.md` §1. |
 | D4 | Build Tier 1 (line-level tracing) to completion first, then Tier 2 (syntax-tree instrumentation) for five high-value events only. |
-| D5 | Subset per §1. Comprehensions **out** (top v2 candidate); dicts **in**. |
+| D5 | *(see §1 for the authoritative list)* Comprehensions **out** (top v2 candidate); dicts **in**. |
 | D6 | Recursion, stacks, queues are Mode A. Sorts and binary search are Mode B. |
-| D7 | Full scope accepted (~2–2.5× the original estimate). |
+| D7 | *(historical)* Full scope accepted at ~2–2.5× the original estimate, rather than trimming after the D3 re-scope. |
 | D8 | **Collections capped at 25 elements.** Everything always fits on screen; no windowing or virtualisation anywhere. |
 | D9 | Drawing: filled boxes · stack-of-cards for calls · code left / picture right · the spotlight rule. |
 | D10 | Working agreement: checkpoints are what/why/screenshots · checks strict and blocking · **owner performs all git and GitHub operations personally** · agent decides small things, stops for anything that changes the plan. |
 | D11 | Step cap **2,000** per run. |
 | D12 | Uninterrupted view vs quiz view (opt-in, ~5 prompts max per run). **Naming superseded by D26** — this is now the plain ⇄ challenge view toggle inside Explore. The ~5 cap still stands. |
 | D13 | Runtime errors animate to the point of failure and are explained in beginner language. |
-| D14 | If time runs short, the first-built lessons ship polished and later ones are cut before quality is. (Original count superseded by D36/D37 — see §10 for the final 11-lesson list.) |
+| D14 | **If time runs short, the first-built lessons ship polished and later ones are cut before quality is.** (Its original lesson count is superseded by D36/D37 — §10 has the final 11-lesson list. The cut-before-quality principle still stands.) |
 | D15 | Landing page animates within 1 second from a pre-recorded trace, while the engine loads in the background. |
 | D16 | Flat grid navigation — no ordering, no locking, every lesson one click away. |
 | D17 | ~10 visual snapshot tests, deliberately capped. |
@@ -453,10 +430,7 @@ branch → taken line highlights, untaken dims.
 
 ---
 
-## 6. Renderers
-
-Absorbed into §5 — the drawing rules fully specify what renderers must produce. No separate decisions
-remain.
+## 6. Renderers — absorbed into §5
 
 ---
 
