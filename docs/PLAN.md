@@ -19,13 +19,16 @@ Three constraints shape every decision:
 
 > ### ⏸ Resume here
 >
-> **All 14 sections locked.** 40 numbered decisions recorded. Full read-through complete.
+> **All 14 sections locked.** 41 numbered decisions recorded. Full read-through complete.
 >
-> Currently in: **Session 0** — `CLAUDE.md`, the blocking hook, `/checkpoint`, `/new-lesson`, and the
-> owner's first git branch/commit/merge cycle, taught step by step (D40). Git repo initialized,
-> `CLAUDE.md` written.
+> Currently in: **Session 0** — `CLAUDE.md`, the blocking hooks, `/checkpoint`, `/log-decision`, and
+> the owner's first git branch/commit/merge cycle, taught step by step (D40). Done so far: git repo
+> initialized, `CLAUDE.md` written, `check.sh` + `no-git.sh` hooks live and verified, milestone
+> breakdown defined. (`/new-lesson` moved out of Session 0 — it is authored at **milestone 7**, from
+> a real lesson rather than from a guess.)
 >
-> Next after Session 0: the engine (§1–§3).
+> Next after Session 0: **milestone 1** — scaffold, CI, and Vercel preview URLs. Not the engine; the
+> review loop depends on preview URLs existing first. See the Build milestones table below.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -80,7 +83,7 @@ building resumes.
 
 | | Decision |
 |---|---|
-| D1 | Game layer: predict-the-next-step (core) + race mode. Guess-the-cost and craft-the-input parked, not rejected. |
+| D1 | Game layer: predict-the-next-step (core) + compare-the-algorithms (originally "race mode", renamed by D30). Craft-the-input parked, not rejected; guess-the-cost later brought into v1. |
 | D2 | Desktop-first, tablet-usable, polite small-screen notice on phones. Native mobile out of v1. |
 | D3 | Re-scope to live Python execution (supersedes v0.1). |
 | D4 | Build Tier 1 (line-level tracing) to completion first, then Tier 2 (syntax-tree instrumentation) for five high-value events only. |
@@ -91,7 +94,7 @@ building resumes.
 | D9 | Drawing: filled boxes · stack-of-cards for calls · code left / picture right · the spotlight rule. |
 | D10 | Working agreement: checkpoints are what/why/screenshots · checks strict and blocking · **owner performs all git and GitHub operations personally** · agent decides small things, stops for anything that changes the plan. |
 | D11 | Step cap **2,000** per run. |
-| D12 | Watch mode (no interruptions) vs Challenge mode (opt-in, ~5 prompts max per run). |
+| D12 | Uninterrupted view vs quiz view (opt-in, ~5 prompts max per run). **Naming superseded by D26** — this is now the plain ⇄ challenge view toggle inside Explore. The ~5 cap still stands. |
 | D13 | Runtime errors animate to the point of failure and are explained in beginner language. |
 | D14 | If time runs short, the first-built lessons ship polished and later ones are cut before quality is. (Original count superseded by D36/D37 — see §10 for the final 11-lesson list.) |
 | D15 | Landing page animates within 1 second from a pre-recorded trace, while the engine loads in the background. |
@@ -119,6 +122,76 @@ building resumes.
 | D29 | Prediction moments are chosen by **surprisingness**, not spacing — plus an *"what will this be N steps from now"* question type. |
 | D30 | Compare-the-algorithms reports **steps, comparisons and swaps — never milliseconds**, which would measure animation speed rather than the algorithm and teach something false. Big-O explanations reference the counts just observed. |
 | D31 | **Flowcharts are generated from the parsed program, not authored per lesson** — so they work for any code including the user's own. |
+| D40 | **Session 0 is a teaching session, not a productive one** — each piece of tooling is explained, built, and tested together so the owner sees it work. Git is walked through command by command. See §13. |
+| D41 | **A "section" for checkpointing purposes = one of 15 build milestones**, not one of the 14 planning sections — those are planning topics of wildly unequal build size. One milestone = one checkpoint = one branch = one merge. See the Build milestones table. |
+
+---
+
+## Build milestones — the definition of a "section"
+
+§13 requires a checkpoint after every "section," but the 14 numbered sections below are *planning
+topics*, not equal units of build work (§14 is one markdown file; §3 is the hardest module in the
+project; §10 is eleven separate lessons). This table is the operative definition: **one milestone =
+one checkpoint = one branch = one merge.**
+
+| # | Milestone | Plan sections | Why this boundary |
+|---|---|---|---|
+| **Phase A — Foundation** ||||
+| 1 | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + Vercel preview URLs** | §2 stack, §12 CI/deploy | Preview URLs are a *precondition* of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here |
+| 2 | Python subset validator + fixture suite | §1 | Fully testable with zero execution; "is the scope contract right?" is its own judgment call |
+| 3 | Execution engine: Pyodide, Web Worker, guardrails | §2 | §2's headline test (`while True: pass`) needs no tracing — self-contained |
+| 4 | Tier 1 trace pipeline + recorded-run snapshots | §3 (T1) | Different question from #3: *is the recording correct*, not *does it run safely* |
+| **Phase B — The visible app** ||||
+| 5 | Drawing system: value shapes, spotlight rule, motion vocabulary | §5, §6 | First visual review. Needs real frames from #4, never mock data |
+| 6 | Playback controls + code editor & error UX | §7, §8 | Both are the shell around the picture; reviewed together. **End of #6 = first demoable build** |
+| **Phase C — Content** ||||
+| 7 | Lesson 1 + author `/new-lesson` from it | §4, §10 | Pattern-setting. Get it wrong once, not eight times — and the command is written from a real example |
+| 8 | Mode A lessons 2–8 | §10 | Homogeneous; batching avoids 7 near-identical checkpoints |
+| 9 | Mode B lessons 9–11 (+ merge sort stretch) | §10 | **D14**: lessons 1–8 polished before these start |
+| 10 | Landing page & navigation | §11 | Needs lesson recordings (#7–9) to exist |
+| **Phase D — Depth** ||||
+| 11 | Tier 2 — Detailed instrumentation | §3 (T2) | **D4/D38**: only after a complete, demoable T1 product exists |
+| 12 | Game layer — Explore | §9 | Needs the event vocabulary finalised in #11 |
+| 13 | Game layer — Practice / reverse mode | §9 | New content-generation work; different review from #12 |
+| 14 | Flowcharts | §9 | **D28**: built last and cut *whole* — needs its own boundary to actually be cuttable |
+| **Phase E — Ship** ||||
+| 15 | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` | §12, §14 | All require a finished, stable system to document and pin |
+
+**Cuttable under time pressure, in this order** (per existing decisions): merge sort (stretch) →
+flowcharts (#14, D28) → Mode B lessons (#9, D14). Nothing else is cut before quality is.
+
+**Testing is distributed, not a phase.** Fixture suite → #2 · infinite-loop test → #3 ·
+recorded-run snapshots → #4 · click-through smokes → #6 · visual snapshots → #15.
+
+### How the build actually runs
+
+Each milestone above is one pass through this loop. Same ten steps, fifteen times.
+
+| | Who | What |
+|---|---|---|
+| 1 | **Owner** | Create a branch for the milestone |
+| 2 | **Owner** | Put the agent in plan mode, name the milestone |
+| 3 | Agent | Read that milestone's plan sections, write an implementation plan |
+| 4 | **Owner** | ⭐ Review and approve the plan — or redirect |
+| 5 | Agent | Build it. `check.sh` runs after every edit and blocks on failure |
+| 6 | Agent | Screenshot its own work and fix what looks wrong before the owner sees it |
+| 7 | Agent | `/checkpoint` — what/why/screenshots, status board, git commands |
+| 8 | **Owner** | ⭐ Open the preview URL, check against that milestone's acceptance criteria |
+| 9 | **Owner** | Run `/code-review` on the diff |
+| 10 | **Owner** | Commit, push, merge |
+
+**Steps 4 and 8 are the leverage points.** Everything else is either mechanical or the agent's.
+Step 4 is cheap to redirect — it is a paragraph, not code. Step 8 is where the owner catches what
+automated checks structurally cannot: does it teach well, does it look right, is this what was
+agreed.
+
+**When step 8 fails,** the milestone is not merged. The owner says what is wrong, the agent fixes it
+on the same branch, and checkpoints again. The branch is the safety net: a milestone that comes out
+badly enough can be deleted outright and retried, and `main` never sees it.
+
+**Milestone 1 is the exception.** It builds the infrastructure the other fourteen depend on — CI,
+preview URLs, and the npm scripts that make `check.sh` do real work. Steps 8 and 9 do not fully
+apply to it, because it is the milestone that creates them.
 
 ---
 
@@ -283,9 +356,11 @@ for building the engine as the foundation of the whole project.
 |---|---|---|
 | For / while loops, if/else, list building | **A** | The point is watching *your* code |
 | Recursion | **A** | Writing your own recursion and watching the stack grow is where the insight lives; the call-stack renderer is generic and needs no per-concept knowledge |
-| Stacks & queues | **A**, scaffolded | These are just `list.append`/`.pop`/`.pop(0)` — already primitives |
+| Dictionaries | **A** | Same — the user's own key/value logic is the lesson |
 | Bubble / insertion / merge sort | **B** | Nobody learns by retyping bubble sort; free-form sorting code also animates generically and ugly |
 | Binary search | **B** | The halving is the lesson |
+
+> Stacks & queues were originally Mode A here; **cut from v1 entirely by D36.** See §10.
 
 **View hints.** Mode B lessons may attach optional rendering hints that upgrade generic visuals into
 purpose-built ones. The *events* are identical either way — only the drawing changes.
@@ -401,10 +476,11 @@ Bottom bar: step back · play/pause · step forward · reset · speed · slider 
 - **Scrubbing bypasses quizzes entirely.**
 - **Keyboard:** space = play/pause · ←/→ = step · R = reset · Home/End = first/last.
 
-**Watch mode vs Challenge mode (D12).** Watch plays straight through and never interrupts — the
-default first experience. Challenge pauses at prediction points, **capped at ~5 prompts per run**.
-Rationale: a bubble sort has ~50 comparisons; quizzing on all of them is unbearable and would poison
-the best feature in the project.
+**The view toggle: plain ⇄ challenge (D26, superseding D12's "Watch/Challenge mode" naming).** Plain
+plays straight through and never interrupts — the default first experience. Challenge pauses at
+prediction points, **capped at ~5 prompts per run**. Rationale: a bubble sort has ~50 comparisons;
+quizzing on all of them is unbearable and would poison the best feature in the project. The toggle
+lives inside Explore and applies to both Mode A and Mode B (§9).
 
 **Acceptance criteria**
 
@@ -448,7 +524,7 @@ recorded.
    responsible value highlighted.
 4. Mode A lessons open pre-filled with starter code and offer "reset to example."
 5. The active line highlights in the editor itself, correctly, on every step of every fixture.
-6. Watch mode completes a full run with zero interruptions. Challenge mode issues **no more than 5**
+6. Plain view completes a full run with zero interruptions. Challenge view issues **no more than 5**
    prompts on any lesson.
 
 ---
@@ -533,7 +609,11 @@ moment Big-O stops being a formula, and it is computable rather than authored.
 |---|---|---|
 | For loops · index loops · if/else · while · functions · recursion | ✓ | ✓ |
 | Binary search · bubble sort | ✓ | — (v2) |
-| Stacks & queues · dictionaries · linear search · insertion sort · merge sort | Explore only in v1 | — |
+| Looping over a list · dictionaries · insertion sort · merge sort | Explore only in v1 | — |
+
+The last row is lessons that exist but get no Practice exercises in v1. Stacks & queues and linear
+search appear nowhere here because they are **cut as lessons entirely** (D36) — linear search still
+ships as code for compare-the-algorithms, but has no lesson and therefore nothing to practice.
 
 Reverse mode is excluded from algorithms because reassembling bubble sort from shuffled lines tests
 memory rather than understanding — you either know the algorithm or you don't.
@@ -574,8 +654,9 @@ whole if time runs short.
 7. Compare mode runs both algorithms on identical input and reports steps, comparisons and swaps.
    **No millisecond timing appears anywhere in the UI** — grep-verifiable.
 8. Pick-the-winner is asked before the comparison starts and resolved after.
-9. Each of the five algorithms has a Big-O explanation that references the counts actually observed
-   in that run.
+9. Every algorithm that ships has a Big-O explanation referencing the counts actually observed in
+   that run — linear search, binary search, bubble sort, insertion sort, and merge sort if the
+   stretch lesson lands.
 10. Guess-the-cost is asked before play and scored on closeness.
 11. **24 authored programs exist** — 8 concepts × 3 levels (D27). Each runs successfully on first
     press of Run and stays inside the §1 subset.
@@ -599,7 +680,8 @@ whole if time runs short.
 22. Mastery ring per D25: fills at ~5 predictions answered with 80%+ accuracy, `localStorage` only.
 23. Flowcharts are the last thing built (D28).
 
-**Parked for v2:** craft-the-input · bug hunt · user-set indentation in reverse role.
+**Parked for v2:** craft-the-input · bug hunt · user-set indentation in reverse mode · reverse mode
+on the algorithms.
 
 ---
 
@@ -702,9 +784,10 @@ manually (D10).
 
 ### Deployment (D19)
 
-Vercel, with **a live preview URL per branch**. Each finished section reaches the owner as a clickable
-link, reviewable on any device with zero local setup. Given the owner reviews rather than codes, this
-is the highest-leverage infrastructure in the project. Production deploys from `main`.
+Vercel, with **a live preview URL per branch**. Each finished milestone reaches the owner as a
+clickable link, reviewable on any device with zero local setup. Given the owner reviews rather than
+codes, this is the highest-leverage infrastructure in the project — which is why it is built in
+milestone 1, not late. Production deploys from `main`.
 
 ### v1 presentation (D20)
 
@@ -717,13 +800,13 @@ screenshot cannot convey motion, which is the entire premise of the project.
 1. The fixture suite runs with one command and is wired into the edit hook.
 2. Every fixture has a committed expected trace. A deliberate engine change causes visible snapshot
    failures rather than silent drift.
-3. Exactly ~10 visual snapshots exist, covering: landing page · Mode A lesson mid-run · Mode B lesson
+3. Ten visual snapshots exist, covering: landing page · Mode A lesson mid-run · Mode B lesson
    mid-run · a swap in progress · a comparison in progress · call stack at depth 3 · a dict · a nested
    list · a runtime error state · a Challenge mode prompt.
 4. Five click-through smoke tests pass against a real browser.
 5. `while True: pass` is covered by an automated test, not a manual check.
 6. CI runs install → typecheck → test → build on every push and is green on `main`.
-7. Every section branch produces a working preview URL **before** the owner is asked to review it.
+7. Every milestone branch produces a working preview URL **before** the owner is asked to review it.
 8. README exists with an auto-playing demo GIF under ~5 MB.
 9. The deployed production site loads and every lesson works **on the real URL**, not just locally.
 
@@ -738,8 +821,8 @@ over what becomes public. The agent must never run `git`, `gh`, or any command t
 merges, pushes, or tags.
 
 Every checkpoint ends with the exact commands to run, each with a one-line plain-English explanation.
-Per section: owner creates a branch → agent builds → checkpoint → owner reviews via the preview URL →
-owner commits, pushes, merges. Roughly 12 cycles across the project — deliberate branching practice
+Per milestone: owner creates a branch → agent builds → checkpoint → owner reviews via the preview URL
+→ owner commits, pushes, merges. **15 cycles** across the project — deliberate branching practice
 with real work in between.
 
 ### `CLAUDE.md` (project root, under 50 lines, read every session)
@@ -752,7 +835,7 @@ matter.
 
 ### Checkpoints
 
-After every section, automatically and unprompted: **what was built** (plain language) · **why**,
+After every milestone, automatically and unprompted: **what was built** (plain language) · **why**,
 including any decision made independently · **screenshots**. The owner verifies in the running app, so
 no separate verification checklist is required — but anything the agent is uncertain about must be
 flagged explicitly rather than glossed.
@@ -800,10 +883,9 @@ while the repository is nearly empty and a mistake costs nothing — rather than
 real work at stake. The owner has mostly worked on a single branch before; this project is deliberate
 practice at the rest.
 
-**Owner's per-section loop** (≈12 cycles): create branch → put agent in plan mode → review and approve
-the plan → *(agent builds; hooks check automatically)* → agent checkpoints with screenshots and git
-commands → owner reviews via preview URL against the section's acceptance criteria → owner runs
-`/code-review` → owner commits, pushes, merges.
+**Owner's per-milestone loop** — see *How the build actually runs* under the Build milestones table
+above for the authoritative ten-step version. One pass per milestone, **15 in total** (the earlier
+"≈12 cycles" estimate predated the milestone breakdown).
 
 ### Autonomy boundary
 
@@ -821,8 +903,8 @@ the tool looks or teaches.
    failure rather than a silent pass.
 5. `/new-lesson` and `/checkpoint` exist and are used for **every** lesson and checkpoint — not just
    the first.
-6. `docs/PLAN.md` status board is current at the end of every section, with no section marked LOCKED
-   that lacks written acceptance criteria.
+6. `docs/PLAN.md` status board is current at the end of every milestone, with no section marked
+   LOCKED that lacks written acceptance criteria.
 7. Nothing exists in the codebase that is not traceable to a section of `docs/PLAN.md` or a written
    entry in `docs/decisions/`.
 
@@ -869,8 +951,8 @@ lesson data are **the same files**. They cannot drift apart, because a test fail
 
 The iPhone/WebKit constraint and its evidence · the recommended pre-recorded strategy · the
 server-backed upgrade path · what ports for free (event vocabulary, event→gesture mapping, playback
-contract, lesson content, value-shape design system) · and the note that **race mode will not survive
-a phone screen side-by-side** — propose the stacked alternative.
+contract, lesson content, value-shape design system) · and the note that **compare-the-algorithms will
+not survive a phone screen side-by-side** — propose the stacked alternative.
 
 **Acceptance criteria**
 

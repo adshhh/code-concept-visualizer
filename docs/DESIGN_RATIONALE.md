@@ -338,6 +338,49 @@ trains people to ignore red builds.
 
 ---
 
+## 15. Case study: re-reviewing an approved plan with a stronger model
+
+**The situation.** The project's 14 planning sections aren't equal units of build work — one is a
+single markdown file, another is eleven separate lessons, another is the hardest module in the
+project. So "checkpoint after every section" was ambiguous, and I asked for the work to be broken
+into properly-sized build milestones instead.
+
+**First pass.** Claude proposed a milestone list. I asked it to explain its reasoning rather than
+just accepting the output — and in writing that reasoning out, it caught one inconsistency in its
+own list (it had bundled the flowchart work in with other exercises, despite an earlier decision
+requiring flowcharts to be separately cuttable). Corrected, and I approved it.
+
+**Second pass.** Before building on it, I switched to a stronger model and asked for the same plan
+to be reviewed again from scratch. That pass found **four** structural problems the first had
+missed, including one that would have quietly broken the entire review workflow: the CI and preview-
+deployment setup was scheduled as milestone 14, but the review process for milestones 2 through 13
+*depends on preview URLs existing*. The infrastructure the reviews run on had been scheduled after
+the reviews. The other three: two separate plan sections with separate acceptance criteria had been
+merged into one checkpoint; the scaffold milestone traced to no plan section at all (violating the
+project's own traceability rule); and testing had been treated as one late phase when its layers
+actually attach to five different milestones.
+
+**Two distinct lessons, worth separating.**
+
+- **A fresh adversarial pass on an approved plan finds things.** Some of this has nothing to do with
+  model choice — re-reading a plan with the explicit goal of breaking it is a different activity
+  from writing it, and catches different problems. This is just design review, and it works for the
+  same reason code review works.
+- **Model capability is a lever you control, and matching it to task difficulty matters.** Detecting
+  that a dependency runs backwards across a 15-item plan is a harder reasoning task than drafting
+  the list was. Spending more capable (and more expensive) inference on the small number of
+  decisions that are expensive to reverse — and less on routine work — is a real cost/quality
+  tradeoff, not a "always use the biggest model" rule.
+
+**Why this is worth defending in an interview.** The failure mode in AI-assisted development isn't
+usually that the model writes bad code — it's that a plausible-sounding plan gets approved and
+built before anyone stress-tests it, and the structural mistake only surfaces weeks later when it's
+expensive. The counter is cheap: re-review the things that are costly to undo, deliberately, before
+building on them. Catching a backwards dependency in a plan costs one conversation; catching it in
+milestone 13 costs a rebuild.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
