@@ -1,0 +1,34 @@
+# Minimal CI per §12/D18: install from scratch, then the same checks the edit hook runs
+# locally. Catches "works on my machine" — a fresh install on a clean runner is the only
+# thing that proves the committed lockfile actually builds.
+#
+# Deliberately does NOT block merges (D18). The owner merges manually after reviewing the
+# preview URL, so a red check is information, not a gate.
+name: CI
+
+on: push
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

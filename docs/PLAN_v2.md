@@ -1,12 +1,18 @@
-# Code Concept Visualizer — Master Plan (v0.2) — FROZEN
+# Code Concept Visualizer — Master Plan (v2, living)
 
-> ## ⚠️ This document is frozen. Do not build from it.
+> **This is the working plan. `PLAN.md` is the frozen Session 0 original.**
 >
-> This is the plan exactly as it stood at the end of Session 0, before any application code existed.
-> It is kept unchanged on purpose, as the "before" half of a before/after pair.
+> Everything in `PLAN.md` was written before a single line of the app existed. This file starts as
+> an exact copy of it and gets corrected as building reveals what planning missed. The two are kept
+> side by side deliberately: the difference between them is the record of what the build actually
+> taught us, which is more honest — and more interesting — than pretending the first draft was
+> right.
 >
-> **The living plan is [`PLAN_v2.md`](PLAN_v2.md)** — that is the one to read, build from, and
-> update. The Resume-here box and status board live there, not here.
+> **Change log**
+>
+> | When | Change                                                                                                                                                                                                                                                                                                                                                                                             |
+> | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+> | m1   | Split created. §2 gained a **Stack** subsection (the stack was only ever recorded in the deleted §0, so React/Vite/Tailwind traced to nothing and Framer Motion appeared nowhere). Milestone table given owners for 7 pieces of unowned work. AC-2.7 and AC-2.3 re-sequenced — both were scheduled before the things they depend on existed. §13's milestone-less status documented as deliberate. |
 
 ## Context
 
@@ -23,9 +29,12 @@ Three constraints shape every decision:
 3. **The scope contract is a supported Python subset, not a list of concepts.** This is testable: a
    fixture file of accepted and rejected programs, each with specified behavior.
 
-**Status: PLANNING COMPLETE. Session 0 (working-agreement setup) done. Milestone 1 is next.**
+**Status: PLANNING COMPLETE. Session 0 done. Milestone 1 in progress.**
 
 > ### ⏸ Resume here
+>
+> **This box and the status board below live in `PLAN_v2.md` only** — never in the frozen `PLAN.md`,
+> so live state has exactly one home.
 >
 > **All 14 sections locked.** 41 numbered decisions recorded. Full read-through complete.
 >
@@ -37,9 +46,20 @@ Three constraints shape every decision:
 > `origin/main`. (`/new-lesson` was moved out of Session 0 — it is authored at **milestone 7**, from
 > a real lesson rather than from a guess.)
 >
-> Next: **milestone 1** — scaffold, CI, and Vercel preview URLs. Not the engine; the review loop
-> depends on preview URLs existing first. See the Build milestones table below, and _How the build
-> actually runs_ for the ten-step per-milestone loop.
+> **Milestone 1 is built and checkpointed** (see `checkpoint_report.md`). Vite/React/TS/Tailwind/
+> Vitest/Prettier scaffold, npm scripts that make `check.sh` real, GitHub Actions CI, a throwaway
+> placeholder page, the `src/engine` ÷ `src/player` split with its boundary test, and this v2 plan
+> split. An audit run before writing any code found seven pieces of promised work that no milestone
+> owned, plus two criteria scheduled before the things they depend on existed; all corrected here in
+> v2 and marked **v2** inline.
+>
+> **Outstanding before milestone 2:** (a) the owner connects Vercel — AC-12.7 is the one milestone-1
+> criterion not yet met, and every later review depends on it; (b) three pointer edits re-lock §13
+> (see the status board and `decisions/001-living-plan-split.md`). Agent visual self-review is
+> settled: Playwright moved to m5, writing PNGs the agent reads (`DESIGN_RATIONALE.md` §19).
+>
+> Then: **milestone 2** — the Python subset validator and fixture suite (§1). See the Build
+> milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -55,9 +75,14 @@ Three constraints shape every decision:
 and has no separate content. Any section that reopens gets listed here with its status; an empty
 list below means nothing is open.
 
-| Section                 | Status | Reopened by |
-| ----------------------- | ------ | ----------- |
-| _(none currently open)_ |        |             |
+| Section                           | Status                                   | Reopened by                                                      |
+| --------------------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
+| _(none currently open)_ | | |
+
+> **§13 was reopened and re-locked during m1** by
+> [`001-living-plan-split.md`](decisions/001-living-plan-split.md): freezing `PLAN.md` invalidated
+> every reference §13 made to it. Re-locked once `CLAUDE.md`, `/checkpoint`, `/log-decision` and
+> §13's own text were repointed at `PLAN_v2.md`. First real exercise of the reopening rule.
 
 **Reopening rule:** changing a LOCKED section requires an entry in `docs/decisions/` stating what
 changed, why, and which sections it invalidates. Those revert to open, get listed above, and must be
@@ -122,31 +147,52 @@ topics_, not equal units of build work (§14 is one markdown file; §3 is the ha
 project; §10 is eleven separate lessons). This table is the operative definition: **one milestone =
 one checkpoint = one branch = one merge.**
 
-| #                             | Milestone                                                                   | Plan sections           | Why this boundary                                                                                                                                                           |
-| ----------------------------- | --------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase A — Foundation**      |                                                                             |                         |                                                                                                                                                                             |
-| 1                             | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + Vercel preview URLs**     | §2 stack, §12 CI/deploy | Preview URLs are a _precondition_ of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here |
-| 2                             | Python subset validator + fixture suite                                     | §1                      | Fully testable with zero execution; "is the scope contract right?" is its own judgment call                                                                                 |
-| 3                             | Execution engine: Pyodide, Web Worker, guardrails                           | §2                      | §2's headline test (`while True: pass`) needs no tracing — self-contained                                                                                                   |
-| 4                             | Tier 1 trace pipeline + recorded-run snapshots                              | §3 (T1)                 | Different question from #3: _is the recording correct_, not _does it run safely_                                                                                            |
-| **Phase B — The visible app** |                                                                             |                         |                                                                                                                                                                             |
-| 5                             | Drawing system: value shapes, spotlight rule, motion vocabulary             | §5, §6                  | First visual review. Needs real frames from #4, never mock data                                                                                                             |
-| 6                             | Playback controls + code editor & error UX                                  | §7, §8                  | Both are the shell around the picture; reviewed together. **End of #6 = first demoable build**                                                                              |
-| **Phase C — Content**         |                                                                             |                         |                                                                                                                                                                             |
-| 7                             | Lesson 1 + author `/new-lesson` from it                                     | §4, §10                 | Pattern-setting. Get it wrong once, not eight times — and the command is written from a real example                                                                        |
-| 8                             | Mode A lessons 2–8                                                          | §10                     | Homogeneous; batching avoids 7 near-identical checkpoints                                                                                                                   |
-| 9                             | Mode B lessons 9–11 (+ merge sort stretch)                                  | §10                     | **D14**: lessons 1–8 polished before these start                                                                                                                            |
-| 10                            | Landing page & navigation                                                   | §11                     | Needs lesson recordings (#7–9) to exist                                                                                                                                     |
-| **Phase D — Depth**           |                                                                             |                         |                                                                                                                                                                             |
-| 11                            | Tier 2 — Detailed instrumentation                                           | §3 (T2)                 | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                               |
-| 12                            | Game layer — Explore                                                        | §9                      | Needs the event vocabulary finalised in #11                                                                                                                                 |
-| 13                            | Game layer — Practice / reverse mode                                        | §9                      | New content-generation work; different review from #12                                                                                                                      |
-| 14                            | Flowcharts                                                                  | §9                      | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable                                                                                        |
-| **Phase E — Ship**            |                                                                             |                         |                                                                                                                                                                             |
-| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` | §12, §14                | All require a finished, stable system to document and pin                                                                                                                   |
+| #                             | Milestone                                                                                                                           | Plan sections                      | Why this boundary                                                                                                                                                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase A — Foundation**      |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
+| 1                             | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + Vercel preview URLs** · **engine/player split + boundary test** · **README stub** | §2 stack, §12 CI/deploy, §14 (D22) | Preview URLs are a _precondition_ of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here. **v2:** the D22 import boundary moved here from #15 — see the note below the table         |
+| 2                             | Python subset validator + fixture suite                                                                                             | §1, **§12 (layer 1)**              | Fully testable with zero execution; "is the scope contract right?" is its own judgment call. **v2:** AC-12.1 (fixture suite runs with one command, wired into the edit hook) is delivered here, not in a testing milestone                                              |
+| 3                             | Execution engine: Pyodide, Web Worker, guardrails                                                                                   | §2                                 | §2's headline test (`while True: pass`) needs no tracing — self-contained. **v2:** AC-2.7 is _not_ checkable here — see §2                                                                                                                                              |
+| 4                             | Tier 1 trace pipeline + recorded-run snapshots                                                                                      | §3 (T1), **§12 (layer 2)**         | Different question from #3: _is the recording correct_, not _does it run safely_. **v2:** AC-12.2 (a committed expected trace per fixture) is delivered here                                                                                                            |
+| **Phase B — The visible app** |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
+| 5                             | Drawing system: value shapes, spotlight rule, motion vocabulary · **Playwright (screenshots only)**                                 | §5, §6, **§13 (visual self-review)** | First visual review. Needs real frames from #4, never mock data. **v2:** Playwright moved here from #6 — §13 requires the agent to screenshot and check its own work, and this is the first milestone with anything to look at. Screenshots only here; the 5 click-through smokes still land at #6 |
+| 6                             | Playback controls + code editor & error UX · **5 click-through smokes**                                                             | §7, §8, **§12 (layer 4)**          | Both are the shell around the picture; reviewed together. **End of #6 = first demoable build** — which is exactly when a click-through test becomes possible, so **v2** lands AC-12.4 here rather than leaving it unowned. Playwright itself already arrived at #5      |
+| **Phase C — Content**         |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
+| 7                             | Lesson 1 + author `/new-lesson` from it                                                                                             | §4, §10                            | Pattern-setting. Get it wrong once, not eight times — and the command is written from a real example                                                                                                                                                                    |
+| 8                             | Mode A lessons 2–8                                                                                                                  | §10                                | Homogeneous; batching avoids 7 near-identical checkpoints                                                                                                                                                                                                               |
+| 9                             | Mode B lessons 9–11 (+ merge sort stretch)                                                                                          | §10                                | **D14**: lessons 1–8 polished before these start                                                                                                                                                                                                                        |
+| 10                            | Landing page & navigation · **React Router (one URL per lesson)**                                                                   | §11, §2 (AC-2.7)                   | Needs lesson recordings (#7–9) to exist. **v2:** routing was never specified anywhere — a URL per lesson makes a single lesson shareable as a link and makes the back button work. Also where **AC-2.7** (site survives Python failing to load) first becomes checkable |
+| **Phase D — Depth**           |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
+| 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
+| 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14    |
+| 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12                                                                                                                                                                                                                  |
+| 14                            | Flowcharts                                                                                                                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable                                                                                                                                                                                    |
+| **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
+| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
 
 **Cuttable under time pressure, in this order** (per existing decisions): merge sort (stretch) →
 flowcharts (#14, D28) → Mode B lessons (#9, D14). Nothing else is cut before quality is.
+
+### v2 note — why the D22 import boundary moved to milestone 1
+
+§14 assigns the automated player-must-not-import-engine rule (AC-14.2) to the §14 milestone, #15.
+But the player is first written in **#5**. That leaves ten milestones in which the rule can be
+broken with nothing watching, and it breaks _silently_: a player component needs one type that
+happens to live in the engine folder, imports it, and everything still works locally — while the
+landing page quietly starts pulling Python into its bundle. By #15 that is an untangling job, not a
+check.
+
+This is the same shape as the mistake caught before building started, where CI and preview URLs sat
+at #14 while #2–#13 depended on them. The rule is ~20 lines of test and costs nothing to run
+against empty folders, so it goes in at **#1** and simply never gets retrofitted. #15 still does the
+final verification.
+
+### v2 note — §13 has no milestone, deliberately
+
+§13 (the working agreement) is the only section absent from the table above. That is correct, not an
+oversight: it describes _how_ the project is built rather than a thing to build, and its acceptance
+criteria are distributed — AC-13.1 was satisfied in Session 0, AC-13.4 in #1, AC-13.5 (`/new-lesson`)
+in #7, and AC-13.2/13.3/13.6/13.7 are continuous obligations checked at **every** checkpoint.
 
 **Testing is distributed, not a phase.** Fixture suite → #2 · infinite-loop test → #3 ·
 recorded-run snapshots → #4 · click-through smokes → #6 · visual snapshots → #15.
@@ -237,6 +283,32 @@ keyword arguments · slice assignment.
 
 ## 2. Execution engine
 
+### Stack — the whole project, not just the engine
+
+> **Restored in v2 (m1).** This list lived only in §0 ("carried over from v0.1"), which the
+> redundancy cleanup deleted — leaving React, Vite and Tailwind traceable to nothing, and Framer
+> Motion mentioned nowhere at all. Since AC-13.7 forbids anything in the codebase that doesn't trace
+> to a plan section, this had to exist before the first `npm install`.
+
+| Piece                        | Role                                                                                          | First installed |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | --------------- |
+| **Vite**                     | build tool and dev server                                                                     | m1              |
+| **React** + **TypeScript**   | UI, typed throughout                                                                          | m1              |
+| **Tailwind**                 | styling (v4 — CSS-first, no config file)                                                      | m1              |
+| **Vitest** + Testing Library | unit and component tests                                                                      | m1              |
+| **Prettier**                 | formatting, run by `check.sh`                                                                 | m1              |
+| **Comlink**                  | typed messaging across the Web Worker boundary (§2)                                           | m3              |
+| **Framer Motion**            | the motion vocabulary — every gesture in §5                                                   | m5              |
+| **CodeMirror 6**             | the code editor, which _is_ the display (§8)                                                  | m6              |
+| **Playwright**               | agent visual self-review from m5 (§13); the 5 click-through smokes at m6 (§12 layer 4)        | m5              |
+| **React Router**             | one URL per lesson, so a link to a single lesson is shareable and the back button works (§11) | m10             |
+
+No state-management library. The pre-computed frame array (§3) means the app's state is essentially
+`frames[index]` — React's own state and context cover it, and adding a store would be ceremony
+around a single integer.
+
+### The engine
+
 **Pyodide** — real CPython compiled to WebAssembly, running client-side. No backend, no sandbox
 service, static deploy. Real Python semantics for free, and its standard library includes the `ast`
 module needed for §3.
@@ -262,6 +334,7 @@ subtly wrong); server-side execution (needs a sandboxed backend).
 2. The landing page reaches first contentful paint **without waiting on Pyodide**. Only the editor
    panel shows a loading state.
 3. Cold and warm start times measured and recorded in the README. Warm start **under 1 second**.
+   _(v2: the README stub is created in m1 so this has somewhere to land.)_
 4. **Headline test:** pasting `while True: pass` and pressing Run terminates within 3 seconds, shows
    a clear "your code ran too long" message, and leaves the app fully usable — the user can edit and
    re-run **without reloading the page**.
@@ -270,6 +343,9 @@ subtly wrong); server-side execution (needs a sandboxed backend).
 7. _(Added by §14/D21.)_ If the engine fails to load entirely, the site degrades gracefully: every
    lesson still animates from its shipped recording, and only "Run your own code" is unavailable —
    with a clear message, never a silent failure.
+   > **v2 re-sequencing:** this criterion sits in §2 but **cannot be checked at m3** — it requires
+   > lessons and their shipped recordings, which don't exist until m7–m9. **Verified at m10**
+   > (landing page and navigation, where recordings are first played), final check at m15.
 
 ---
 
@@ -733,6 +809,12 @@ the mobile strategy (§14) nearly free.
 from the landing page — which matters for a visitor with thirty seconds who wants the best-looking
 thing you built. Cards show name, a small static preview, and a Mode A / Mode B badge.
 
+> **v2 addition — one URL per lesson.** The original plan never said how navigation works
+> mechanically. Lessons get real routes (`/lesson/bubble-sort`) via React Router rather than being
+> swapped in as component state. Two concrete reasons: a preview link can point at one specific
+> lesson — which is how a milestone actually gets reviewed, and how the project gets shown to someone
+> in one click — and the browser back button returns to the grid instead of leaving the site.
+
 **Acceptance criteria**
 
 1. **Visible motion within 1 second of page load**, measured on a cold cache with Python not yet
@@ -788,18 +870,26 @@ screenshot cannot convey motion, which is the entire premise of the project.
 
 **Acceptance criteria**
 
-1. The fixture suite runs with one command and is wired into the edit hook.
+> **v2 — which milestone delivers each.** These nine criteria were the largest source of unowned
+> work found in the m1 audit: §12 was cited only by milestones #1 and #15, so five of them belonged
+> to milestones that never referenced §12 at all. Each now names its owner.
+
+1. The fixture suite runs with one command and is wired into the edit hook. **→ m2**
 2. Every fixture has a committed expected trace. A deliberate engine change causes visible snapshot
-   failures rather than silent drift.
+   failures rather than silent drift. **→ m4**
 3. Ten visual snapshots exist, covering: landing page · Mode A lesson mid-run · Mode B lesson
    mid-run · a swap in progress · a comparison in progress · call stack at depth 3 · a dict · a nested
-   list · a runtime error state · a Challenge mode prompt.
-4. Five click-through smoke tests pass against a real browser.
-5. `while True: pass` is covered by an automated test, not a manual check.
-6. CI runs install → typecheck → test → build on every push and is green on `main`.
+   list · a runtime error state · a Challenge mode prompt. **→ m15**
+4. Five click-through smoke tests pass against a real browser. **→ m6** _(v2: previously unowned;
+   m6 is the first demoable build, so it is the first point at which a click-through is possible.)_
+5. `while True: pass` is covered by an automated test, not a manual check. **→ m3**
+6. CI runs install → typecheck → test → build on every push and is green on `main`. **→ m1**
 7. Every milestone branch produces a working preview URL **before** the owner is asked to review it.
-8. README exists with an auto-playing demo GIF under ~5 MB.
+   **→ m1** _(precondition for reviewing every later milestone.)_
+8. README exists with an auto-playing demo GIF under ~5 MB. **→ m15** _(v2: previously unowned. The
+   README itself is stubbed in m1, since AC-2.3 writes start-up times into it at m3.)_
 9. The deployed production site loads and every lesson works **on the real URL**, not just locally.
+   **→ m15**
 
 ---
 
@@ -820,7 +910,7 @@ with real work in between.
 
 One-paragraph project description · the standing checkpoint instruction · the locked hard rules
 (25-item cap · no scrolling or virtualisation anywhere · the spotlight rule · nothing ships that isn't
-in the plan) · the never-touch-git rule · a pointer to `docs/PLAN.md` as source of truth. Rules live
+in the plan) · the never-touch-git rule · a pointer to `docs/PLAN_v2.md` as source of truth. Rules live
 here; _detail_ lives in the plan. Kept short deliberately — long rules files dilute the rules that
 matter.
 
@@ -861,6 +951,19 @@ The agent runs the app and screenshots it to check its own work, so defects like
 the wrong box" are caught before the owner sees them. Essential for a project entirely about
 appearance and motion.
 
+> **v2 — how this actually works.** The original text assumed the agent could see the running app;
+> it can't. It has no browser. What it *can* do is read image files. So from **m5**, Playwright
+> boots the app and writes PNGs to disk, and the agent reads those — which is the whole mechanism.
+> No MCP server or extra tooling is involved.
+>
+> Playwright therefore moves from m6 to **m5**, the first milestone with anything to look at. It is
+> the same dependency that later runs the 5 click-through smokes (m6, AC-12.4) and produces the ~10
+> committed visual snapshots (m15, AC-12.3) — one tool, three jobs, which is also why no separate
+> screenshot dependency is warranted.
+>
+> Discovered the honest way: m1's checkpoint could not produce screenshots, and the gap would have
+> surfaced in the middle of m5 — the milestone where it matters most — rather than before it.
+
 ### Session 0 — setup as a teaching session (D40)
 
 The owner's stated goal is to learn to operate an AI coding agent, not only to get a product. So the
@@ -896,9 +999,9 @@ the tool looks or teaches.
    failure rather than a silent pass.
 5. `/new-lesson` and `/checkpoint` exist and are used for **every** lesson and checkpoint — not just
    the first.
-6. `docs/PLAN.md` status board is current at the end of every milestone, with no section marked
+6. `docs/PLAN_v2.md` status board is current at the end of every milestone, with no section marked
    LOCKED that lacks written acceptance criteria.
-7. Nothing exists in the codebase that is not traceable to a section of `docs/PLAN.md` or a written
+7. Nothing exists in the codebase that is not traceable to a section of `docs/PLAN_v2.md` or a written
    entry in `docs/decisions/`.
 
 ---
@@ -952,6 +1055,8 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 1. `docs/PORTING.md` exists and covers all six topics above.
 2. An automated import rule prevents any player module from importing the engine. Deliberately adding
    such an import fails the check visibly.
+   _(v2: established in **m1**, not here — see the note under the milestone table. m15 still does the
+   final verification.)_
 3. All 11 lessons ship a saved recording; each is byte-identical to the committed test snapshot for
    that lesson's default input.
 4. **With the Python engine blocked entirely** (simulate by blocking the Pyodide request), the site
