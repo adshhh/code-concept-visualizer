@@ -381,6 +381,70 @@ milestone 13 costs a rebuild.
 
 ---
 
+## 16. Auditing the plan itself for contradictions before building starts
+
+**The situation.** Planning ran long and iterative — 41 decisions recorded, several of them
+revising earlier ones (the lesson count dropped from 12 to 11, "race mode" was renamed to "compare
+the algorithms," the milestone table replaced an earlier "checkpoint after every section" model).
+A planning document that gets revised this many times naturally accumulates drift: a later decision
+gets recorded correctly, but earlier prose describing the same topic doesn't automatically update
+to match it.
+
+**Options considered.**
+- Fix contradictions as they're noticed, during the build. Cheaper up front, but risks building a
+  milestone against stale or self-contradictory instructions before anyone catches it.
+- Do a systematic audit now, before milestone 1, while the document is still small enough to check
+  exhaustively and no code depends on it yet.
+
+**Decision.** The systematic audit. A grep-based pass across the whole document found 13
+contradictions — stale lesson counts, stale feature names, a stale Resume-here pointer, decisions
+D40 and D41 missing from the decisions table — all fixed in the same pass. It also surfaced a
+follow-on problem: `CLAUDE.md` itself was stale in the same way, still describing "sections" rather
+than the milestone workflow that superseded it, and got fixed alongside.
+
+**Why this doesn't reopen anything LOCKED.** Every fix in this pass corrected prose to match a
+decision that was already made and already locked — it didn't reverse or change any decision itself.
+On the test in the Reopening rule ("changing a LOCKED section"), this is maintenance, not a change:
+nothing here required a `docs/decisions/` entry, only this narrative record of why the audit
+happened.
+
+**Trade-off.** None of real substance — the cost was a few hours of audit against zero downside.
+The one thing worth naming: doing this kind of audit only catches drift that already happened. It
+doesn't prevent the next one, which is exactly why the traceability rule and the Reopening rule
+exist as standing mechanisms rather than one-time cleanups.
+
+---
+
+## 17. Why checkpoints append to one running log file
+
+**The situation.** The working agreement (§13) specifies *what* a checkpoint reports — what was
+built, why, screenshots — but not *where* that report persists. That gap surfaced concretely while
+drafting `/checkpoint`.
+
+**Options considered.**
+- No persisted file — checkpoints exist only as chat output. Simplest, but nothing survives a
+  compaction, a new session, or a teammate reading the repo without the chat history.
+- One file per milestone. Keeps each report self-contained, but produces 15 scattered files with no
+  single place to read the project's history end-to-end.
+- One running log, `docs/checkpoint_report.md`, that every `/checkpoint` run appends to.
+
+**Decision.** The running log. Every milestone's report lands as a new section in the same file, in
+build order.
+
+**Why.** A single file is greppable and readable start to finish — it becomes a chronological
+history of the whole build, independent of which chat session produced which milestone. That
+independence matters concretely: this project's continuity already leans on files rather than chat
+memory (the Resume-here box exists for the same reason), so a checkpoint history that only lived in
+chat would undermine the same principle.
+
+**Trade-off, and an open question worth flagging rather than deciding silently.** The file will
+grow large over 15 milestones — not addressed now. More structurally: §13's acceptance criteria say
+nothing exists in the codebase without tracing to a `docs/PLAN.md` section *or* a `docs/decisions/`
+entry, and `checkpoint_report.md` isn't named in either yet — this entry documents the reasoning,
+but doesn't by itself satisfy that literal traceability requirement.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
