@@ -24,8 +24,14 @@ Three constraints shape every decision:
 > Currently in: **Session 0** — `CLAUDE.md`, the blocking hooks, `/checkpoint`, `/log-decision`, and
 > the owner's first git branch/commit/merge cycle, taught step by step (D40). Done so far: git repo
 > initialized, `CLAUDE.md` written, `check.sh` + `no-git.sh` hooks live and verified, milestone
-> breakdown defined. (`/new-lesson` moved out of Session 0 — it is authored at **milestone 7**, from
-> a real lesson rather than from a guess.)
+> breakdown defined, `/checkpoint` and `/log-decision` written (by the owner) and reviewed, the
+> *How the build actually runs* table updated to match what they actually do, and both pending
+> decisions logged (`DESIGN_RATIONALE.md` §16–§17: the contradiction audit, and
+> `checkpoint_report.md`'s scope — now named directly in §13 so it's traceable without an ADR).
+> (`/new-lesson` moved out of Session 0 — it is authored at **milestone 7**, from a real lesson
+> rather than from a guess.)
+>
+> Remaining in Session 0: the owner's git walkthrough — remote, commit, push — taught step by step.
 >
 > Next after Session 0: **milestone 1** — scaffold, CI, and Vercel preview URLs. Not the engine; the
 > review loop depends on preview URLs existing first. See the Build milestones table below.
@@ -152,10 +158,16 @@ Each milestone above is one pass through this loop. Same ten steps, fifteen time
 | 4 | **Owner** | ⭐ Review and approve the plan — or redirect |
 | 5 | Agent | Build it. `check.sh` runs after every edit and blocks on failure |
 | 6 | Agent | Screenshot its own work and fix what looks wrong before the owner sees it |
-| 7 | Agent | `/checkpoint` — what/why/screenshots, status board, git commands |
+| 7 | Agent | `/checkpoint` — what/why/files/uncertain/screenshots, updates the Resume-here box, names the next milestone, gives git commands |
 | 8 | **Owner** | ⭐ Open the preview URL, check against that milestone's acceptance criteria |
 | 9 | **Owner** | Run `/code-review` on the diff |
 | 10 | **Owner** | Commit, push, merge |
+
+**`/log-decision` is conditional, not a numbered step.** If something decided during step 5 needs
+defending later — especially anything that reverses a LOCKED section — the agent runs
+`/log-decision` before checkpointing. It always adds an entry to `DESIGN_RATIONALE.md`; it only
+touches `docs/decisions/` and reopens a section in the status board if a locked decision actually
+changed. This can happen zero or more times per milestone; it doesn't replace step 7.
 
 **Steps 4 and 8 are the leverage points.** Everything else is either mechanical or the agent's.
 Step 4 is cheap to redirect — it is a paragraph, not code. Step 8 is where the owner catches what
@@ -812,7 +824,9 @@ matter.
 After every milestone, automatically and unprompted: **what was built** (plain language) · **why**,
 including any decision made independently · **screenshots**. The owner verifies in the running app, so
 no separate verification checklist is required — but anything the agent is uncertain about must be
-flagged explicitly rather than glossed.
+flagged explicitly rather than glossed. Every checkpoint appends to **`docs/checkpoint_report.md`**,
+a single running log of all milestones in build order — not a fresh file per milestone — so the
+project's history stays readable end to end and survives independent of any one chat session.
 
 ### Automatic checks — strict and blocking
 
