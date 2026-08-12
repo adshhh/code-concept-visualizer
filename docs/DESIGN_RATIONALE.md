@@ -1,6 +1,6 @@
 # Design Rationale — Code Concept Visualizer
 
-This document exists for one purpose: so I can explain, in an interview or design review, *why*
+This document exists for one purpose: so I can explain, in an interview or design review, _why_
 this project looks the way it does — not just what it does. Each entry below is a real decision
 point from the build, with the options that were on the table, what I chose, and why. Where a
 trade-off was accepted rather than solved, that's stated explicitly rather than glossed over.
@@ -50,16 +50,17 @@ If I typed my own loop body — say, filtering negatives while accumulating a ru
 would animate it, because nobody had scripted that specific case. That's a demo, not a tool.
 
 **Options considered.**
+
 - Keep the curated-library plan. Safer, smaller, but fundamentally can't handle code it wasn't
   built for.
 - Build a full interpreter for a toy language. Rejected early — reinventing Python badly, for
   months of work, to get a worse and subtly-wrong version of something that already exists.
-- Run *real* Python, in the browser, and generate the animation from an actual execution trace.
+- Run _real_ Python, in the browser, and generate the animation from an actual execution trace.
 
 **Decision.** The third option, using Pyodide (real CPython compiled to WebAssembly, running
 client-side). This was only viable because Claude's first-pass estimate — "a full interpreter is a
 separate, months-long project" — turned out to be pricing the wrong thing. Once I asked "what if we
-use a *real* interpreter instead of writing one," the actual cost dropped enormously, and the
+use a _real_ interpreter instead of writing one," the actual cost dropped enormously, and the
 re-scope became obviously correct rather than merely ambitious.
 
 **Trade-off accepted.** Roughly 2–2.5× the original engineering estimate. Accepted deliberately —
@@ -71,10 +72,11 @@ better portfolio and interview story than a smaller, safer project would have be
 ## 2. Pre-computed trace, not a live-stepping interpreter
 
 **The situation.** Once code runs live, something has to drive the step-by-step animation. Two
-shapes are possible: compute the *entire* execution trace up front as an array, or step the
+shapes are possible: compute the _entire_ execution trace up front as an array, or step the
 interpreter live, one instruction at a time, on demand.
 
 **Options considered.**
+
 - **Live stepping.** Feels more "real" — but step-backward requires either re-running from the
   start every time or snapshotting state anyway, at which point you've built the array approach
   with extra steps. It also means animation state and execution state can drift apart, which is
@@ -97,6 +99,7 @@ tests to catch it after.
 ## 3. Choosing Pyodide over the alternatives
 
 **Options considered.**
+
 - **Skulpt** — loads faster, but it's a reimplementation of Python in JavaScript with drifting
   semantics from real Python, and no access to Python's own `ast` module (needed later for
   sub-expression tracing).
@@ -121,8 +124,8 @@ different browser. This became the deciding constraint for the mobile strategy (
 
 ## 4. Staging the hard part: ship a complete simple version before the risky one
 
-**The situation.** Python's built-in tracing (`sys.settrace`) reports once per *line* — it tells you
-a line ran and what the variables are now, but not that `arr[i]` was specifically *read*, or that a
+**The situation.** Python's built-in tracing (`sys.settrace`) reports once per _line_ — it tells you
+a line ran and what the variables are now, but not that `arr[i]` was specifically _read_, or that a
 comparison resolved. Getting that finer detail requires rewriting the user's code before running it,
 to inject reporting calls around every read and comparison — a nontrivial, genuinely risky piece of
 engineering (see next entry).
@@ -149,7 +152,7 @@ Detailed silently replacing Overview once it's done.
 every read, index, and comparison in a small reporting function that records what happened and
 immediately returns the original value unchanged — so the program computes exactly the same result,
 but now emits a stream of fine-grained events as it runs. This is a known technique (similar to how
-code-coverage tools work), not a novel invention — the actual work is doing it *correctly* across
+code-coverage tools work), not a novel invention — the actual work is doing it _correctly_ across
 every construct in the supported language subset while preserving Python's exact evaluation order.
 
 **Why this belongs in this document.** It's the single hardest module in the project, and it's the
@@ -184,10 +187,10 @@ scroll horizontally, virtualize the list, or show a sliding window that follows 
 three are genuine engineering work, and all three make the animation harder to follow — the
 interesting part can end up off-screen mid-explanation.
 
-**The cascading effect.** Capping the size didn't just avoid *one* problem — it deleted an entire
+**The cascading effect.** Capping the size didn't just avoid _one_ problem — it deleted an entire
 planned subsystem. The "sliding window with fade edges" design, and the rule for when to switch
 into it, were fully specified before I made this call, and became unnecessary the moment the cap
-existed. This is a good example of a scope constraint that *simplifies* the design rather than just
+existed. This is a good example of a scope constraint that _simplifies_ the design rather than just
 shrinking it — a smaller, purely additive kind of cut versus one that trades away capability.
 
 ---
@@ -195,7 +198,7 @@ shrinking it — a smaller, purely additive kind of cut versus one that trades a
 ## 8. One execution pipeline for both "write your own code" and "run a known algorithm"
 
 **The situation.** Some lessons need full freedom (write your own for-loop). Others are meant to
-showcase a specific, well-known algorithm (bubble sort) where the value is watching *that*
+showcase a specific, well-known algorithm (bubble sort) where the value is watching _that_
 algorithm operate on data you chose — not rewriting the sort logic yourself.
 
 **Decision.** Both are the same underlying mechanism: run source code, produce a frame array. The
@@ -211,7 +214,7 @@ free-form case already has to handle.
 
 ## 9. Discovering a platform constraint mid-project, and reshaping the mobile plan around it
 
-**The situation.** A native mobile version was always intended as a *future*, separate effort. But
+**The situation.** A native mobile version was always intended as a _future_, separate effort. But
 before finalizing what to hand off to that future session, I had Claude research whether the
 current architecture would even translate.
 
@@ -226,7 +229,7 @@ mobile is typing your own code, which is a reasonable trade given nobody wants t
 phone keyboard anyway.
 
 **Why this is worth explaining well.** This is a case of a technical constraint being discovered
-*during* planning rather than assumed away, and the plan changing in response rather than the
+_during_ planning rather than assumed away, and the plan changing in response rather than the
 constraint being ignored. It's also a nice example of turning a limitation into free functionality:
 the "recordings for instant playback" mechanism already had to be built for the landing page, so
 extending it to cover mobile cost almost nothing extra.
@@ -240,7 +243,7 @@ fill-in-the-blank flowchart exercise, and a "reassemble the code" exercise — a
 levels. Naively, that's a lot of separately authored content.
 
 **Decision.** Author exactly one thing per level: a short example program. Everything else is
-*derived* from it — the flowchart is generated by parsing the program (using the same parser that
+_derived_ from it — the flowchart is generated by parsing the program (using the same parser that
 already validates it), the reassembly blocks are the program's own lines shuffled, and a submitted
 answer is checked by literally running it through the same execution engine and comparing output.
 
@@ -256,7 +259,7 @@ turns into the expensive one over the course of a long build.
 **The situation.** My first pass at the "gamified" layer split things into "predict the next step"
 and "race mode" as flat, parallel features. When I actually described my own mental model back to
 Claude, it became clear there were really **two different activities** — "help me understand code
-*I* wrote" versus "teach me a concept using material *you* provide" — and the flat feature list was
+_I_ wrote" versus "teach me a concept using material _you_ provide" — and the flat feature list was
 hiding that structure rather than expressing it.
 
 **Decision.** Restructured into two top-level modes: **Explore** (your code or your data; includes
@@ -296,7 +299,7 @@ anything invoking `git` or `gh`, using a pattern-matching approach (`grep -w 'gi
 avoid matching "git" inside unrelated words.
 
 **The bug I found.** My first version blocked `cat no-git.sh` — a command that doesn't invoke git at
-all. The root cause: `grep -w` treats *any* punctuation (hyphens, dots, slashes) as a word boundary,
+all. The root cause: `grep -w` treats _any_ punctuation (hyphens, dots, slashes) as a word boundary,
 not just whitespace — so "git" inside the filename `no-git.sh` looked, to that regex, exactly like
 someone had typed the standalone word "git" with spaces around it.
 
@@ -354,7 +357,7 @@ requiring flowcharts to be separately cuttable). Corrected, and I approved it.
 to be reviewed again from scratch. That pass found **four** structural problems the first had
 missed, including one that would have quietly broken the entire review workflow: the CI and preview-
 deployment setup was scheduled as milestone 14, but the review process for milestones 2 through 13
-*depends on preview URLs existing*. The infrastructure the reviews run on had been scheduled after
+_depends on preview URLs existing_. The infrastructure the reviews run on had been scheduled after
 the reviews. The other three: two separate plan sections with separate acceptance criteria had been
 merged into one checkpoint; the scaffold milestone traced to no plan section at all (violating the
 project's own traceability rule); and testing had been treated as one late phase when its layers
@@ -391,6 +394,7 @@ gets recorded correctly, but earlier prose describing the same topic doesn't aut
 to match it.
 
 **Options considered.**
+
 - Fix contradictions as they're noticed, during the build. Cheaper up front, but risks building a
   milestone against stale or self-contradictory instructions before anyone catches it.
 - Do a systematic audit now, before milestone 1, while the document is still small enough to check
@@ -417,11 +421,12 @@ exist as standing mechanisms rather than one-time cleanups.
 
 ## 17. Why checkpoints append to one running log file
 
-**The situation.** The working agreement (§13) specifies *what* a checkpoint reports — what was
-built, why, screenshots — but not *where* that report persists. That gap surfaced concretely while
+**The situation.** The working agreement (§13) specifies _what_ a checkpoint reports — what was
+built, why, screenshots — but not _where_ that report persists. That gap surfaced concretely while
 drafting `/checkpoint`.
 
 **Options considered.**
+
 - No persisted file — checkpoints exist only as chat output. Simplest, but nothing survives a
   compaction, a new session, or a teammate reading the repo without the chat history.
 - One file per milestone. Keeps each report self-contained, but produces 15 scattered files with no
@@ -439,9 +444,100 @@ chat would undermine the same principle.
 
 **Trade-off, and an open question worth flagging rather than deciding silently.** The file will
 grow large over 15 milestones — not addressed now. More structurally: §13's acceptance criteria say
-nothing exists in the codebase without tracing to a `docs/PLAN.md` section *or* a `docs/decisions/`
+nothing exists in the codebase without tracing to a `docs/PLAN.md` section _or_ a `docs/decisions/`
 entry, and `checkpoint_report.md` isn't named in either yet — this entry documents the reasoning,
 but doesn't by itself satisfy that literal traceability requirement.
+
+---
+
+## 18. Splitting the plan in two: a frozen original and a living v2
+
+**The situation.** Before writing the first line of application code, I had the plan audited against
+a simple question: does every piece this project needs have a milestone that actually builds it?
+Seven didn't. Five acceptance criteria were promised in §12 but owned by no milestone — including the
+five browser click-through tests and the README demo GIF. Linear search had to exist as code for the
+compare-the-algorithms feature but, having no lesson card, would never have been written. And two
+criteria were scheduled before the things they depend on existed: AC-2.7 ("the site still works if
+Python fails to load") sat in a milestone that runs before any lesson exists, and the D22 import
+boundary — the rule that keeps the landing page and the entire mobile strategy viable — was scheduled
+for the _final_ milestone, ten milestones after the code it constrains gets written.
+
+That last one is the same mistake, in the same shape, as one caught earlier during planning: CI and
+preview URLs originally sat at milestone 14 while milestones 2–13 depended on them. Different
+subject, identical failure — infrastructure scheduled after its dependents.
+
+**Options considered.**
+
+- **Edit `PLAN.md` in place.** Simplest. But it overwrites the evidence — the plan would end up
+  looking like it had been right all along.
+- **Rely on git history for the original.** Technically sufficient (`git show <sha>:docs/PLAN.md`
+  returns it exactly), and costs nothing. But nobody reading the repository will run git commands to
+  reconstruct a document, so in practice the "before" version becomes invisible.
+- **Two files side by side:** freeze `PLAN.md` as the Session 0 original, and make `PLAN_v2.md` the
+  living document, with every correction marked **v2** inline.
+
+**Decision.** The two-file split. `PLAN.md` gets a banner saying it is frozen and pointing at v2;
+all live state (the Resume-here box, the status board) moves to v2 so there is exactly one home for
+it.
+
+**Why.** The interesting artifact here isn't a correct plan — it's the _delta_. A reader can put the
+two files next to each other and see specifically what a first-time planner got wrong, and that the
+corrections came from auditing rather than from things breaking in production. That's a more
+defensible claim than a plan with no history, and a more useful one than a git log nobody opens.
+
+**Trade-off accepted.** Two documents can drift, and the failure mode is bad: a future session reads
+the frozen file and builds from stale instructions. Three mitigations, all of them cheap: the banner
+on `PLAN.md`, live state existing only in v2, and repointing `CLAUDE.md` and both slash commands at
+v2. The last of those is why this decision reopened §13 — see `docs/decisions/001-living-plan-split.md`.
+
+**One honest caveat.** An audit only finds what's already gone wrong. It doesn't stop the next gap
+from opening, which is exactly why the traceability rule and the reopening rule exist as standing
+mechanisms rather than one-time cleanups — and why v2 is structured to keep absorbing corrections
+rather than being "finished."
+
+---
+
+## 19. Discovering that the agent cannot see the app it is building
+
+**The situation.** The working agreement had a clause I'd taken at face value: the agent "runs the
+app and screenshots it to check its own work," so that defects like an arrow pointing at the wrong
+box get caught before I ever look. For a project whose entire premise is appearance and motion,
+that self-review step is not a nicety.
+
+At the first checkpoint it turned out to be fiction. Claude Code has no browser and cannot see a
+rendered page. Milestone 1 was infrastructure, so nothing was lost — but milestone 5 is the drawing
+system, and the gap would have surfaced in the middle of the one milestone where it matters most.
+
+**Options considered.**
+
+- **Connect a browser MCP server** (`@playwright/mcp`). Gives the agent interactive control — click
+  around, poke at a broken state. Powerful, but a new moving part, and interactivity isn't what the
+  self-review step needs.
+- **Have me do all visual review.** No tooling at all, but it removes the pass that was supposed to
+  catch the obvious problems before they reach me, which defeats the point of having it.
+- **Use Playwright as a project dependency, moved from milestone 6 to milestone 5.** It boots the
+  app and writes PNGs; the agent reads the image files directly.
+
+**Decision.** The third. The key detail is unglamorous: the agent can read image files. So anything
+that writes a PNG to disk restores the whole workflow — no MCP server, no new capability, no extra
+dependency.
+
+**Why this one.** Playwright was already in the plan for milestone 6, so nothing new enters the
+project — it just arrives one milestone earlier, at the first point there is anything to look at.
+It's the same dependency that later runs the five click-through smoke tests and produces the ten
+committed visual snapshots: one tool, three jobs. It also runs in CI, so screenshots don't depend on
+a particular agent session. An MCP server would have added a second way to do the same thing.
+
+**Trade-off accepted.** Screenshots are non-interactive: the agent gets stills of states it thought
+to capture, not the ability to explore. If a future milestone needs genuine poking-around debugging,
+the MCP option is still open and would sit alongside this rather than replace it.
+
+**Why this is worth telling.** The interesting part isn't the fix, it's that a plan written with
+care still contained a step that assumed a capability the tool doesn't have. Nothing catches that
+except trying to do the thing. This is the argument for the checkpoint discipline in general —
+milestone 1 was the cheapest possible place to find out, and the reason it surfaced there is that
+the checkpoint format forces "anything you're uncertain about goes here explicitly" rather than
+letting an inconvenient gap go unmentioned.
 
 ---
 

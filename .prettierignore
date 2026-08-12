@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+
+# Plan and decision documents are hand-formatted prose. Prettier rewrites markdown
+# emphasis markers and table padding, which produces large, meaningless diffs on the
+# documents most worth reading in a diff — and `PLAN.md` is frozen, so nothing should
+# rewrite it at all.
+docs/
