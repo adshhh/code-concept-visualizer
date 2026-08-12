@@ -15,26 +15,23 @@ Three constraints shape every decision:
 3. **The scope contract is a supported Python subset, not a list of concepts.** This is testable: a
    fixture file of accepted and rejected programs, each with specified behavior.
 
-**Status: PLANNING COMPLETE. Session 0 (working-agreement setup) in progress.**
+**Status: PLANNING COMPLETE. Session 0 (working-agreement setup) done. Milestone 1 is next.**
 
 > ### ⏸ Resume here
 >
 > **All 14 sections locked.** 41 numbered decisions recorded. Full read-through complete.
 >
-> Currently in: **Session 0** — `CLAUDE.md`, the blocking hooks, `/checkpoint`, `/log-decision`, and
-> the owner's first git branch/commit/merge cycle, taught step by step (D40). Done so far: git repo
-> initialized, `CLAUDE.md` written, `check.sh` + `no-git.sh` hooks live and verified, milestone
-> breakdown defined, `/checkpoint` and `/log-decision` written (by the owner) and reviewed, the
-> *How the build actually runs* table updated to match what they actually do, and both pending
-> decisions logged (`DESIGN_RATIONALE.md` §16–§17: the contradiction audit, and
-> `checkpoint_report.md`'s scope — now named directly in §13 so it's traceable without an ADR).
-> (`/new-lesson` moved out of Session 0 — it is authored at **milestone 7**, from a real lesson
-> rather than from a guess.)
+> **Session 0 is complete.** Built and verified: `CLAUDE.md`, `check.sh` + `no-git.sh` hooks,
+> `/checkpoint` and `/log-decision` (written by the owner, reviewed), the milestone breakdown, the
+> *How the build actually runs* table, and two logged decisions (`DESIGN_RATIONALE.md` §16–§17).
+> The owner's first git walkthrough is done: `origin` set to
+> `github.com/adshhh/code-concept-visualizer`, all Session 0 commits pushed, `main` tracks
+> `origin/main`. (`/new-lesson` was moved out of Session 0 — it is authored at **milestone 7**, from
+> a real lesson rather than from a guess.)
 >
-> Remaining in Session 0: the owner's git walkthrough — remote, commit, push — taught step by step.
->
-> Next after Session 0: **milestone 1** — scaffold, CI, and Vercel preview URLs. Not the engine; the
-> review loop depends on preview URLs existing first. See the Build milestones table below.
+> Next: **milestone 1** — scaffold, CI, and Vercel preview URLs. Not the engine; the review loop
+> depends on preview URLs existing first. See the Build milestones table below, and *How the build
+> actually runs* for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
