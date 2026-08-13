@@ -98,8 +98,19 @@ Decisions made independently this milestone, with reasoning:
    `milestone-1-scaffold`.
 5. **TypeScript 7 is very new** (a full compiler rewrite). Nothing has misbehaved, but if odd type
    errors appear later, the version is a reasonable first suspect.
-6. **AC-12.7 is not yet satisfied** — Vercel isn't connected, so there's no preview URL yet. That's
-   the last step below.
+6. ~~**AC-12.7 is not yet satisfied**~~ **Resolved — via Netlify, not Vercel.** The owner's Vercel
+   account was deleted pre-project and couldn't be re-created (three independent signup paths
+   failed identically). Switched to Netlify — logged as `decisions/002-netlify-not-vercel.md` since
+   D19 named Vercel specifically. Getting Netlify actually serving the site took real
+   troubleshooting, worth recording since none of it was code: (a) Netlify doesn't auto-preview
+   branch pushes by default the way Vercel does — fixed by enabling "Branch deploys: All"; (b) new
+   sites default deploy previews to team-only visibility, which silently defeats "reviewable from
+   any device" — fixed by setting Deploy Preview visibility to Public; (c) the dashboard's Base
+   directory was set to `dist` (the build *output*) instead of Publish directory — with the fields
+   swapped, Netlify never ran a real build and served the raw source `index.html`, which tried to
+   load `/src/main.tsx` directly and got rejected by the browser's module-script MIME check. Fixed
+   by setting Base directory to repo root, Build command to `npm run build`, Publish directory to
+   `dist`. Preview URL confirmed working: placeholder card renders correctly.
 
 ## Screenshots
 

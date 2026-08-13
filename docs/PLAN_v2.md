@@ -53,10 +53,16 @@ Three constraints shape every decision:
 > owned, plus two criteria scheduled before the things they depend on existed; all corrected here in
 > v2 and marked **v2** inline.
 >
-> **Outstanding before milestone 2:** (a) the owner connects Vercel — AC-12.7 is the one milestone-1
-> criterion not yet met, and every later review depends on it; (b) three pointer edits re-lock §13
-> (see the status board and `decisions/001-living-plan-split.md`). Agent visual self-review is
-> settled: Playwright moved to m5, writing PNGs the agent reads (`DESIGN_RATIONALE.md` §19).
+> **Milestone 1 is fully complete — all acceptance criteria met, nothing outstanding.** AC-12.7
+> (preview URL per branch) is satisfied via **Netlify**, not Vercel (D19 switched — the owner's old
+> Vercel account, deleted pre-project, couldn't be revived; see
+> `decisions/002-netlify-not-vercel.md`). §13 was reopened and re-locked within the same milestone
+> (`decisions/001-living-plan-split.md`). Agent visual self-review is settled: Playwright moved to
+> m5, writing PNGs the agent reads (`DESIGN_RATIONALE.md` §19).
+>
+> **Next: milestone 2** — the Python subset validator and fixture suite (§1). The owner should merge
+> `milestone-1-scaffold` into `main` first (step 10 of the build loop), which also gives production
+> its first real deploy.
 >
 > Then: **milestone 2** — the Python subset validator and fixture suite (§1). See the Build
 > milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
@@ -114,7 +120,7 @@ re-locked before building resumes.
 | D16 | Flat grid navigation — no ordering, no locking, every lesson one click away.                                                                                                                                                                                                                                                                      |
 | D17 | ~10 visual snapshot tests, deliberately capped.                                                                                                                                                                                                                                                                                                   |
 | D18 | Minimal CI on push; does not block merges.                                                                                                                                                                                                                                                                                                        |
-| D19 | Vercel with a live preview URL per branch.                                                                                                                                                                                                                                                                                                        |
+| D19 | _(superseded by v2/m1 — see §12 Deployment)_ A live preview URL per branch, one deploy platform, production from `main`. Originally named Vercel; switched to **Netlify** during m1 after the owner's Vercel account, deleted before this project began, could not be re-created. |
 | D20 | v1 includes a README with an auto-playing demo GIF.                                                                                                                                                                                                                                                                                               |
 | D21 | Mobile path = **pre-recorded lessons, no Python on mobile**. Desktop is the full tool; mobile is watch-and-step.                                                                                                                                                                                                                                  |
 | D22 | Portability effort = **one automatically enforced boundary**: the player must never depend on the engine.                                                                                                                                                                                                                                         |
@@ -150,7 +156,7 @@ one checkpoint = one branch = one merge.**
 | #                             | Milestone                                                                                                                           | Plan sections                      | Why this boundary                                                                                                                                                                                                                                                       |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Phase A — Foundation**      |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
-| 1                             | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + Vercel preview URLs** · **engine/player split + boundary test** · **README stub** | §2 stack, §12 CI/deploy, §14 (D22) | Preview URLs are a _precondition_ of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here. **v2:** the D22 import boundary moved here from #15 — see the note below the table         |
+| 1                             | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + preview URLs (Netlify)** · **engine/player split + boundary test** · **README stub** | §2 stack, §12 CI/deploy, §14 (D22) | Preview URLs are a _precondition_ of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here. **v2:** the D22 import boundary moved here from #15 — see the note below the table. Deploy platform switched from Vercel to Netlify — see D19 |
 | 2                             | Python subset validator + fixture suite                                                                                             | §1, **§12 (layer 1)**              | Fully testable with zero execution; "is the scope contract right?" is its own judgment call. **v2:** AC-12.1 (fixture suite runs with one command, wired into the edit hook) is delivered here, not in a testing milestone                                              |
 | 3                             | Execution engine: Pyodide, Web Worker, guardrails                                                                                   | §2                                 | §2's headline test (`while True: pass`) needs no tracing — self-contained. **v2:** AC-2.7 is _not_ checkable here — see §2                                                                                                                                              |
 | 4                             | Tier 1 trace pipeline + recorded-run snapshots                                                                                      | §3 (T1), **§12 (layer 2)**         | Different question from #3: _is the recording correct_, not _does it run safely_. **v2:** AC-12.2 (a committed expected trace per fixture) is delivered here                                                                                                            |
@@ -857,10 +863,18 @@ manually (D10).
 
 ### Deployment (D19)
 
-Vercel, with **a live preview URL per branch**. Each finished milestone reaches the owner as a
+**Netlify**, with **a live preview URL per branch**. Each finished milestone reaches the owner as a
 clickable link, reviewable on any device with zero local setup. Given the owner reviews rather than
 codes, this is the highest-leverage infrastructure in the project — which is why it is built in
 milestone 1, not late. Production deploys from `main`.
+
+> **v2 (m1): switched from Vercel to Netlify.** D19 originally named Vercel. The owner's Vercel
+> account was deleted and re-signup failed on three separate paths (GitHub OAuth, GitHub OAuth in
+> a clean incognito session, and email signup rejecting the address outright) — consistent with
+> the old account's records not being fully purged server-side, which isn't something either of us
+> can fix. What D19 actually requires — a preview URL per branch, auto-deploy on push, zero config
+> for a static Vite build, a free tier — Netlify provides identically. See
+> `docs/decisions/002-netlify-not-vercel.md`.
 
 ### v1 presentation (D20)
 
