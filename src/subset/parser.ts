@@ -3,6 +3,13 @@ import { REASONS, formatRejection } from "./messages";
 
 const COMPARISON_OPS = new Set(["==", "!=", "<", "<=", ">", ">="]);
 
+// D8's 25-item cap, static case (a list/dict literal over 25 in the source text). The
+// runtime case (growing past 25 via .append() while running) is enforced separately by
+// src/engine/guardrails.py's MAX_COLLECTION_SIZE, which must be kept equal to this — there
+// is no way to share one literal across the TypeScript/Python boundary, so this comment is
+// the cross-reference instead of a build-time link.
+const MAX_COLLECTION_SIZE = 25;
+
 function reject(line: number, key: keyof typeof REASONS): never {
   const reason = REASONS[key];
   throw new RejectionError(
@@ -110,12 +117,20 @@ export class Parser {
 
   private parseSuite(): void {
     this.expectOp(":");
-    this.expectType("NEWLINE");
-    this.expectType("INDENT");
-    while (this.peek().type !== "DEDENT" && this.peek().type !== "EOF") {
-      this.parseStatement();
+    // Real Python allows the body directly after the colon on the same line — this is
+    // exactly the shape of §2's own headline test, `while True: pass` — not just the
+    // indented-block form. A NEWLINE here means the indented form; anything else means a
+    // single statement follows immediately.
+    if (this.peek().type === "NEWLINE") {
+      this.advance();
+      this.expectType("INDENT");
+      while (this.peek().type !== "DEDENT" && this.peek().type !== "EOF") {
+        this.parseStatement();
+      }
+      this.expectType("DEDENT");
+      return;
     }
-    this.expectType("DEDENT");
+    this.parseStatement();
   }
 
   private parseStatement(): void {
@@ -524,7 +539,7 @@ export class Parser {
       this.advance();
       if (this.isOp("]")) break; // trailing comma
       count++;
-      if (count > 25) reject(line, "literalTooLarge");
+      if (count > MAX_COLLECTION_SIZE) reject(line, "literalTooLarge");
       this.parseExpression();
     }
   }
@@ -543,7 +558,7 @@ export class Parser {
         this.advance();
         if (this.isOp("}")) break;
         count++;
-        if (count > 25) reject(line, "literalTooLarge");
+        if (count > MAX_COLLECTION_SIZE) reject(line, "literalTooLarge");
         this.parseExpression();
         this.expectOp(":");
         this.parseExpression();

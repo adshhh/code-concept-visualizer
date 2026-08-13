@@ -14,6 +14,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "comlink": "^4.4.2",
+    "pyodide": "^314.0.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
@@ -31,6 +33,7 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.2.1",
+    "vite-plugin-static-copy": "^4.1.1",
     "vitest": "^4.1.10"
   }
 }

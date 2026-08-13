@@ -637,6 +637,93 @@ document by keyword, not by entry number.
 
 ---
 
+## 22. Making the milestone-1 audit a standing practice, not a one-time event
+
+**The situation.** By the end of milestone 2, two separate review passes (a `/code-review` run, and
+a follow-up pointed directly at files) had each found real issues that the previous pass missed —
+not because either pass was careless, but because a plan-consistency audit, a logic-focused code
+review, and a structural code review each catch a genuinely different class of problem, and none of
+them substitutes for the others. The milestone-1 audit itself (§16) was exactly this kind of check —
+run once, before any code existed, then never repeated.
+
+**The pattern worth naming.** Every recurring source of friction in this project so far has the same
+shape: something true about one part of the plan quietly stops being true relative to another part,
+and nobody notices until a milestone is being built against the stale version. §16 caught this
+within the planning document itself; §18 caught it in the plan's structure; §21 caught it inside a
+single milestone's own scope. Each was found by *deliberately looking for it*, not by accident.
+
+**Options considered.**
+
+- Keep doing full audits only when something prompts one (a plan-review request, a `/code-review`
+  finding). Cheapest, but relies on remembering to ask — exactly the failure mode this pattern
+  describes.
+- Do a full section-by-section audit of the entire plan before every milestone. Thorough, but most
+  of the plan doesn't change between milestones, so this is mostly repeated, wasted work.
+- A short, scoped audit of *just the milestone about to be built*, against its immediate neighbors
+  (the sections it cites, the milestone table's own reasoning for its boundaries, and any decision
+  numbered in the status board) — run automatically as part of writing that milestone's
+  implementation plan, before the plan is shown to the owner for approval.
+
+**Decision.** The third option. Concretely: before an implementation plan is written for any
+milestone from here on, spend a few sentences checking that milestone's cited plan sections against
+their neighbors — do the numbers agree, does anything scheduled here assume something a later
+milestone builds, does anything here contradict a locked decision — and write down what was checked,
+even when the answer is "no contradiction found." Applied to milestone 3 itself as the first
+instance (see its plan / checkpoint for what that audit found).
+
+**Why this belongs in this document.** It's a change to the ten-step build loop every milestone runs
+through, not to any single planning section — the kind of standing-practice change that's easy to
+adopt quietly and then just as easily let lapse under time pressure. Writing it down here, and
+giving it its own entry in `docs/decisions/`, is what makes it a commitment rather than a one-off
+good habit from milestone 2.
+
+**Trade-off.** A few extra sentences at the start of every milestone's planning, for the rest of the
+project. The honest limitation: an audit this short will not catch everything — it already didn't,
+even at full scale, in milestone 1. What it changes is the odds, not the guarantee.
+
+---
+
+## 23. Four judgment calls behind the milestone-3 execution engine
+
+**1. Guardrails enforced via a lightweight `sys.settrace` hook, not just a wall-clock timer.**
+_Options:_ rely solely on `worker.terminate()` after 3 seconds (simplest — kills anything, no
+Python cooperation needed), or also count steps/recursion depth from inside Python while it runs.
+_Decision:_ both, as defense-in-depth. The wall-clock timer is the guaranteed backstop; the
+settrace-based counters catch the step (2,000) and recursion (25) limits from §1 specifically,
+which the milestone table's "guardrails" scope requires and a bare timeout can't distinguish from
+each other in the message shown to the user. _Trade-off:_ real complexity — frame-filtering by
+filename so Pyodide's own internal call stack doesn't inflate the recursion count, and a
+per-collection recursive size check so a guardrail can't be defeated by nesting.
+
+**2. Pyodide tested directly under Node for milestone 3, not exclusively through a real browser
+Worker.** _Options:_ wait until Playwright arrives (m5) to test any of this for real, or use
+Pyodide's own documented Node.js support to test the actual Python execution and guardrail logic
+now, accepting that real-browser-only properties (Worker isolation, `terminate()` actually killing
+a stuck WASM loop, lazy-load not blocking first paint) can't be automated yet. _Decision:_ the
+second — confirmed via Pyodide's own docs that Node support is official, not a hack. _Trade-off:_ a
+real, named gap between what's automated and what's owner-verified for this one milestone, closed
+by the temporary dev harness (judgment call 4).
+
+**3. A terminated worker's replacement starts loading Pyodide immediately, in the background.**
+_Options:_ let the replacement worker stay idle until the next real Run triggers its own cold load,
+or proactively warm it the moment the old one is terminated. _Decision:_ proactive warming — cheap
+to add, and meaningfully changes what a timeout followed by an edit-and-rerun actually feels like,
+which is exactly what AC-2.4 promises ("without reloading the page").
+
+**4. A temporary, throwaway dev harness added to `App.tsx`, not deferred until real UI exists.**
+_Options:_ ship the engine with no way to see it work until milestone 6's real editor, or add
+minimal scaffolding now. _Decision:_ scaffolding now, same spirit as milestone 1's placeholder page
+— it's the only way the owner can personally verify the headline test (AC-2.4) and felt
+responsiveness (AC-2.1) in a real browser, which is stronger evidence than anything Vitest can
+produce at this stage. Lives in `App.tsx`, deliberately not `src/player/`, so it never has to
+satisfy the D22 boundary rule — and must be deleted before `src/player/` gains real content at m5.
+
+**Why none of this reopens anything LOCKED.** §2's actual acceptance criteria are unchanged; AC-2.1
+and AC-2.2 gained scheduling notes (mirroring AC-2.7's precedent from milestone 1), not new
+requirements or removed ones.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

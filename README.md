@@ -7,8 +7,9 @@ happens at runtime. This tool takes Python **you** write, executes it in the bro
 CPython (Pyodide, compiled to WebAssembly), and turns the execution into a step-controllable,
 gamified animation — without anyone having hand-scripted an animation for that specific example.
 
-> **Status: milestone 1 of 15 — scaffold, CI and deployment.** The visible app starts at milestone 5.
-> Progress and the full spec are in [`docs/PLAN_v2.md`](docs/PLAN_v2.md).
+> **Status: milestone 3 of 15 — the execution engine (Pyodide, Web Worker, guardrails) is live.**
+> The visible app starts at milestone 5. Progress and the full spec are in
+> [`docs/PLAN_v2.md`](docs/PLAN_v2.md).
 
 ## Running it locally
 
@@ -38,6 +39,21 @@ npm run dev
 | `src/engine/`                                            | runs Python, produces recordings — see its README for the one rule                 |
 | `src/player/`                                            | turns a recording into a picture, with no Python present                           |
 
+## Engine start-up time (AC-2.3)
+
+Pyodide loads lazily, inside a Web Worker, the first time code is actually run — not at page
+load. Cold (empty cache) and warm (cached) numbers can only be measured in a real browser, not
+from this agent's environment (see `docs/DESIGN_RATIONALE.md` for why testing this milestone
+splits between Node and a real browser this way). To measure: open the dev server, open devtools,
+click Run in the temporary engine harness on the page, and read the `[engine] Pyodide loaded in
+…ms` line the worker logs — once with a hard-refreshed/cleared cache (cold), once on a normal
+reload (warm).
+
+|            | Target   | Measured                                      |
+| ---------- | -------- | --------------------------------------------- |
+| Cold start | —        | _owner to fill in after a real-browser check_ |
+| Warm start | under 1s | _owner to fill in after a real-browser check_ |
+
 ## Notes
 
-Start-up timings land here at milestone 3, and a demo GIF at milestone 15.
+A demo GIF lands here at milestone 15.

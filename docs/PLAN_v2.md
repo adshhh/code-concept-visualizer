@@ -71,7 +71,44 @@ Three constraints shape every decision:
 > (a hand-rolled checker instead of pulling Pyodide forward; the two-item swap idiom allowed as the
 > one exception to "tuples are out of scope") plus five smaller judgment calls made along the way.
 >
-> **Next: milestone 3** — the execution engine (Pyodide, Web Worker, guardrails, §2). See the Build
+> **Milestone 2's follow-up work is also done and merged**: two real code-review findings fixed
+> (a line-count off-by-one, an escape-sequence bug), a missing `for`/`else` rejection added, a
+> tested read-only git/gh allow-list replaced the absolute block in `no-git.sh`. See
+> `checkpoint_report.md` for the full trail.
+>
+> **Milestone 3 is built and checkpointed** (see `checkpoint_report.md`). The execution engine
+> (`src/engine/`: Pyodide + a Web Worker + Comlink, self-hosted runtime assets via
+> `vite-plugin-static-copy`) runs real Python with three runtime guardrails (max steps, recursion
+> depth, runtime list/dict growth — all via a lightweight `sys.settrace` hook) plus the wall-clock
+> timeout as a backstop. The m2 validator now actually gates the worker (AC-1.2 fully satisfied).
+> AC-2.3/2.4/2.5/2.6 hold; AC-2.1/2.2's full visual proof — and AC-2.7 — wait for m10/m15, per the
+> v2 notes on those criteria in §2. **A new standing practice starts here**: every milestone from
+> now on gets a short pre-build consistency audit against its neighbors before the implementation
+> plan is written (`decisions/003-pre-build-milestone-audit.md`, `DESIGN_RATIONALE.md` §22).
+>
+> **`/code-review` run properly this time — before any commit — found and fixed 9 real findings**
+> (5 correctness bugs: an uncleared timeout that could terminate the wrong execution, an unhandled
+> rejection that could stick the dev harness on "Running…" forever, a worker that could wedge
+> permanently after one failed load, `SystemExit` escaping the guardrail wrapper, a silent
+> background-warmup failure; plus 4 cleanups). See `checkpoint_report.md` for the full list — none
+> of it changed any acceptance criterion, all of it is now tested.
+>
+> **The owner's real-browser check found one real bug, now fixed.** The first attempt at
+> `while True: pass` was rejected as a syntax error, not run — `src/subset/parser.ts`'s
+> `parseSuite()` (milestone 2) only ever handled the indented-block form of `if`/`while`/`for`/`def`,
+> never the same-line form, which is the literal text of §2's own headline test. Fixed, with a
+> pinned regression test. The dev harness's textarea also didn't support Tab-to-indent (a plain
+> `<textarea>` doesn't, by default) — fixed too, and was part of why the one-liner got typed in the
+> first place.
+>
+> **AC-2.4 is now genuinely verified, not just tested in isolation:** re-tested in a real browser —
+> `while True: pass` now reaches the engine and stops via the step-count guardrail (well under the
+> 3-second wall-clock budget, since a trivial tight loop hits 2,000 steps almost instantly — the
+> defense-in-depth design working as intended), the app stayed fully usable afterward with no
+> reload, and a normal multi-line program produced correct output. **Milestone 3 is fully closed.**
+> Cold/warm start numbers for the README are still unfilled — low priority, can happen anytime.
+>
+> **Next: milestone 4** — the Tier 1 trace pipeline + recorded-run snapshots (§3). See the Build
 > milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
@@ -165,7 +202,7 @@ one checkpoint = one branch = one merge.**
 | **Phase A — Foundation**      |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 1                             | Scaffold: Vite/React/TS, Tailwind, Vitest, **CI + preview URLs (Netlify)** · **engine/player split + boundary test** · **README stub** | §2 stack, §12 CI/deploy, §14 (D22) | Preview URLs are a _precondition_ of the §13 review loop, not a late add. Also where `check.sh` stops being a no-op (npm scripts exist) — so AC-13.4 gets demonstrated here. **v2:** the D22 import boundary moved here from #15 — see the note below the table. Deploy platform switched from Vercel to Netlify — see D19 |
 | 2                             | Python subset validator + fixture suite                                                                                             | §1, **§12 (layer 1)**              | Fully testable with zero execution; "is the scope contract right?" is its own judgment call. **v2:** AC-12.1 (fixture suite runs with one command, wired into the edit hook) is delivered here, not in a testing milestone                                              |
-| 3                             | Execution engine: Pyodide, Web Worker, guardrails                                                                                   | §2                                 | §2's headline test (`while True: pass`) needs no tracing — self-contained. **v2:** AC-2.7 is _not_ checkable here — see §2                                                                                                                                              |
+| 3                             | Execution engine: Pyodide, Web Worker, guardrails                                                                                   | §2                                 | §2's headline test (`while True: pass`) needs no tracing — self-contained. **v2:** AC-2.7 is _not_ checkable here — see §2. AC-2.1/AC-2.2's full visual proof also waits for m10/m15 — see the notes on those criteria in §2                                                                                                                                              |
 | 4                             | Tier 1 trace pipeline + recorded-run snapshots                                                                                      | §3 (T1), **§12 (layer 2)**         | Different question from #3: _is the recording correct_, not _does it run safely_. **v2:** AC-12.2 (a committed expected trace per fixture) is delivered here                                                                                                            |
 | **Phase B — The visible app** |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 5                             | Drawing system: value shapes, spotlight rule, motion vocabulary · **Playwright (screenshots only)**                                 | §5, §6, **§13 (visual self-review)** | First visual review. Needs real frames from #4, never mock data. **v2:** Playwright moved here from #6 — §13 requires the agent to screenshot and check its own work, and this is the first milestone with anything to look at. Screenshots only here; the 5 click-through smokes still land at #6 |
@@ -218,7 +255,7 @@ Each milestone above is one pass through this loop. Same ten steps, fifteen time
 | --- | --------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | **Owner** | Create a branch for the milestone                                                                                               |
 | 2   | **Owner** | Put the agent in plan mode, name the milestone                                                                                  |
-| 3   | Agent     | Read that milestone's plan sections, write an implementation plan                                                               |
+| 3   | Agent     | Read that milestone's plan sections, run a short audit against neighboring sections/decisions for contradictions (D41-adjacent, see `decisions/003-pre-build-milestone-audit.md`), then write an implementation plan |
 | 4   | **Owner** | ⭐ Review and approve the plan — or redirect                                                                                    |
 | 5   | Agent     | Build it. `check.sh` runs after every edit and blocks on failure                                                                |
 | 6   | Agent     | Screenshot its own work and fix what looks wrong before the owner sees it                                                       |
@@ -349,8 +386,18 @@ subtly wrong); server-side execution (needs a sandboxed backend).
 **Acceptance criteria**
 
 1. Pyodide runs in a Web Worker; the main thread is never blocked >50ms by execution.
+   > **v2 re-sequencing:** the felt, measured version of this ("does the page visibly stay
+   > responsive") needs a real page under real use to observe — verified at m3 by the owner in the
+   > temporary dev harness (§13 visual/manual check), architecturally guaranteed by construction
+   > (Worker isolation means the main thread structurally cannot be blocked by what runs inside
+   > one). Final check at m15.
 2. The landing page reaches first contentful paint **without waiting on Pyodide**. Only the editor
    panel shows a loading state.
+   > **v2 re-sequencing:** this criterion names a landing page (m10) and an editor panel (m6),
+   > neither of which exist at m3. What m3 delivers and verifies instead: Pyodide loads lazily,
+   > behind an explicit call, never blocking synchronously at import time — proved by a structural
+   > test (`worker.test.ts`). The full first-contentful-paint measurement moves to **m10**,
+   > alongside AC-2.7 — same landing page, same note.
 3. Cold and warm start times measured and recorded in the README. Warm start **under 1 second**.
    _(v2: the README stub is created in m1 so this has somewhere to land.)_
 4. **Headline test:** pasting `while True: pass` and pressing Run terminates within 3 seconds, shows
