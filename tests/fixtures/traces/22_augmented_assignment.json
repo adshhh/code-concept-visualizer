@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "stdout": "16\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "x": 10
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: x = 10"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "x": 15
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: x += 5"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "x": 13
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: x -= 2"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "x": 39
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: x *= 3"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "x": 9
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 5: x //= 4"
+    },
+    {
+      "step": 6,
+      "line": 6,
+      "variables": {
+        "x": 4
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 6: x %= 5"
+    },
+    {
+      "step": 7,
+      "line": 7,
+      "variables": {
+        "x": 16
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 7: x **= 2"
+    },
+    {
+      "step": 8,
+      "line": 8,
+      "variables": {
+        "x": 16
+      },
+      "callStack": [],
+      "stdout": "16\n",
+      "narration": "line 8: print(x)"
+    }
+  ]
+}

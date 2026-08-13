@@ -1,0 +1,118 @@
+{
+  "status": "ok",
+  "stdout": "10\n50\n40\n[99, 20, 30, 40, 100]\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [10, 20, 30, 40, 50]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n",
+      "narration": "line 2: print(nums[0])"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n50\n",
+      "narration": "line 3: print(nums[-1])"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n50\n40\n",
+      "narration": "line 4: print(nums[-2])"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "nums": [
+          99,
+          20,
+          30,
+          40,
+          50
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n50\n40\n",
+      "narration": "line 5: nums[0] = 99"
+    },
+    {
+      "step": 6,
+      "line": 6,
+      "variables": {
+        "nums": [
+          99,
+          20,
+          30,
+          40,
+          100
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n50\n40\n",
+      "narration": "line 6: nums[-1] = 100"
+    },
+    {
+      "step": 7,
+      "line": 7,
+      "variables": {
+        "nums": [
+          99,
+          20,
+          30,
+          40,
+          100
+        ]
+      },
+      "callStack": [],
+      "stdout": "10\n50\n40\n[99, 20, 30, 40, 100]\n",
+      "narration": "line 7: print(nums)"
+    }
+  ]
+}

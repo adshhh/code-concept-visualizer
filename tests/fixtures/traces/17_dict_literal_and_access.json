@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "stdout": "90\n{'alice': 90, 'bob': 88, 'carol': 78}\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "scores": {
+          "alice": 90,
+          "bob": 85
+        }
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: scores = {\"alice\": 90, \"bob\": 85}"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "scores": {
+          "alice": 90,
+          "bob": 85,
+          "carol": 78
+        }
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: scores[\"carol\"] = 78"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "scores": {
+          "alice": 90,
+          "bob": 85,
+          "carol": 78
+        }
+      },
+      "callStack": [],
+      "stdout": "90\n",
+      "narration": "line 3: print(scores[\"alice\"])"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "scores": {
+          "alice": 90,
+          "bob": 88,
+          "carol": 78
+        }
+      },
+      "callStack": [],
+      "stdout": "90\n",
+      "narration": "line 4: scores[\"bob\"] = 88"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "scores": {
+          "alice": 90,
+          "bob": 88,
+          "carol": 78
+        }
+      },
+      "callStack": [],
+      "stdout": "90\n{'alice': 90, 'bob': 88, 'carol': 78}\n",
+      "narration": "line 5: print(scores)"
+    }
+  ]
+}

@@ -724,6 +724,57 @@ requirements or removed ones.
 
 ---
 
+## 24. Three plan gaps the milestone-4 audit found, and one implementation bug the plan couldn't have caught
+
+The pre-build audit (§22, `decisions/003-pre-build-milestone-audit.md`) was applied to a real
+milestone for the first time here, on itself. It found three real gaps in §3 before any code was
+written.
+
+**1. `run(source, input) => Frame[]` (AC-3.1) names an `input` parameter nothing produces yet.** No
+lesson exists to supply data — Mode B is m8–9 — and §1 doesn't even list `input()` among the
+in-scope builtins, so whether "input" means stdin or a pre-set variable was never decided anywhere.
+_Decision:_ implement the parameter now, accepted and threaded through, genuinely unused — the same
+re-sequencing shape as AC-2.1/2.2 at m1/m3, just for a parameter instead of a UI-dependent
+measurement. How it actually reaches a running program stays an open question for m8/m9.
+
+**2. AC-3.2 requires a `narration` field on every frame, and no section — §5, §7, §8 — ever gives it
+a home in the UI.** This isn't a scheduling gap like #1; it's a mandatory field with no defined
+content anywhere in the plan. _Decision:_ populate it with a short, deterministic, real sentence per
+frame (an event-driven template off the source line itself) — satisfies "no frame has a missing or
+undefined field" and gives something real for a later milestone to render if narration ever gets a
+place on screen. Logged here rather than silently decided away, because unlike #1 this wasn't
+already anticipated by an earlier milestone.
+
+**3. Playback needs frames up to a failing step (§8: "the animation plays to the failing step and
+stops there"), but nothing captures them if the run doesn't finish.** _Decision:_ `record_trace`
+returns whatever frames were captured so far on every outcome that ran at all — `ok`, `guardrail`,
+and `runtime_error` alike — not just on success. `rejected` and `timeout` carry no frames, since
+nothing ran.
+
+**The bug the audit couldn't catch, because it's not a planning-level problem.** `sys.settrace`'s
+`line` event fires *before* the line executes. The first implementation captured each frame directly
+at that event — which means every frame showed its own line's effects as not-yet-happened: an
+assignment's frame would show the *old* value, a print's frame would show stdout from *before* that
+print ran. This was caught by manually tracing the design through a concrete example by hand before
+trusting the test suite to catch it, not by any review pass — it's exactly the kind of bug where the
+code runs, returns a plausible-looking JSON object, and every field is individually well-typed, so
+nothing short of checking actual values against a hand-worked example would surface it. Fixed by
+deferring capture: each frame (keyed by `id(frame)`, since recursive calls get distinct frame
+objects) remembers the line it's currently on, and only builds the actual `Frame` once that line is
+confirmed complete — signalled by that same frame's next `line` event, its `return`, or an
+`exception` unwinding through it. Fixing this surfaced a second, smaller bug in the same area: numbering
+frames by the step counter's value *when a line started* rather than by their position in the
+emitted array meant a nested call's own frames could end up numbered lower than a frame emitted
+after it returned — visible only by hand-tracing a function-call example, not from any single test
+in isolation. Fixed by numbering frames by append order instead, which is also simply the more
+correct definition of "step" for a precomputed array.
+
+**Why none of this reopens anything LOCKED.** §3's acceptance criteria are unchanged. All three audit
+findings are implementation/scheduling decisions inside what m4 owns, and the frame-timing bug never
+shipped in a committed trace — it was caught and fixed before the first snapshot was generated.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

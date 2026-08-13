@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "stdout": "h\no\nhello world\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: word = \"hello\""
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "h\n",
+      "narration": "line 2: print(word[0])"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "h\no\n",
+      "narration": "line 3: print(word[-1])"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "word": "hello",
+        "greeting": "hello world"
+      },
+      "callStack": [],
+      "stdout": "h\no\n",
+      "narration": "line 4: greeting = word + \" world\""
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "word": "hello",
+        "greeting": "hello world"
+      },
+      "callStack": [],
+      "stdout": "h\no\nhello world\n",
+      "narration": "line 5: print(greeting)"
+    }
+  ]
+}

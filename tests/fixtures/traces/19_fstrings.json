@@ -1,0 +1,88 @@
+{
+  "status": "ok",
+  "stdout": "hello world, you have 3 items\nfirst value is 1\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "name": "world"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: name = \"world\""
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "name": "world",
+        "count": 3
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: count = 3"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "name": "world",
+        "count": 3
+      },
+      "callStack": [],
+      "stdout": "hello world, you have 3 items\n",
+      "narration": "line 3: print(f\"hello {name}, you have {count} items\")"
+    },
+    {
+      "step": 4,
+      "line": 5,
+      "variables": {
+        "name": "world",
+        "count": 3,
+        "nums": [
+          1,
+          2,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "hello world, you have 3 items\n",
+      "narration": "line 5: nums = [1, 2, 3]"
+    },
+    {
+      "step": 5,
+      "line": 6,
+      "variables": {
+        "name": "world",
+        "count": 3,
+        "nums": [
+          1,
+          2,
+          3
+        ],
+        "i": 0
+      },
+      "callStack": [],
+      "stdout": "hello world, you have 3 items\n",
+      "narration": "line 6: i = 0"
+    },
+    {
+      "step": 6,
+      "line": 7,
+      "variables": {
+        "name": "world",
+        "count": 3,
+        "nums": [
+          1,
+          2,
+          3
+        ],
+        "i": 0
+      },
+      "callStack": [],
+      "stdout": "hello world, you have 3 items\nfirst value is 1\n",
+      "narration": "line 7: print(f\"first value is {nums[i]}\")"
+    }
+  ]
+}

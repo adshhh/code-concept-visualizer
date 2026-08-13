@@ -1,0 +1,989 @@
+{
+  "status": "ok",
+  "stdout": "2\n-1\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def linear_search(nums, target):"
+    },
+    {
+      "step": 2,
+      "line": 8,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 8: nums = [4, 2, 7, 1, 9, 3]"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 4,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 5,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 6,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 7,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 8,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 9,
+      "line": 4,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            7
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 7,
+            "i": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return i"
+    },
+    {
+      "step": 10,
+      "line": 9,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "2\n",
+      "narration": "line 9: print(linear_search(nums, 7))"
+    },
+    {
+      "step": 11,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 0
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 12,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 0
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 13,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 1
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 14,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 1
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 15,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 2
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 16,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 2
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 17,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 3
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 18,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 3
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 19,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 4
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 20,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 4
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 21,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 5
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 22,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 5
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 3: if nums[i] == target:"
+    },
+    {
+      "step": 23,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 5
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 2: for i in range(len(nums)):"
+    },
+    {
+      "step": 24,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "linear_search",
+          "args": [
+            [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            100
+          ],
+          "locals": {
+            "nums": [
+              4,
+              2,
+              7,
+              1,
+              9,
+              3
+            ],
+            "target": 100,
+            "i": 5
+          }
+        }
+      ],
+      "stdout": "2\n",
+      "narration": "line 5: return -1"
+    },
+    {
+      "step": 25,
+      "line": 10,
+      "variables": {
+        "nums": [
+          4,
+          2,
+          7,
+          1,
+          9,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "2\n-1\n",
+      "narration": "line 10: print(linear_search(nums, 100))"
+    }
+  ]
+}

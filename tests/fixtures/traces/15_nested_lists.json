@@ -1,0 +1,136 @@
+{
+  "status": "ok",
+  "stdout": "1\n9\n[[1, 2, 3], [4, 99, 6], [7, 8, 9]]\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "grid": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: grid = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "grid": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "callStack": [],
+      "stdout": "1\n",
+      "narration": "line 2: print(grid[0][0])"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "grid": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            5,
+            6
+          ],
+          [
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "callStack": [],
+      "stdout": "1\n9\n",
+      "narration": "line 3: print(grid[2][2])"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "grid": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            99,
+            6
+          ],
+          [
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "callStack": [],
+      "stdout": "1\n9\n",
+      "narration": "line 4: grid[1][1] = 99"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "grid": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            4,
+            99,
+            6
+          ],
+          [
+            7,
+            8,
+            9
+          ]
+        ]
+      },
+      "callStack": [],
+      "stdout": "1\n9\n[[1, 2, 3], [4, 99, 6], [7, 8, 9]]\n",
+      "narration": "line 5: print(grid)"
+    }
+  ]
+}

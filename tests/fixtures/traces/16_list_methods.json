@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "stdout": "[0, 1, 2, 3]\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [1, 2, 3]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: nums.append(4)"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: nums.insert(0, 0)"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "nums": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: nums.pop()"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "nums": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "[0, 1, 2, 3]\n",
+      "narration": "line 5: print(nums)"
+    }
+  ]
+}

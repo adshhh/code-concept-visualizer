@@ -597,3 +597,197 @@ loop with `print` inside it) produces correct, correctly-ordered output. Milesto
 - `src/App.tsx`: the dev harness's textarea now handles Tab.
 
 Tests: 114 → 116.
+
+---
+
+# Milestone 4 Completed
+
+**The Tier 1 trace pipeline: a full `Frame[]` recording of a run, not just pass/fail — plus the
+recorded-run snapshot layer §12 has been waiting on since m1.**
+
+`src/engine/tracer.py` adds a second `sys.settrace` hook alongside milestone 3's `guardrails.py`,
+reusing its constants and checks (`MAX_STEPS`, `MAX_RECURSION_DEPTH`, `_collection_too_large`,
+`GuardrailExceeded`) rather than duplicating them — one pass over the program both enforces the
+guardrails and builds the recording, since running the program twice would double execution time for
+nothing. Exposed as a new `run(source, input?)` entry point (`src/engine/run.ts`) that sits next to
+m3's `execute()` rather than replacing it — the dev harness and any future quick-check UI have no use
+for a frame array, so both pipelines stay independently callable.
+
+## Why
+
+- **A pre-build audit (the standing practice from m3) found three real gaps in §3 before any code
+  was written**, not after: AC-3.1 names an `input` parameter nothing produces yet (no lesson exists
+  until m8–9); AC-3.2 requires a `narration` field that no section — §5, §7, §8 — ever gives a place
+  in the UI; and playback needs frames up to a failing step (§8), but nothing was capturing them on
+  anything but success. All three resolved as scheduling/implementation decisions, none reopening
+  anything LOCKED — full writeup in `DESIGN_RATIONALE.md` §24.
+- **Frame capture is deferred by one event, not immediate — the one substantive design decision in
+  this milestone.** `sys.settrace`'s `line` event fires *before* that line runs. Capturing state
+  right there was the first implementation, and it was wrong: every frame showed its own line's
+  effects as not-yet-happened (an assignment's frame held the *old* value; a print's frame excluded
+  its own output). Caught by manually tracing the design through a concrete example by hand — not by
+  the test suite, which would have happily passed a self-consistent but backwards implementation.
+  Fixed by having each frame (keyed by `id(frame)`, since recursive calls get distinct frame objects)
+  hold only the *previous* line it saw, built into an actual `Frame` once that line is confirmed
+  complete via the same frame's next `line`/`return`/`exception` event. Full writeup, including a
+  second smaller ordering bug this fix surfaced, in `DESIGN_RATIONALE.md` §24.
+- **The committed traces are the recordings themselves (D23), not disposable test fixtures** — so
+  `tests/fixtures/traces/*.json` is exactly `record_trace`'s own JSON output, re-indented for
+  readability, with nothing test-framework-specific mixed in. Excluded from Prettier's normal pass
+  (`.prettierignore`) for the same reason: Prettier collapsing a short array onto one line would make
+  every file fail its own byte-for-byte snapshot check for a formatting difference, not a real change.
+- **This also resolves an item milestone 3's checkpoint flagged as open**: whether the hand-written
+  validator's grammar actually agrees with real Python across the fixture suite at scale. Running
+  every accepted fixture through `record_trace()` (which compiles under real Pyodide) is exactly that
+  cross-check, and all 28 came back `status: "ok"` — no `validator_mismatch` found.
+
+## Files Created/Modified
+
+**Engine**
+
+- `src/engine/tracer.py` (new): `make_tracer`, `_snapshot`, `_capture_variables`, `record_trace` —
+  the deferred-capture tracer described above. Depends on `guardrails.py`'s globals rather than
+  importing them (Python modules loaded via `pyodide.runPython` into the same instance share one
+  global namespace); `worker.ts` loads `guardrails.py` first for exactly this reason.
+- `src/engine/worker.ts` (modified): adds `runInWorker`, loads `tracer.py` at startup alongside
+  `guardrails.py`, exposes it via the existing `Comlink.expose` call.
+- `src/engine/run.ts` (new): the client-side `run()` entry point — same validate-first gate and
+  wall-clock race as `client.ts`'s `execute()`, kept as an independent worker-handle singleton
+  deliberately (sharing one with `execute()` would let a `run()` timeout terminate a worker
+  `execute()` still thinks it owns, and vice versa).
+- `src/engine/types.ts` (modified): adds `Frame` and `RunResult`.
+
+**Tests**
+
+- `src/engine/tracer.test.ts` (new, 12 tests): real Pyodide under Node, proving AC-3.1–3.7 — the
+  deep-copy pin, self-contained frames, depth-10 recursion shape, per-frame stdout accumulation,
+  determinism, and that partial frames survive both a guardrail trip and a real runtime error.
+- `src/engine/run.test.ts` (new, 1 test): mirrors `client.test.ts` — invalid code never constructs a
+  `Worker`.
+- `src/engine/traces.test.ts` (new, 29 tests): generates and byte-for-byte checks a committed trace
+  for every fixture in `tests/fixtures/accepted/` (AC-12.2).
+
+**Snapshots / docs**
+
+- `tests/fixtures/traces/*.json` (new, 28 files): the committed recordings themselves.
+- `.prettierignore` (modified): excludes `tests/fixtures/traces/` — see Why.
+- `docs/PLAN_v2.md` (modified): Resume-here box.
+- `docs/DESIGN_RATIONALE.md` (modified): §24, the three audit findings plus the frame-timing bug.
+
+## Uncertain / worth double-checking
+
+1. **`narration`'s exact wording is a placeholder, not a considered design.** It's a real,
+   always-present sentence (satisfies AC-3.2), but its content was chosen only to be non-empty and
+   deterministic — no section currently gives it a UI destination, so nothing has actually judged
+   whether "line 3: i = i + 1" is the right *style* of narration once one exists. Worth revisiting
+   the moment a milestone actually renders it.
+2. **The `input` parameter is threaded through but has never been exercised with an actual value** —
+   `run()` and `record_trace()` both accept it, nothing calls it with one. How it should reach a
+   running program (stdin vs. a pre-set variable) is unresolved until Mode B needs it at m8–9.
+3. **No manual/real-browser check was needed or performed this milestone.** Unlike m3, nothing here
+   depends on Worker isolation, `terminate()` behavior, or load timing — everything is Pyodide-in-Node
+   testable, which is also why this milestone's plan explicitly said no browser check was required.
+   Flagging the absence so it isn't mistaken for an oversight.
+
+## Screenshots
+
+No new UI this milestone (the tracer has no visual surface yet — that's m5). Terminal evidence:
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  11 passed (11)
+                    Tests       158 passed (158)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in 279ms
+```
+
+**Tier 1 property tests, proven against real Python (Vitest + Pyodide-in-Node):**
+
+```
+✓ tracer.py — basic shape (AC-3.1, AC-3.2) (2 tests)
+✓ tracer.py — AC-3.3, the deep-copy pin (2 tests)
+✓ tracer.py — AC-3.4, every frame is self-contained (1 test)
+✓ tracer.py — AC-3.5, recursion produces exactly the right call stack shape (1 test)
+✓ tracer.py — AC-3.6, stdout accumulates correctly per frame (1 test)
+✓ tracer.py — AC-3.7, determinism (1 test)
+✓ tracer.py — partial frames survive a guardrail trip or a runtime error (2 tests)
+✓ tracer.py — variables exclude callables, call stack carries function locals (2 tests)
+✓ recorded-run snapshots (AC-12.2) — 28 fixtures, all "ok", all matching their committed trace
+```
+
+## Github Commands for this milestone
+
+```bash
+git add src/engine/ tests/fixtures/traces/ .prettierignore docs/
+git commit -m "Milestone 4: Tier 1 trace pipeline + recorded-run snapshots"
+git push -u origin milestone-4-trace-pipeline
+```
+
+## Milestone 4 — code-review fixes (step 9, run before commit)
+
+`/code-review` found 4 real findings, all fixed and tested before this branch is committed:
+
+1. **Crash, not a display bug: `float('nan')`/`float('inf')` broke `run()` entirely.**
+   `float()` is an in-scope builtin (§1) with no restriction on its string argument, so
+   `x = float('inf')` validates and runs. Python's `json.dumps` emits the bare tokens
+   `Infinity`/`NaN` for those values by default — not valid JSON — so `worker.ts`'s
+   `JSON.parse` threw a `SyntaxError` and the whole `run()` call rejected instead of
+   resolving to a `RunResult`, breaking the "every branch is a result" contract both engine
+   modules' docstrings promise. Independently reproduced and confirmed reachable through the
+   real subset grammar before fixing.
+2. **Silent data corruption: Python's arbitrary-precision ints lose precision through
+   `JSON.parse`.** `x = 2 ** 100` is one line, well inside every guardrail, and has no
+   collection-size cap (that only bounds lists/dicts, not integer magnitude). JSON numbers
+   decode to a JS double on the other side of the worker boundary, silently rounding
+   anything past `Number.MAX_SAFE_INTEGER` — a real value corrupted in what's also the
+   *shipped* recording (D23), not just an in-memory artifact.
+3. **`tracer.py` had hand-copied guardrails.py's step/depth/collection-size checks** instead
+   of sharing them — a future edit to one (a threshold, a message) had no way to reach the
+   other, so `execute()` and `run()` could silently enforce different limits for the same
+   program.
+4. **`run.ts` and `client.ts` had drifted into near-identical hand-copies** of the worker
+   lifecycle (creation, timeout race, terminate-and-replace) — the same "a fix to one is
+   forgotten in the other" risk as #3, one level up.
+
+**Fixes:**
+
+- `tracer.py`: new `_json_safe_copy`, replacing every `copy.deepcopy` call. Recursively
+  copies list/dict (preserving the AC-3.3 deep-copy guarantee) while converting non-finite
+  floats to `"NaN"`/`"Infinity"`/`"-Infinity"` and any integer beyond
+  `Number.MAX_SAFE_INTEGER` to its exact decimal string — both fixes #1 and #2 in one pass,
+  since both are the same underlying class of problem (a value JSON can represent but a JS
+  `JSON.parse` can't reconstruct faithfully).
+- `guardrails.py`: extracted `_check_step`, `_check_recursion_depth`, `_check_collection_size`
+  out of `make_guard()`'s closure into free functions; `tracer.py` now calls these same
+  functions instead of its own copies. Pure refactor — `guard()`'s behavior is unchanged
+  (all 11 of its existing tests still pass), and three new tests pin that `execute_guarded`
+  and `record_trace` now report the identical guardrail id and message for the same program,
+  for all three guardrail types.
+- `src/engine/workerLifecycle.ts` (new): the shared `createWorkerLifecycle<Api>()` factory.
+  `client.ts` and `run.ts` each call it once at module scope, so the lifecycle code is
+  written once but the two still hold fully independent worker state — a `run()` timeout
+  still can't terminate a worker `execute()` owns, which was the actual reason they weren't
+  simply merged into one shared singleton.
+
+Six new regression tests in `tracer.test.ts` (NaN/Infinity/huge-int handling, ordinary ints
+unaffected, and the three cross-path guardrail-parity pins). Tests: 158 → 164. All 28
+committed trace snapshots are unchanged by these fixes (none of the fixtures exercise
+non-finite floats or integers beyond 2^53), confirmed by re-running `traces.test.ts` with no
+diff. Typecheck, format, and build clean throughout.
+
+## Github Commands for this milestone
+
+Everything above — the milestone itself and its review fixes — is still uncommitted as one
+working tree. One commit covers both, since the fixes were never merged separately:
+
+```bash
+git add src/engine/ tests/fixtures/traces/ .prettierignore docs/
+git commit -m "Milestone 4: Tier 1 trace pipeline + recorded-run snapshots, plus code-review fixes"
+git push -u origin milestone-4-trace-pipeline
+```
+
+## Next
+
+Milestone 5 — the drawing system: value shapes, the spotlight rule, motion vocabulary, plus
+Playwright arriving for agent visual self-review (§5, §6, §13). This is the first milestone with
+anything to actually look at, so it's also the first real visual review.

@@ -1,0 +1,163 @@
+{
+  "status": "ok",
+  "stdout": "60\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [10, 20, 30]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: total = 0"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 0,
+        "n": 10
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: for n in nums:"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 10,
+        "n": 10
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: total = total + n"
+    },
+    {
+      "step": 5,
+      "line": 3,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 10,
+        "n": 20
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: for n in nums:"
+    },
+    {
+      "step": 6,
+      "line": 4,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 30,
+        "n": 20
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: total = total + n"
+    },
+    {
+      "step": 7,
+      "line": 3,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 30,
+        "n": 30
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: for n in nums:"
+    },
+    {
+      "step": 8,
+      "line": 4,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 60,
+        "n": 30
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: total = total + n"
+    },
+    {
+      "step": 9,
+      "line": 3,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 60,
+        "n": 30
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: for n in nums:"
+    },
+    {
+      "step": 10,
+      "line": 5,
+      "variables": {
+        "nums": [
+          10,
+          20,
+          30
+        ],
+        "total": 60,
+        "n": 30
+      },
+      "callStack": [],
+      "stdout": "60\n",
+      "narration": "line 5: print(total)"
+    }
+  ]
+}

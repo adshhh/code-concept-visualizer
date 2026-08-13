@@ -108,8 +108,27 @@ Three constraints shape every decision:
 > reload, and a normal multi-line program produced correct output. **Milestone 3 is fully closed.**
 > Cold/warm start numbers for the README are still unfilled — low priority, can happen anytime.
 >
-> **Next: milestone 4** — the Tier 1 trace pipeline + recorded-run snapshots (§3). See the Build
-> milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
+> **Milestone 4 is built and checkpointed** (see `checkpoint_report.md`). `src/engine/tracer.py`
+> adds a second settrace hook alongside guardrails.py's — one pass both enforces the guardrails and
+> builds a `Frame[]` recording (§3 T1), exposed as a new `run()` entry point (`src/engine/run.ts`)
+> that sits next to m3's `execute()` rather than replacing it. AC-3.1–3.7 hold, verified against real
+> Pyodide-in-Node (same strategy as m3). **AC-12.2 delivered here**: every accepted fixture has a
+> committed expected trace (`tests/fixtures/traces/`, 28 files) checked byte-for-byte on every test
+> run via `toMatchFileSnapshot` — a silent re-record is impossible without the explicit `--update`
+> flag. Three real plan gaps were found and resolved by the pre-build audit before writing code (the
+> unused `input` parameter, the undefined `narration` field, capturing partial frames on failure) —
+> see `DESIGN_RATIONALE.md` §24. A genuine implementation bug was also caught and fixed mid-build,
+> not by review but by manually tracing through the design on paper: frame capture originally ran on
+> `sys.settrace`'s 'line' event directly, which fires *before* a line executes — every frame would
+> have shown its own line's effects still missing. Fixed by deferring capture by one event per frame
+> (keyed by `id(frame)`, flushed on the next line/return/exception in that same frame) so each frame
+> reflects state *after* its own line completed, and a second bug this surfaced — the "step" number
+> reflecting when a line *started* rather than its position in the emitted array, which could go
+> out of order across a nested call — was fixed by numbering frames by append order instead.
+>
+> **Next: milestone 5** — the drawing system: value shapes, the spotlight rule, motion vocabulary,
+> plus Playwright arriving for agent visual self-review (§5, §6, §13). See the Build milestones table
+> below, and _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >

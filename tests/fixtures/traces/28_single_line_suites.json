@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "stdout": "one line if\npositive\n1\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "one line if\n",
+      "narration": "line 1: if True: print(\"one line if\")"
+    },
+    {
+      "step": 2,
+      "line": 3,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "one line if\n",
+      "narration": "line 3: x = 5"
+    },
+    {
+      "step": 3,
+      "line": 4,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "one line if\npositive\n",
+      "narration": "line 4: if x > 0: print(\"positive\")"
+    },
+    {
+      "step": 4,
+      "line": 6,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "one line if\npositive\n",
+      "narration": "line 6: while False: print(\"never runs\")"
+    },
+    {
+      "step": 5,
+      "line": 9,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "one line if\npositive\n",
+      "narration": "line 9: def one_liner():"
+    },
+    {
+      "step": 6,
+      "line": 10,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [
+        {
+          "name": "one_liner",
+          "args": [],
+          "locals": {}
+        }
+      ],
+      "stdout": "one line if\npositive\n",
+      "narration": "line 10: return 1"
+    },
+    {
+      "step": 7,
+      "line": 13,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "one line if\npositive\n1\n",
+      "narration": "line 13: print(one_liner())"
+    }
+  ]
+}

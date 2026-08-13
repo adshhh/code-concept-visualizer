@@ -1,0 +1,154 @@
+{
+  "status": "ok",
+  "stdout": "[3, 2, 1]\n2 1\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [1, 2, 3]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3
+        ],
+        "i": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: i = 0"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3
+        ],
+        "i": 0,
+        "j": 2
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: j = 2"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: nums[i], nums[j] = nums[j], nums[i]"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2
+      },
+      "callStack": [],
+      "stdout": "[3, 2, 1]\n",
+      "narration": "line 5: print(nums)"
+    },
+    {
+      "step": 6,
+      "line": 7,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2,
+        "a": 1
+      },
+      "callStack": [],
+      "stdout": "[3, 2, 1]\n",
+      "narration": "line 7: a = 1"
+    },
+    {
+      "step": 7,
+      "line": 8,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2,
+        "a": 1,
+        "b": 2
+      },
+      "callStack": [],
+      "stdout": "[3, 2, 1]\n",
+      "narration": "line 8: b = 2"
+    },
+    {
+      "step": 8,
+      "line": 9,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2,
+        "a": 2,
+        "b": 1
+      },
+      "callStack": [],
+      "stdout": "[3, 2, 1]\n",
+      "narration": "line 9: a, b = b, a"
+    },
+    {
+      "step": 9,
+      "line": 10,
+      "variables": {
+        "nums": [
+          3,
+          2,
+          1
+        ],
+        "i": 0,
+        "j": 2,
+        "a": 2,
+        "b": 1
+      },
+      "callStack": [],
+      "stdout": "[3, 2, 1]\n2 1\n",
+      "narration": "line 10: print(a, b)"
+    }
+  ]
+}
