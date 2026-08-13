@@ -23,8 +23,8 @@ each with a one-line explanation.
 
 - **Never run git or gh commands that change repo state** — no commit, branch, merge, push, tag,
   checkout, or reset, ever. A short read-only allow-list (`git status/branch/log/diff/show/
-  rev-parse/remote -v`, `gh status/pr view/pr list/pr diff/issue view/issue list/repo view/run
-  list/run view`) is permitted, enforced by `.claude/hooks/no-git.sh`. The owner performs every
+rev-parse/remote -v`, `gh status/pr view/pr list/pr diff/issue view/issue list/repo view/run
+list/run view`) is permitted, enforced by `.claude/hooks/no-git.sh`. The owner performs every
   other git/GitHub operation personally.
 - **Lists and dicts are capped at 25 elements.** No windowing, virtualization, or
   horizontal scrolling anywhere in the app — this cap is what makes that unnecessary.
