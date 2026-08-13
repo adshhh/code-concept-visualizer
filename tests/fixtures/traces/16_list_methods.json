@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "[0, 1, 2, 3]\n",
+  "source": "nums = [1, 2, 3]\nnums.append(4)\nnums.insert(0, 0)\nnums.pop()\nprint(nums)\n",
   "frames": [
     {
       "step": 1,

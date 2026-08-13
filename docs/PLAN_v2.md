@@ -126,9 +126,31 @@ Three constraints shape every decision:
 > reflecting when a line *started* rather than its position in the emitted array, which could go
 > out of order across a nested call — was fixed by numbering frames by append order instead.
 >
-> **Next: milestone 5** — the drawing system: value shapes, the spotlight rule, motion vocabulary,
-> plus Playwright arriving for agent visual self-review (§5, §6, §13). See the Build milestones table
-> below, and _How the build actually runs_ for the ten-step per-milestone loop.
+> **Milestone 4's cold-load timeout bug is fixed** (see `checkpoint_report.md`'s "real-browser
+> testing found a genuine bug" addendum, `DESIGN_RATIONALE.md` §25) — a trivial program was falsely
+> reported as "ran too long" because the 3-second execution budget was also covering the (now larger,
+> two-file) cold Pyodide load. Split into an independent load-timeout and execution-timeout.
+>
+> **Milestone 5 is built and checkpointed** (see `checkpoint_report.md`). `src/player/` now turns a
+> `Frame[]` recording into §5's picture: value-shape classification, frame-to-frame diffing (writes,
+> swaps, append/pop, inferred from diffing alone — Tier 1 has no explicit event for any of these),
+> index-variable arrow detection (reusing `src/subset/tokenizer.ts`), the spotlight/emphasis system,
+> and the full motion vocabulary via Framer Motion — all built on a new shared `src/recording/` module
+> so the player can receive `Frame` data without ever importing `src/engine/` (D22 intact,
+> `architecture.test.ts` unchanged and still passing). Playwright arrived and is in active use for
+> agent visual self-review (§13) — 11 real screenshots, from real committed traces, read and critiqued
+> directly rather than through a `design-reviewer` subagent that was never built (that subagent lives
+> in the owner's `.claude/` tooling domain, not this milestone's). AC-5.2–5.11 hold; the ✓/✗ half of
+> the `compare` gesture is re-sequenced to m6 — see the v2 note above. Two real bugs were found only by
+> looking at actual screenshots, not by any test: the main picture was silently blank for every
+> fixture whose interesting state lives inside a function call (fixed by rendering whichever scope is
+> currently executing, not just module variables), and two simultaneous index arrows on the same list
+> were indistinguishable (both labeled "j" instead of "j" and "j+1"). Full trail in `docs/VISUALS.md`
+> and `DESIGN_RATIONALE.md`.
+>
+> **Next: milestone 6** — playback controls and the code editor & error UX, plus the 5 click-through
+> smoke tests (§7, §8, §12 layer 4). See the Build milestones table below, and _How the build actually
+> runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -583,6 +605,15 @@ write → box flashes, digit rolls · compare → two boxes lift, connector appe
 boxes arc past each other · append → new box slides in from the right · pop → box slides out and
 fades · call → card slides up onto the stack · return → card slides away, answer flies to the caller ·
 branch → taken line highlights, untaken dims.
+
+> **v2 re-sequencing (m5):** the ✓/✗ resolution half of `compare` is **not** checkable at m5. Tier 1
+> (§3) has no data for how a comparison resolved *at the same step* — only which line executes next,
+> one full step later. Showing a same-step ✓/✗ would mean inventing information the recording doesn't
+> contain. What m5 delivers instead: the lift + connector half, driven by a source-line-scanning
+> heuristic (honestly labeled as such, not a real sub-expression trace), distinguishing `compare` from
+> a plain `read` (glow only, no lift). **Verified at m6**, the first milestone with a code pane able to
+> show which branch was actually taken — the honest resolution signal. Same shape as the AC-2.1/2.2
+> re-sequencing from m1/m3. See `docs/DESIGN_RATIONALE.md` and `docs/VISUALS.md`.
 
 **Acceptance criteria**
 

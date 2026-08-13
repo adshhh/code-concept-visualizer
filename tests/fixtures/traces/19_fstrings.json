@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "hello world, you have 3 items\nfirst value is 1\n",
+  "source": "name = \"world\"\ncount = 3\nprint(f\"hello {name}, you have {count} items\")\n\nnums = [1, 2, 3]\ni = 0\nprint(f\"first value is {nums[i]}\")\n",
   "frames": [
     {
       "step": 1,

@@ -1,0 +1,52 @@
+{
+  "status": "ok",
+  "stdout": "[1, 2, 3, 500]\n506\n",
+  "source": "scores = [1, 2, 3, 500]\nprint(scores)\nprint(sum(scores))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "scores": [
+          1,
+          2,
+          3,
+          500
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: scores = [1, 2, 3, 500]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "scores": [
+          1,
+          2,
+          3,
+          500
+        ]
+      },
+      "callStack": [],
+      "stdout": "[1, 2, 3, 500]\n",
+      "narration": "line 2: print(scores)"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "scores": [
+          1,
+          2,
+          3,
+          500
+        ]
+      },
+      "callStack": [],
+      "stdout": "[1, 2, 3, 500]\n506\n",
+      "narration": "line 3: print(sum(scores))"
+    }
+  ]
+}

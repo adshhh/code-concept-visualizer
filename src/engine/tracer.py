@@ -190,8 +190,10 @@ def make_tracer(source_lines, output_buffer, frames):
 
 def record_trace(source, input=None):
     """The module's one entry point, mirroring execute_guarded's result shape (always a
-    JSON string, every branch a result — nothing escapes as a live exception) but with a
-    `frames` field on every outcome that ran at all.
+    JSON string, every branch a result — nothing escapes as a live exception) but with
+    `source` and `frames` fields on every outcome that ran at all — `source` is what §5's
+    index-variable arrow rule scans, and the player has no other way to see it (its only
+    input is the recording itself).
 
     `input` is accepted but deliberately unused — no lesson exists yet to supply
     lesson-specific data (Mode B is m8-9), and how it should actually reach the running
@@ -229,6 +231,7 @@ def record_trace(source, input=None):
                 "status": "guardrail",
                 "guardrail": exc.guardrail,
                 "message": str(exc),
+                "source": source,
                 "frames": frames,
             }
         )
@@ -239,6 +242,7 @@ def record_trace(source, input=None):
                 "errorType": type(exc).__name__,
                 "message": str(exc),
                 "stdout": output_buffer.getvalue(),
+                "source": source,
                 "frames": frames,
             }
         )
@@ -249,10 +253,18 @@ def record_trace(source, input=None):
                 "errorType": type(exc).__name__,
                 "message": str(exc),
                 "stdout": output_buffer.getvalue(),
+                "source": source,
                 "frames": frames,
             }
         )
     finally:
         sys.settrace(None)
 
-    return json.dumps({"status": "ok", "stdout": output_buffer.getvalue(), "frames": frames})
+    return json.dumps(
+        {
+            "status": "ok",
+            "stdout": output_buffer.getvalue(),
+            "source": source,
+            "frames": frames,
+        }
+    )

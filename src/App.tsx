@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { execute } from "./engine/client";
 import type { ExecutionResult } from "./engine/types";
+import type { Recording } from "./recording/types";
+import { Picture } from "./player/Picture";
+import { MotionRoot } from "./player/motion/MotionRoot";
 
 const DEFAULT_SOURCE = "for i in range(5):\n    print(i * i)\n";
 
@@ -99,6 +102,128 @@ function EngineDevHarness() {
   );
 }
 
+// Every committed recorded-run trace (§12 layer 2, AC-12.2) — real, engine-produced Frame[]
+// data, loaded eagerly at build time. Using these directly (rather than re-running Pyodide
+// in the browser) is what "needs real frames from #4, never mock data" actually means for
+// this milestone: the data is real, just not re-executed live.
+const TRACE_MODULES = import.meta.glob<{
+  default: Recording & { status: string };
+}>("../tests/fixtures/traces/*.json", { eager: true });
+
+const RECORDINGS: Record<string, Recording> = Object.fromEntries(
+  Object.entries(TRACE_MODULES).map(([path, mod]) => [
+    path.replace("../tests/fixtures/traces/", "").replace(".json", ""),
+    { source: mod.default.source, frames: mod.default.frames },
+  ]),
+);
+
+function readInitialParams(): { fixture: string; step: number } {
+  const params = new URLSearchParams(window.location.search);
+  const names = Object.keys(RECORDINGS).sort();
+  const fixture = params.get("fixture");
+  return {
+    fixture: fixture && fixture in RECORDINGS ? fixture : (names[0] ?? ""),
+    step: Number(params.get("step") ?? 0),
+  };
+}
+
+/** Temporary scaffolding, not the real editor/playback controls (§7/§8, milestone 6). Lets
+ * the drawing system (§5) be exercised and screenshotted before real UI exists to embed it
+ * in — same "exempt from D22 because it lives in App.tsx, not src/player/, delete at m6"
+ * pattern as EngineDevHarness above. Reads ?fixture=&step= from the URL so Playwright (and
+ * manual review) can deep-link to an exact scenario deterministically, rather than
+ * scripting clicks. */
+function PictureDevHarness() {
+  const initial = useMemo(readInitialParams, []);
+  const [fixtureName, setFixtureName] = useState(initial.fixture);
+  const [step, setStep] = useState(initial.step);
+
+  const recording = RECORDINGS[fixtureName];
+  const names = Object.keys(RECORDINGS).sort();
+
+  function goToStep(next: number) {
+    if (!recording) return;
+    const clamped = Math.max(0, Math.min(next, recording.frames.length - 1));
+    setStep(clamped);
+    const params = new URLSearchParams({
+      fixture: fixtureName,
+      step: String(clamped),
+    });
+    window.history.replaceState(null, "", `?${params.toString()}`);
+  }
+
+  return (
+    <div className="w-full max-w-5xl rounded-2xl bg-slate-900 p-8 shadow-2xl ring-1 ring-slate-800">
+      <p className="text-xs font-semibold tracking-[0.2em] text-amber-400 uppercase">
+        Milestone 5 · Temporary picture dev harness
+      </p>
+      <p className="mt-2 text-sm text-slate-400">
+        Every committed recorded-run trace, real data from milestone 4 — no live
+        Python execution here, just the drawing system rendering it.
+      </p>
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <select
+          className="rounded-lg bg-slate-950 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-800"
+          value={fixtureName}
+          onChange={(event) => {
+            setFixtureName(event.target.value);
+            setStep(0);
+          }}
+        >
+          {names.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+
+        <button
+          type="button"
+          onClick={() => goToStep(step - 1)}
+          disabled={step === 0}
+          className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 disabled:opacity-40"
+        >
+          ← step
+        </button>
+        <button
+          type="button"
+          onClick={() => goToStep(step + 1)}
+          disabled={!recording || step >= recording.frames.length - 1}
+          className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 disabled:opacity-40"
+        >
+          step →
+        </button>
+
+        {recording && (
+          <span className="font-mono text-xs text-slate-500">
+            step {step + 1} of {recording.frames.length} — line{" "}
+            {recording.frames[step]?.line}
+          </span>
+        )}
+      </div>
+
+      {recording && (
+        <MotionRoot>
+          <div className="mt-4 flex gap-4 rounded-xl bg-slate-950 ring-1 ring-slate-800">
+            <div className="w-[35%] rounded-l-xl bg-slate-900/40 p-4">
+              <p className="text-xs text-slate-600 italic">
+                code pane placeholder — §8, milestone 6
+              </p>
+              <pre className="mt-2 max-h-96 overflow-auto font-mono text-xs text-slate-500">
+                {recording.source}
+              </pre>
+            </div>
+            <div className="w-[65%]">
+              <Picture recording={recording} step={step} />
+            </div>
+          </div>
+        </MotionRoot>
+      )}
+    </div>
+  );
+}
+
 /**
  * Milestone 1 placeholder — deliberately throwaway.
  *
@@ -130,6 +255,7 @@ export function App() {
       </div>
 
       <EngineDevHarness />
+      <PictureDevHarness />
     </main>
   );
 }

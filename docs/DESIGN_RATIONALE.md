@@ -817,6 +817,79 @@ point it's honestly meant to start.
 
 ---
 
+## 26. Milestone 5's drawing system: a shared module, five judgment calls, and two bugs a test suite couldn't have caught
+
+**The situation.** §5 is the first milestone with anything to look at — `src/player/` had to turn a
+`Frame[]` recording into a real, animated picture. A Plan subagent pass (the first used on this
+project) surfaced a real architectural gap before any component was written: `Frame` lived in
+`src/engine/types.ts`, but `src/player/` can never import from `src/engine/` (D22) — even `import
+type { Frame }` would trip `architecture.test.ts`. Both `src/engine/README.md` ("the dependency runs
+one way: engine → recording → player") and `src/player/README.md` ("shared recording-format code
+that both import") were written at m1, already anticipating exactly this fix, before either
+directory had content.
+
+**Decision: a new `src/recording/` module**, holding `Frame`/`Recording` — `Frame` plus the source
+text the run was produced from, needed for §5's index-arrow rule ("detected by scanning the source").
+`src/engine/types.ts` now imports from it instead of declaring `Frame` itself. This meant adding
+`source` to `RunResult` and to `tracer.py`'s `record_trace` output — a retroactive change to m4's
+"frozen" contract, which meant regenerating all 28 committed traces. Per §12's hard rule ("a changed
+snapshot may never be silently re-recorded"), the diff was verified byte-for-byte first (exactly one
+line added per file, nothing else) before regenerating — an explainable, named exception, not a
+silent one.
+
+**Four smaller judgment calls, each decided and noted rather than silently picked:**
+
+1. **Big-int-as-string and mixed-type lists aren't reclassified or specially rendered.** A Python int
+   beyond `Number.MAX_SAFE_INTEGER` arrives as a string (m4's `_json_safe_copy`) with no way to tell
+   it apart from a genuine short digit string like `"007"` — no type tag survives the wire format.
+   Guessing "digits → smuggled bigint" would misrender the far more common case (real strings) to fix
+   the rarer one (actual overflow, which this project's own 100-line/25-item/2,000-step caps make
+   unlikely in any real lesson). Documented as an accepted limitation in `docs/VISUALS.md`, not
+   silently absorbed.
+2. **`None` gets a ninth chip shape**, not in §5's table of 8, because it's unavoidable in real
+   programs (uninitialized variables, a function with no explicit `return`) — a small, independent
+   naming/visual-detail call per the milestone's own autonomy boundary.
+3. **The main picture renders whichever scope is currently executing** (module variables, or the
+   innermost call's own locals), not always module variables — this is also bug #1 below; the
+   decision and the bug are the same fix.
+4. **The `compare` gesture's ✓/✗ resolution is re-sequenced to m6.** Tier 1 has no data for how a
+   comparison resolved at the same step — only which line runs next, one step later. Resolved with the
+   owner before building (not decided unilaterally): build the lift + connector half now, using a
+   source-line-scanning heuristic honestly distinguished from a plain `read` (glow, no lift); defer
+   the resolution mark to the first milestone with a code pane able to show which branch was actually
+   taken. See the v2 note on §5 in `PLAN_v2.md`.
+
+**Two real bugs, both found only by reading actual screenshots — not by the 232 passing tests.**
+
+The first implementation of `Picture.tsx` rendered only module-level `frame.variables` with full
+value-shape fidelity; call-stack locals only ever got a plain-text dump inside their own card. Every
+non-trivial fixture this project ships — bubble sort, binary search, recursion — does its interesting
+list/dict work *inside* a function, not at module level, so the main picture was silently blank for
+exactly those cases. Every unit test passed regardless, because nothing asserted the picture was
+non-empty — the tests exercised the logic layer (`classify`/`diff`/`indexVars`/`spotlight`)
+correctly in isolation, and the wiring bug lived entirely in the one layer those tests don't touch: a
+React component's actual DOM output. Fixed by rendering whichever scope is currently executing
+(mirroring `scope.ts`'s own `resolveScope`, and real Python scoping — module names aren't visible
+from inside a call either).
+
+The second: two simultaneous index arrows on the same line (`nums[j]` and `nums[j+1]`, bubble sort's
+own comparison line) both rendered the label "j" — correct positions, indistinguishable text. The
+label had been built from the bare index-variable name, not the full expression. Fixed by labeling
+with the signed offset when non-zero ("j+1", "j-1").
+
+**Why this is worth stating plainly.** This is the same shape as milestone 3's `parseSuite()` gap and
+milestone 4's cold-load timeout — a category of bug that a comprehensive, passing test suite
+structurally cannot catch, because the tests were written against the same mental model that produced
+the bug. Only actually looking at the rendered output (here: Playwright screenshots, read directly)
+surfaced either one. This is the concrete argument for §13's visual self-review step existing at all,
+not a nice-to-have layered on top of "the tests are green."
+
+**Why none of this reopens anything LOCKED.** §5's acceptance criteria are unchanged; the compare
+gesture gained a scheduling note (same shape as every prior re-sequencing), and the recording-module
+split is a m1-anticipated implementation detail, not a scope or requirement change.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

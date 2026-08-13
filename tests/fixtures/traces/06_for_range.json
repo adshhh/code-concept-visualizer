@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "45\n",
+  "source": "total = 0\nfor i in range(10):\n    total = total + i\nprint(total)\n",
   "frames": [
     {
       "step": 1,

@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "[3, 2, 1]\n2 1\n",
+  "source": "nums = [1, 2, 3]\ni = 0\nj = 2\nnums[i], nums[j] = nums[j], nums[i]\nprint(nums)\n\na = 1\nb = 2\na, b = b, a\nprint(a, b)\n",
   "frames": [
     {
       "step": 1,

@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "False\nTrue\nTrue\nTrue\nFalse\nFalse\n",
+  "source": "a = 5\nb = 9\nprint(a == b)\nprint(a != b)\nprint(a < b)\nprint(a <= b)\nprint(a > b)\nprint(a >= b)\n",
   "frames": [
     {
       "step": 1,

@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "60\n",
+  "source": "nums = [10, 20, 30]\ntotal = 0\nfor n in nums:\n    total = total + n\nprint(total)\n",
   "frames": [
     {
       "step": 1,

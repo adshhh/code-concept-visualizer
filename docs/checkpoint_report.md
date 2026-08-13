@@ -844,3 +844,161 @@ git add src/engine/ docs/
 git commit -m "Milestone 4 follow-up: split engine-load timeout from execution timeout"
 git push
 ```
+
+---
+
+## Phase A (Foundation) complete
+
+Milestones 1–4 — scaffold, the subset validator, the execution engine, and the Tier 1 trace
+pipeline — are all built, checkpointed, and merged into `main`. Per the Build milestones table in
+`PLAN_v2.md`, that's every milestone in Phase A. There is a real, running pipeline end to end:
+validated Python source in, a guardrailed execution result or a full `Frame[]` recording out — with
+no UI on top of it yet.
+
+**Phase B (The visible app) starts at milestone 5**: the drawing system (value shapes, the
+spotlight rule, motion vocabulary), plus Playwright arriving for the agent's own visual
+self-review. This is the first milestone with anything to actually look at — everything before it
+was necessarily invisible, which is also why real-browser testing this phase kept surfacing bugs
+(the parser gap, the Tab-indent gap, the cold-load timeout) that no amount of Pyodide-in-Node
+testing could have caught on its own.
+
+---
+
+# Milestone 5 Completed
+
+**The drawing system: `src/player/` turns a `Frame[]` recording into §5's picture — value shapes,
+the spotlight rule, index arrows, and the motion vocabulary, built on a new shared module that
+keeps the player from ever importing the engine.**
+
+A Plan subagent pass (first used on this project, given the genuinely new territory — React/Framer
+Motion animation architecture, not backend logic) surfaced a real gap before any component was
+written: `Frame` lived in `src/engine/types.ts`, which `src/player/` can never import from (D22).
+Both m1's `engine/README.md` and `player/README.md` had already anticipated the fix in their own
+text, unused until now. New `src/recording/types.ts` holds `Frame`/`Recording`; both `src/engine/`
+and `src/player/` import from it, neither from the other.
+
+## Why
+
+- **`Recording` gained a `source` field**, threaded through `tracer.py`'s `record_trace` — §5's
+  index-arrow rule needs the source text, and the player's only input is the recording itself. This
+  is a retroactive change to m4's committed contract: all 28 traces were regenerated, diff verified
+  byte-for-byte first (exactly one line added per file) before regenerating, per §12's rule that a
+  changed snapshot may never be silently re-recorded.
+- **Frame-to-frame diffing (`diff.ts`) infers write/swap/append/pop purely from comparing two
+  frames** — Tier 1 has no explicit event for any of these (§3). Deliberately pure and stateless
+  (recomputed fresh from exactly two frame indices every call), which isn't just clean code: an
+  accumulated-diff design would violate §3's own reversibility acceptance criterion by construction.
+- **Index-variable arrows and the compare-gesture's line-reference heuristic both reuse
+  `src/subset/tokenizer.ts`** — already tested, zero Pyodide dependency, and not nested under
+  `src/engine/`, so importing it from `src/player/` doesn't trip the boundary test.
+- **The `compare` gesture stops at "lift + connector," no ✓/✗ — resolved with the owner before
+  building, not decided unilaterally.** Tier 1 has no data for how a comparison resolved at the same
+  step, only which branch runs one step later. Deferred to m6, the first milestone with a code pane
+  able to show that honestly. v2 note on §5 in `PLAN_v2.md`.
+- **Two real bugs found only by reading actual Playwright screenshots, not by any of the 232 passing
+  tests**, because both lived in the one layer unit tests don't touch — a React component's actual
+  rendered output: (1) the main picture only ever rendered module-level variables, silently blank for
+  every fixture whose interesting state lives inside a function call (bubble sort, binary search,
+  recursion — nearly everything) — fixed by rendering whichever scope is currently executing; (2) two
+  simultaneous index arrows on the same list (`nums[j]`, `nums[j+1]`) both showed the label "j" —
+  fixed by labeling with the signed offset. Full trail in `docs/VISUALS.md` and
+  `DESIGN_RATIONALE.md` §26 — same shape as m3's `parseSuite()` gap and m4's cold-load timeout: a
+  category of bug a comprehensive test suite structurally cannot catch on its own.
+- **No `design-reviewer` subagent was created.** §13 describes one, but `.claude/agents/` doesn't
+  exist and building it isn't this milestone's call — per the established split, the owner builds
+  `.claude/` tooling. Visual self-review happened via the actual mechanism §13 requires: Playwright
+  writes PNGs, read and critiqued directly.
+
+## Files Created/Modified
+
+**Shared contract**
+
+- `src/recording/types.ts`, `src/recording/README.md` (new): `Frame`, `CallStackEntry`,
+  `Recording`.
+- `src/engine/types.ts`, `src/engine/tracer.py` (modified): `RunResult` intersects `Recording`;
+  `record_trace` emits `source`.
+- `tests/fixtures/traces/*.json` (28 regenerated, verified single-field diff) + 3 new fixtures/
+  traces (`29_negative_values`, `30_wide_spread_values`, `31_recursion_depth_ten` — filling real
+  content gaps: no existing fixture had a negative value, a wide spread, or reached call-stack
+  depth 10).
+
+**Pure logic layer** (`src/player/`, each with its own `*.test.ts`)
+
+- `values/classify.ts`: `classifyValue`/`shadingDisabled` — the 8 §5 shapes plus `none`/
+  `mixed-list`, the non-finite-sentinel and big-int-as-string handling.
+- `scope.ts`: `resolveScope` — innermost call's locals, or module variables.
+- `diff.ts`: `diffFrames` — write/swap/append/pop/insert inference, call-stack delta, branch
+  detection.
+- `lineAnalysis.ts`, `indexVars.ts`: source-line tokenization (reusing `src/subset/tokenizer.ts`),
+  `namesReferencedOnLine`, `hasComparisonOperator`, `detectIndexArrows`.
+- `spotlight.ts`: `computeEmphasis` — the three-tier spotlight rule.
+
+**Motion + components**
+
+- `motion/variants.ts`, `motion/MotionRoot.tsx`: the shared gesture vocabulary and the
+  `prefers-reduced-motion` wrapper.
+- `values/{NumberChip,BooleanChip,StringChip,NoneChip,NumberList,StringList,NestedGrid,DictTable,IndexArrow,Chip}.tsx`,
+  `CallStackCards.tsx`, `Picture.tsx`: the full component tree.
+
+**Dev harness / self-review**
+
+- `src/App.tsx` (modified): `PictureDevHarness`, alongside (not replacing) m3's
+  `EngineDevHarness` — loads real committed traces via `import.meta.glob`, `?fixture=&step=`
+  deep-linking.
+- `playwright.config.ts`, `scripts/screenshots/picture.spec.ts` (new): 11 scenarios against real
+  fixture data, screenshots to `docs/images/`.
+- `docs/VISUALS.md` (new): every value shape, both bugs, both known limitations, documented
+  against the real screenshots.
+
+**Dependencies**: `framer-motion`, `@playwright/test` (+ Chromium) — both first installed this
+milestone, per the stack table.
+
+## Uncertain / worth double-checking
+
+1. **The connector line only spans two cells within the same list.** A comparison between a list
+   cell and an unrelated scalar (`nums[mid] == target`) emphasizes both correctly but draws no
+   connecting line across the different layout regions — a materially harder positioning problem
+   than this milestone covers. Documented in `docs/VISUALS.md`, not silently dropped.
+2. **`narration`'s content is still a placeholder** (carried over from m4) — nothing in the picture
+   renders it yet; §5's layout doesn't reserve space for it either.
+3. **Big-int-as-string renders indistinguishably from a real string.** Documented, accepted, not
+   fixed — see `docs/VISUALS.md`'s own section on it.
+4. **No formal `design-reviewer` subagent exists.** Screenshots were read and critiqued directly in
+   this session instead. If the owner wants that subagent built as real tooling, that's a
+   `.claude/agents/` addition for the owner to make, not something built here.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  17 passed (17)
+                    Tests       232 passed (232)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~300ms
+=== playwright ===  11 passed (10.2s)
+```
+
+11 real screenshots, from real committed trace data, in `docs/images/` — indexed with what each
+proves in `docs/VISUALS.md`: `shading-fallback-negative.png`, `shading-fallback-wide-spread.png`,
+`compare-lift-and-arrows.png`, `swap-in-progress.png`, `append.png`, `pop.png`,
+`call-stack-depth-10.png`, `dict-table.png`, `nested-grid.png`, `index-arrow-mid.png`,
+`index-arrow-i-j.png`.
+
+**Both real bugs above were caught by reading these screenshots directly** (a blank picture on
+`swap-in-progress.png`'s first capture; two identically-labeled arrows on
+`index-arrow-i-j.png`'s), not by any automated check — fixed, rebuilt, and re-captured before this
+checkpoint.
+
+## Github Commands for this milestone
+
+```bash
+git add src/recording/ src/player/ src/App.tsx src/engine/types.ts src/engine/tracer.py tests/fixtures/ playwright.config.ts scripts/ docs/ package.json package-lock.json
+git commit -m "Milestone 5: drawing system (value shapes, spotlight rule, motion vocabulary)"
+git push -u origin milestone-5-drawing-system
+```
+
+## Next
+
+Milestone 6 — playback controls and the code editor & error UX, plus the 5 click-through smoke
+tests (§7, §8, §12 layer 4). This is also where the `compare` gesture's ✓/✗ resolution becomes
+buildable, once a real code pane exists to show which branch was taken.

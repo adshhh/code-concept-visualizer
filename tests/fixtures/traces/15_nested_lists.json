@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "1\n9\n[[1, 2, 3], [4, 99, 6], [7, 8, 9]]\n",
+  "source": "grid = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]\nprint(grid[0][0])\nprint(grid[2][2])\ngrid[1][1] = 99\nprint(grid)\n",
   "frames": [
     {
       "step": 1,

@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "h\no\nhello world\n",
+  "source": "word = \"hello\"\nprint(word[0])\nprint(word[-1])\ngreeting = word + \" world\"\nprint(greeting)\n",
   "frames": [
     {
       "step": 1,

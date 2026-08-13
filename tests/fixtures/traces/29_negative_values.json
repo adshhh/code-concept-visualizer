@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "stdout": "[-5, 3, -8, 2, 10]\n-8\n10\n",
+  "source": "temps = [-5, 3, -8, 2, 10]\nprint(temps)\nprint(min(temps))\nprint(max(temps))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "temps": [
+          -5,
+          3,
+          -8,
+          2,
+          10
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: temps = [-5, 3, -8, 2, 10]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "temps": [
+          -5,
+          3,
+          -8,
+          2,
+          10
+        ]
+      },
+      "callStack": [],
+      "stdout": "[-5, 3, -8, 2, 10]\n",
+      "narration": "line 2: print(temps)"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "temps": [
+          -5,
+          3,
+          -8,
+          2,
+          10
+        ]
+      },
+      "callStack": [],
+      "stdout": "[-5, 3, -8, 2, 10]\n-8\n",
+      "narration": "line 3: print(min(temps))"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "temps": [
+          -5,
+          3,
+          -8,
+          2,
+          10
+        ]
+      },
+      "callStack": [],
+      "stdout": "[-5, 3, -8, 2, 10]\n-8\n10\n",
+      "narration": "line 4: print(max(temps))"
+    }
+  ]
+}

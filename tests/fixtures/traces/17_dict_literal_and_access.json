@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "90\n{'alice': 90, 'bob': 88, 'carol': 78}\n",
+  "source": "scores = {\"alice\": 90, \"bob\": 85}\nscores[\"carol\"] = 78\nprint(scores[\"alice\"])\nscores[\"bob\"] = 88\nprint(scores)\n",
   "frames": [
     {
       "step": 1,

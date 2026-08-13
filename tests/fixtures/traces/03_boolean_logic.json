@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "False\nTrue\nFalse\nTrue\n",
+  "source": "a = True\nb = False\nprint(a and b)\nprint(a or b)\nprint(not a)\nprint((a and not b) or (not a and b))\n",
   "frames": [
     {
       "step": 1,
