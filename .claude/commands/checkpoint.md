@@ -9,6 +9,7 @@ This command is for creating a small report of what happened and why it happened
 # Command Instructions
 
 Update the 'Resume here' box in docs/PLAN_v2.md with a short summary explaining where in the project we are and where to pick up from. (The purpose of 'Resume here' section is to tell a new chat session or someone new in the team, what in the project has been built and what the next part of the project is to be built)
+Also check docs/PLAN_v2.md's Status board: if a section was reopened and re-locked during this milestone (per the Reopening rule), confirm the board shows it LOCKED again; if anything is genuinely still open, leave it listed with its status.
 
 Everything below is to be appended to the file 'docs/checkpoint_report.md':
 

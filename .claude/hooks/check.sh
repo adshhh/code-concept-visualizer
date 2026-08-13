@@ -13,9 +13,10 @@ FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
 # Only source files trigger checks — skip docs, JSON, etc.
 case "$FILE" in
-  *.ts|*.tsx|*.js|*.jsx) ;;
+  *.ts|*.tsx|*.js|*.jsx|package.json|tsconfig.json) ;;
   *) exit 0 ;;
 esac
+
 
 cd "$CLAUDE_PROJECT_DIR" || exit 0
 
@@ -29,12 +30,15 @@ FAILURES=""
 run_script_if_present() {
   local script_name="$1"
   if jq -e --arg s "$script_name" '.scripts[$s]' package.json >/dev/null 2>&1; then
-    if ! npm run --silent "$script_name" 2>&1; then
+    local output
+    if ! output=$(npm run --silent "$script_name" 2>&1); then
       FAILURES="${FAILURES}
-- npm run $script_name failed"
+- npm run $script_name failed:
+${output}"
     fi
   fi
 }
+
 
 run_script_if_present "format"
 run_script_if_present "typecheck"

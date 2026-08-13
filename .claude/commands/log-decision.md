@@ -55,3 +55,4 @@ Steps for this task:
 3. In PLAN_v2.md's Status board, find each section named in step 2.3 and change its status from
    🟢 LOCKED back to open (⚪ or similar), so the board reflects reality until the section is
    re-locked.
+4. Once the reopened section has actually been fixed (not just reopened), change its status in PLAN_v2.md's Status board back to 🟢 LOCKED.
