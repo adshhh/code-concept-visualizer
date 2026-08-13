@@ -541,6 +541,42 @@ letting an inconvenient gap go unmentioned.
 
 ---
 
+## 20. Switching deploy platforms mid-milestone, for a reason with nothing to do with engineering
+
+**The situation.** D19 locked Vercel as the deploy platform, and milestone 1 reached the point of
+actually connecting it. Signing up failed. I'd deleted my old Vercel account before this project
+started, and re-creating one wouldn't go through — not once, but across three different signup
+paths: GitHub OAuth login, the same thing again in a private browser window (to rule out a stale
+session), and finally email signup, which stopped accepting my email address at all.
+
+**Why this was worth stopping for rather than pushing through.** Three unrelated paths failing the
+same way is a pattern, not bad luck — almost certainly the old account's data sitting in some
+not-fully-deleted state on Vercel's end. That's not a problem more retries solve, and it's not
+something I or Claude can act on. The honest move was to stop spending time on it rather than keep
+trying the same door.
+
+**Options considered.**
+- Keep retrying, or wait and hope the account issue resolves on its own. Costs real time with no
+  guarantee of a deadline.
+- Switch to a different platform.
+
+**Decision.** Netlify. What D19 actually needs — a preview URL per branch, zero-config static
+hosting for a Vite build, a free tier, deploy on push — Netlify provides identically. Nothing about
+the *requirement* changed, only the vendor satisfying it.
+
+**Why this belongs in this document.** Not every reversal of a locked decision is a design
+correction — some are just the world not cooperating. This is a clean example of the difference:
+the D22 import-boundary rescheduling (§18) fixed a real planning gap; this one fixes nothing, it
+just routes around an external account problem. Worth being able to tell apart in an interview: "I
+found a flaw in my own plan" and "a third-party service failed for reasons outside the project" are
+different kinds of story, and conflating them would overstate what was actually learned here.
+
+**Trade-off.** None of substance — this is a lateral move, not a downgrade. Logged via
+`docs/decisions/002-netlify-not-vercel.md` since D19 was LOCKED and named Vercel specifically; §12
+reopened and re-locked in the same pass.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
