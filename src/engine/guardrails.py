@@ -59,6 +59,49 @@ def _collection_too_large(value, seen):
     return False
 
 
+def _check_step(state):
+    """Shared by guard() below and tracer.py's own settrace hook, so the two guardrail
+    paths (m3's pass/fail execute_guarded and m4's recording record_trace) can never
+    silently drift apart — a future change to the threshold or message only has one place
+    to happen. `state` is the caller's own {"steps": int, "depth": int} dict."""
+    state["steps"] += 1
+    if state["steps"] > MAX_STEPS:
+        raise GuardrailExceeded(
+            "max_steps",
+            f"this program ran more than {MAX_STEPS} steps — "
+            "there may be a loop that never ends.",
+        )
+
+
+def _check_recursion_depth(state):
+    state["depth"] += 1
+    if state["depth"] > MAX_RECURSION_DEPTH:
+        raise GuardrailExceeded(
+            "recursion_depth",
+            f"this recurses more than {MAX_RECURSION_DEPTH} levels deep — "
+            "check that the base case is actually reachable.",
+        )
+
+
+def _check_collection_size(frame_locals):
+    # Deliberately not optimized to skip locals that didn't change since the last line: at
+    # this project's caps (<=2,000 steps, <=25 items per collection, <=100-line source) the
+    # extra walk costs microseconds, well inside the 3-second budget, and diffing "did this
+    # local change" would need the same kind of before/after value tracking the tracer
+    # already does — not worth duplicating here for a cost this small.
+    for name, value in frame_locals.items():
+        # Dunder names (__builtins__ and friends) are exec()'s own machinery, not user
+        # data, and would otherwise false-trip this check immediately.
+        if name.startswith("__"):
+            continue
+        if _collection_too_large(value, set()):
+            raise GuardrailExceeded(
+                "collection_size",
+                f"a list or dict grew past {MAX_COLLECTION_SIZE} items while "
+                "running — this visualizer keeps everything to 25 items or fewer.",
+            )
+
+
 def make_guard():
     """Returns a fresh sys.settrace-compatible function with its own counters, so state
     never leaks between separate executions in the same worker."""
@@ -73,40 +116,12 @@ def make_guard():
 
         if event == "call":
             if is_user_function_call:
-                state["depth"] += 1
-                if state["depth"] > MAX_RECURSION_DEPTH:
-                    raise GuardrailExceeded(
-                        "recursion_depth",
-                        f"this recurses more than {MAX_RECURSION_DEPTH} levels deep — "
-                        "check that the base case is actually reachable.",
-                    )
+                _check_recursion_depth(state)
             return guard
 
         if event == "line" and is_user_frame:
-            state["steps"] += 1
-            if state["steps"] > MAX_STEPS:
-                raise GuardrailExceeded(
-                    "max_steps",
-                    f"this program ran more than {MAX_STEPS} steps — "
-                    "there may be a loop that never ends.",
-                )
-            # Deliberately not optimized to skip locals that didn't change since the last
-            # line: at this project's caps (<=2,000 steps, <=25 items per collection,
-            # <=100-line source) the extra walk costs microseconds, well inside the
-            # 3-second budget, and diffing "did this local change" would need the same
-            # kind of before/after value tracking m4's real tracer is going to build anyway
-            # — not worth duplicating here for a cost this small.
-            for name, value in frame.f_locals.items():
-                # Dunder names (__builtins__ and friends) are exec()'s own machinery, not
-                # user data, and would otherwise false-trip this check immediately.
-                if name.startswith("__"):
-                    continue
-                if _collection_too_large(value, set()):
-                    raise GuardrailExceeded(
-                        "collection_size",
-                        f"a list or dict grew past {MAX_COLLECTION_SIZE} items while "
-                        "running — this visualizer keeps everything to 25 items or fewer.",
-                    )
+            _check_step(state)
+            _check_collection_size(frame.f_locals)
 
         if event == "return" and is_user_function_call:
             state["depth"] -= 1

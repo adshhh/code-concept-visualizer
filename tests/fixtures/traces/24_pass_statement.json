@@ -1,0 +1,44 @@
+{
+  "status": "ok",
+  "stdout": "small\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def not_yet_implemented():"
+    },
+    {
+      "step": 2,
+      "line": 5,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 5: x = 5"
+    },
+    {
+      "step": 3,
+      "line": 6,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 6: if x > 100:"
+    },
+    {
+      "step": 4,
+      "line": 9,
+      "variables": {
+        "x": 5
+      },
+      "callStack": [],
+      "stdout": "small\n",
+      "narration": "line 9: print(\"small\")"
+    }
+  ]
+}

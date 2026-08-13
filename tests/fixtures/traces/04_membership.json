@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "stdout": "True\nTrue\nTrue\nTrue\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [1, 2, 3, 4, 5]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [],
+      "stdout": "True\n",
+      "narration": "line 2: print(3 in nums)"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [],
+      "stdout": "True\nTrue\n",
+      "narration": "line 3: print(9 not in nums)"
+    },
+    {
+      "step": 4,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "True\nTrue\n",
+      "narration": "line 5: word = \"hello\""
+    },
+    {
+      "step": 5,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "True\nTrue\nTrue\n",
+      "narration": "line 6: print(\"h\" in word)"
+    },
+    {
+      "step": 6,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "True\nTrue\nTrue\nTrue\n",
+      "narration": "line 7: print(\"z\" not in word)"
+    }
+  ]
+}

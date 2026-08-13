@@ -1,0 +1,76 @@
+{
+  "status": "ok",
+  "stdout": "5\nhello world\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def add(a, b):"
+    },
+    {
+      "step": 2,
+      "line": 5,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 5: def greet(name):"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "add",
+          "args": [
+            2,
+            3
+          ],
+          "locals": {
+            "a": 2,
+            "b": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: return a + b"
+    },
+    {
+      "step": 4,
+      "line": 9,
+      "variables": {},
+      "callStack": [],
+      "stdout": "5\n",
+      "narration": "line 9: print(add(2, 3))"
+    },
+    {
+      "step": 5,
+      "line": 6,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "greet",
+          "args": [
+            "world"
+          ],
+          "locals": {
+            "name": "world"
+          }
+        }
+      ],
+      "stdout": "5\nhello world\n",
+      "narration": "line 6: print(\"hello \" + name)"
+    },
+    {
+      "step": 6,
+      "line": 10,
+      "variables": {},
+      "callStack": [],
+      "stdout": "5\nhello world\n",
+      "narration": "line 10: greet(\"world\")"
+    }
+  ]
+}

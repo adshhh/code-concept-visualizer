@@ -1,0 +1,159 @@
+{
+  "status": "ok",
+  "stdout": "6\n1\n9\n23\n7\n42\n42\n3.5\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: nums = [3, 1, 4, 1, 5, 9]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n",
+      "narration": "line 2: print(len(nums))"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n",
+      "narration": "line 3: print(min(nums))"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n",
+      "narration": "line 4: print(max(nums))"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n23\n",
+      "narration": "line 5: print(sum(nums))"
+    },
+    {
+      "step": 6,
+      "line": 6,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n23\n7\n",
+      "narration": "line 6: print(abs(-7))"
+    },
+    {
+      "step": 7,
+      "line": 7,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n23\n7\n42\n",
+      "narration": "line 7: print(int(\"42\"))"
+    },
+    {
+      "step": 8,
+      "line": 8,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n23\n7\n42\n42\n",
+      "narration": "line 8: print(str(42))"
+    },
+    {
+      "step": 9,
+      "line": 9,
+      "variables": {
+        "nums": [
+          3,
+          1,
+          4,
+          1,
+          5,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "6\n1\n9\n23\n7\n42\n42\n3.5\n",
+      "narration": "line 9: print(float(\"3.5\"))"
+    }
+  ]
+}

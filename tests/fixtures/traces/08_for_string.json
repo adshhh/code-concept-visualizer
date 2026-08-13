@@ -1,0 +1,137 @@
+{
+  "status": "ok",
+  "stdout": "h\ne\nl\nl\no\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "word": "hello"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: word = \"hello\""
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "h"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: for ch in word:"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "word": "hello",
+        "ch": "h"
+      },
+      "callStack": [],
+      "stdout": "h\n",
+      "narration": "line 3: print(ch)"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "e"
+      },
+      "callStack": [],
+      "stdout": "h\n",
+      "narration": "line 2: for ch in word:"
+    },
+    {
+      "step": 5,
+      "line": 3,
+      "variables": {
+        "word": "hello",
+        "ch": "e"
+      },
+      "callStack": [],
+      "stdout": "h\ne\n",
+      "narration": "line 3: print(ch)"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "l"
+      },
+      "callStack": [],
+      "stdout": "h\ne\n",
+      "narration": "line 2: for ch in word:"
+    },
+    {
+      "step": 7,
+      "line": 3,
+      "variables": {
+        "word": "hello",
+        "ch": "l"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\n",
+      "narration": "line 3: print(ch)"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "l"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\n",
+      "narration": "line 2: for ch in word:"
+    },
+    {
+      "step": 9,
+      "line": 3,
+      "variables": {
+        "word": "hello",
+        "ch": "l"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\nl\n",
+      "narration": "line 3: print(ch)"
+    },
+    {
+      "step": 10,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "o"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\nl\n",
+      "narration": "line 2: for ch in word:"
+    },
+    {
+      "step": 11,
+      "line": 3,
+      "variables": {
+        "word": "hello",
+        "ch": "o"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\nl\no\n",
+      "narration": "line 3: print(ch)"
+    },
+    {
+      "step": 12,
+      "line": 2,
+      "variables": {
+        "word": "hello",
+        "ch": "o"
+      },
+      "callStack": [],
+      "stdout": "h\ne\nl\nl\no\n",
+      "narration": "line 2: for ch in word:"
+    }
+  ]
+}

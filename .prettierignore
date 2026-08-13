@@ -8,3 +8,10 @@ package-lock.json
 # documents most worth reading in a diff — and `PLAN.md` is frozen, so nothing should
 # rewrite it at all.
 docs/
+
+# Committed recorded-run snapshots (§12 layer 2, AC-12.2) — generated verbatim by
+# traces.test.ts's own JSON.stringify(..., null, 2) and re-diffed byte-for-byte against
+# that same output on every test run. Letting Prettier reformat them (it collapses short
+# arrays onto one line, this generator doesn't) would make every file fail its own
+# snapshot check for a formatting difference, not a real trace change.
+tests/fixtures/traces/

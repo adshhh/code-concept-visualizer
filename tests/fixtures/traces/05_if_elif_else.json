@@ -1,0 +1,46 @@
+{
+  "status": "ok",
+  "stdout": "zero\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "x": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: x = 0"
+    },
+    {
+      "step": 2,
+      "line": 3,
+      "variables": {
+        "x": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: if x > 0:"
+    },
+    {
+      "step": 3,
+      "line": 5,
+      "variables": {
+        "x": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 5: elif x < 0:"
+    },
+    {
+      "step": 4,
+      "line": 8,
+      "variables": {
+        "x": 0
+      },
+      "callStack": [],
+      "stdout": "zero\n",
+      "narration": "line 8: print(\"zero\")"
+    }
+  ]
+}

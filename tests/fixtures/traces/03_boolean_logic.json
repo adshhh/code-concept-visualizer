@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "stdout": "False\nTrue\nFalse\nTrue\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "a": true
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: a = True"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "a": true,
+        "b": false
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: b = False"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "a": true,
+        "b": false
+      },
+      "callStack": [],
+      "stdout": "False\n",
+      "narration": "line 3: print(a and b)"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "a": true,
+        "b": false
+      },
+      "callStack": [],
+      "stdout": "False\nTrue\n",
+      "narration": "line 4: print(a or b)"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "a": true,
+        "b": false
+      },
+      "callStack": [],
+      "stdout": "False\nTrue\nFalse\n",
+      "narration": "line 5: print(not a)"
+    },
+    {
+      "step": 6,
+      "line": 6,
+      "variables": {
+        "a": true,
+        "b": false
+      },
+      "callStack": [],
+      "stdout": "False\nTrue\nFalse\nTrue\n",
+      "narration": "line 6: print((a and not b) or (not a and b))"
+    }
+  ]
+}

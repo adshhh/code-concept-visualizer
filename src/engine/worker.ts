@@ -1,7 +1,8 @@
 import * as Comlink from "comlink";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import guardrailsSource from "./guardrails.py?raw";
-import type { ExecutionResult } from "./types";
+import tracerSource from "./tracer.py?raw";
+import type { ExecutionResult, RunResult } from "./types";
 
 // Self-hosted, not CDN — copied into the build by vite-plugin-static-copy (see
 // vite.config.ts). Root-relative because the plugin's `dest` is site-root-relative.
@@ -24,7 +25,11 @@ function getPyodide(): Promise<PyodideInterface> {
         console.info(
           `[engine] Pyodide loaded in ${(performance.now() - startedAt).toFixed(0)}ms`,
         );
+        // tracer.py's top-level code references guardrails.py's names (GuardrailExceeded,
+        // MAX_STEPS, ...) as plain globals rather than importing them — this load order is
+        // what makes that resolve; see tracer.py's own module docstring.
         pyodide.runPython(guardrailsSource);
+        pyodide.runPython(tracerSource);
         return pyodide;
       })
       .catch((error: unknown) => {
@@ -51,6 +56,19 @@ async function executeInWorker(source: string): Promise<ExecutionResult> {
   return JSON.parse(resultJson) as ExecutionResult;
 }
 
+/** m4's entry point: same guardrail enforcement as executeInWorker, but returns a full
+ * Frame[] recording (§3) instead of a pass/fail result. `input` is accepted and threaded
+ * through but genuinely unused — see tracer.py's record_trace docstring. */
+async function runInWorker(source: string, input?: string): Promise<RunResult> {
+  const pyodide = await getPyodide();
+  const recordTrace = pyodide.globals.get("record_trace") as (
+    src: string,
+    inputValue?: string,
+  ) => string;
+  const resultJson: string = recordTrace(source, input);
+  return JSON.parse(resultJson) as RunResult;
+}
+
 /** Fire-and-forget from the main thread right after a fresh worker is spun up to replace
  * one that was just terminated — starts the ≈1.8s cold Pyodide load in the background so
  * it's likely already warm by the time the owner reads a timeout message and re-runs,
@@ -59,4 +77,4 @@ async function warmUp(): Promise<void> {
   await getPyodide();
 }
 
-Comlink.expose({ executeInWorker, warmUp });
+Comlink.expose({ executeInWorker, runInWorker, warmUp });

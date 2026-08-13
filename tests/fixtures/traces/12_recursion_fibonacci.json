@@ -1,0 +1,7726 @@
+{
+  "status": "ok",
+  "stdout": "21\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def fib(n):"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 5,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 7,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 9,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 10,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 11,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 12,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 13,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 14,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 15,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 16,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 17,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 18,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 19,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 20,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 21,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 22,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 23,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 24,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 25,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 26,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 27,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 28,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 29,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 30,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 31,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 32,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 33,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 34,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 35,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 36,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 37,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 38,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 39,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 40,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 41,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 42,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 43,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 44,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 45,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 46,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 47,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 48,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 49,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 50,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 51,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 52,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 53,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 54,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 55,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 56,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 57,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 58,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 59,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 60,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 61,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 62,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 63,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 64,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 65,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 66,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 67,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 68,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 69,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 70,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 71,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 72,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 73,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 74,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 75,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 76,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 77,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 78,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 79,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 80,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 81,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 82,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 83,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 84,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            7
+          ],
+          "locals": {
+            "n": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 85,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 86,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 87,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 88,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 89,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 90,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 91,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 92,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 93,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 94,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 95,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 96,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 97,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 98,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 99,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 100,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 101,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 102,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 103,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 104,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 105,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 106,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 107,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 108,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 109,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 110,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 111,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 112,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 113,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 114,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 115,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 116,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 117,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 118,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 119,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 120,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 121,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 122,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 123,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 124,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 125,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 126,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 127,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 128,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 129,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 130,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 131,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            0
+          ],
+          "locals": {
+            "n": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return n"
+    },
+    {
+      "step": 132,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 133,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 134,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        },
+        {
+          "name": "fib",
+          "args": [
+            6
+          ],
+          "locals": {
+            "n": 6
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 135,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "fib",
+          "args": [
+            8
+          ],
+          "locals": {
+            "n": 8
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return fib(n - 1) + fib(n - 2)"
+    },
+    {
+      "step": 136,
+      "line": 7,
+      "variables": {},
+      "callStack": [],
+      "stdout": "21\n",
+      "narration": "line 7: print(fib(8))"
+    }
+  ]
+}

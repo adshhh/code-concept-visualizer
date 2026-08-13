@@ -1,0 +1,170 @@
+{
+  "status": "ok",
+  "stdout": "9 5 14 3.5 3 1 49 -7\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "a": 7
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: a = 7"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "a": 7,
+        "b": 2
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: b = 2"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 3: sum_result = a + b"
+    },
+    {
+      "step": 4,
+      "line": 4,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: diff = a - b"
+    },
+    {
+      "step": 5,
+      "line": 5,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 5: prod = a * b"
+    },
+    {
+      "step": 6,
+      "line": 6,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 6: quot = a / b"
+    },
+    {
+      "step": 7,
+      "line": 7,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5,
+        "floor_quot": 3
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 7: floor_quot = a // b"
+    },
+    {
+      "step": 8,
+      "line": 8,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5,
+        "floor_quot": 3,
+        "remainder": 1
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 8: remainder = a % b"
+    },
+    {
+      "step": 9,
+      "line": 9,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5,
+        "floor_quot": 3,
+        "remainder": 1,
+        "power": 49
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 9: power = a**b"
+    },
+    {
+      "step": 10,
+      "line": 10,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5,
+        "floor_quot": 3,
+        "remainder": 1,
+        "power": 49,
+        "negative": -7
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 10: negative = -a"
+    },
+    {
+      "step": 11,
+      "line": 11,
+      "variables": {
+        "a": 7,
+        "b": 2,
+        "sum_result": 9,
+        "diff": 5,
+        "prod": 14,
+        "quot": 3.5,
+        "floor_quot": 3,
+        "remainder": 1,
+        "power": 49,
+        "negative": -7
+      },
+      "callStack": [],
+      "stdout": "9 5 14 3.5 3 1 49 -7\n",
+      "narration": "line 11: print(sum_result, diff, prod, quot, floor_quot, remainder, power, negative)"
+    }
+  ]
+}
