@@ -775,6 +775,48 @@ shipped in a committed trace — it was caught and fixed before the first snapsh
 
 ---
 
+## 25. Splitting the engine-load timeout from the execution timeout
+
+**The situation.** The owner's real-browser check of the milestone-4 preview hit a false "this
+program ran too long" on `for i in range(5): print(i * i)` — five lines, nowhere near the 2,000-step
+cap. Root cause: `client.ts`'s `execute()` (and m4's new `run()`) called `api.executeInWorker(source)`
+directly and raced the whole thing against the single 3-second `TIMEOUT_MS`, but `executeInWorker`'s
+first internal step is `await getPyodide()` — so on a cold worker, that same 3-second budget had to
+cover both the Pyodide download *and* the actual run. A slow cold load (worse in this milestone, since
+`worker.ts` now runs two Python files at startup instead of one) could eat the whole budget before the
+user's program even started, and the resulting message blamed the program for what was actually
+network/infrastructure latency. Confirmed, not assumed: a second click on the same warm worker
+completed instantly.
+
+**Options considered.** (1) Raise `TIMEOUT_MS` to something generous enough to always cover a cold
+load too — simplest, but makes AC-2.4's actual guarantee (a stuck program is caught within 3 seconds)
+weaker for everyone, to paper over a problem that only exists on the *first* run. (2) Leave it as one
+timer but change only the message to something vaguer — fixes nothing structurally, still conflates
+two different failure causes. (3) Split into two sequential, independently-budgeted phases: await
+`warmUp()` against a generous load-only budget, and only start the strict 3-second clock once the
+engine is confirmed warm.
+
+**Decision.** Option 3. `workerLifecycle.ts` gained `raceWithTimeout()`, a small reusable primitive,
+plus two named constants: `LOAD_TIMEOUT_MS` (10s, generous — a one-time few-MB download) and
+`EXECUTION_TIMEOUT_MS` (3s, AC-2.4's own number, unchanged). `client.ts` and `run.ts` both now: race
+`warmUp()` against the load budget first (on a miss, leave the worker alone — it's mid-download, not
+stuck, so terminating it would only make the retry slower); then race the real call against the
+execution budget (on a miss, `terminate()` + replace, exactly as before, since the engine being
+already-warm means this really is the program's fault).
+
+**Why / trade-off.** AC-2.4's literal wording ("terminates within 3 seconds") was written and
+originally verified against an implicitly-warm worker (the headline test was re-checked after earlier
+attempts in the same session had already loaded Pyodide once) — this fix makes that assumption
+explicit rather than silently true only sometimes. The real trade-off: a truly cold, slow-network first
+click can now take up to ~13 seconds worst-case (load budget + execution budget) before any message
+appears, technically longer wall-clock-from-click than 3 seconds. Accepted deliberately — the message
+shown is now *accurate* (a real diagnosis, not a misattributed one), which matters more than a strict
+wall-clock number the original design never actually held under cold-load conditions anyway. Doesn't
+reopen §2: AC-2.4 still describes the 3-second execution budget precisely, just now measured from the
+point it's honestly meant to start.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
