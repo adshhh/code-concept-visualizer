@@ -363,3 +363,237 @@ test output above and the diff itself.
 Milestone 3 — the execution engine (Pyodide, Web Worker, guardrails, §2) — begins once this branch is
 merged into `main`. This is also where the three deferred guardrail fixtures (max steps, wall-clock,
 recursion depth) finally get built, alongside `while True: pass` (§2's headline test).
+
+---
+
+# Milestone 3 Completed
+
+**Real Python, running safely in the browser — plus a standing process change that outlasts this
+milestone.**
+
+Since milestone 2's checkpoint, its own follow-up landed first: a second, properly-scoped
+`/code-review` (pointed at `src/subset/` directly, since the first run couldn't see the merged code
+at all) found two real bugs — a line-count off-by-one that would reject a normal 100-line file, and
+an escape-sequence decoding bug in the tokenizer — plus a missing `for`/`else` rejection and some
+dead code. All fixed, tested, and merged, alongside a tested read-only git/gh allow-list replacing
+the absolute block in `no-git.sh`. None of that is new milestone content; it's recorded here because
+the checkpoint log is supposed to be complete, not just about the milestone with a number.
+
+Milestone 3 itself: `src/engine/` now runs real Python (Pyodide, real CPython compiled to
+WebAssembly) inside a Web Worker, gated by the m2 validator, with three runtime guardrails — max
+steps, recursion depth, and a list/dict growing past 25 at runtime — enforced via a lightweight
+`sys.settrace` hook, plus a wall-clock timeout as the guaranteed backstop for anything that hook
+can't catch. Pyodide's runtime is self-hosted (not CDN-loaded) via `vite-plugin-static-copy`.
+
+## Why
+
+- **Guardrails via `sys.settrace`, not just the wall-clock timer.** The timer alone stops anything,
+  but can't tell the user *which* limit they hit. Settrace catches step/depth/size limits from
+  inside Python, with frame-filtering so Pyodide's own internal call stack doesn't inflate the
+  recursion count, and a recursive per-collection size check so nesting can't defeat it.
+- **Pyodide tested directly under Node**, not only through a real browser Worker. Confirmed via
+  Pyodide's own docs that Node support is official. Real-browser-only properties (Worker isolation,
+  `terminate()` actually killing a stuck loop, lazy-load not blocking paint) are the one thing this
+  approach can't prove — see Uncertain below.
+- **A terminated worker's replacement starts loading Pyodide immediately in the background**, not
+  on the next Run — cheap to add, and changes what "edit and re-run without reloading" (AC-2.4)
+  actually feels like right after a timeout.
+- **A temporary dev harness added to `App.tsx`** (not `src/player/`, so D22 never applies to it) —
+  the only way to verify the headline test and felt responsiveness in a real browser at this stage.
+- **AC-2.1 and AC-2.2 gained v2 scheduling notes**, same treatment as AC-2.7 from milestone 1: the
+  visual/felt versions need a landing page (m10) and editor panel (m6) that don't exist yet; the
+  underlying mechanisms (Worker isolation by construction, lazy async load) are built and tested now.
+- **New standing practice, applied to this milestone first**: every milestone from now on gets a
+  short pre-build audit against its neighboring sections before the implementation plan is written
+  — not just once, at the project's start. Full reasoning in `DESIGN_RATIONALE.md` §22; why review
+  keeps finding real things milestone after milestone (different reviews catch different classes of
+  problem; that's the mechanism working, not failing) is also there.
+
+## Files Created/Modified
+
+**Engine**
+
+- `src/engine/guardrails.py` (new): the settrace hook, `GuardrailExceeded`, and `execute_guarded` —
+  the one function the worker calls, always returning a JSON string so nothing but plain data ever
+  needs to cross the worker boundary (AC-2.6).
+- `src/engine/worker.ts` (new): loads Pyodide (zero `loadPackage` calls — AC-2.5), runs
+  `guardrails.py` once at startup, exposes `executeInWorker`/`warmUp` via Comlink.
+- `src/engine/client.ts` (new): the one entry point the app calls — validator gate, then a 3-second
+  race against the worker, `terminate()` + background-warmed replacement on timeout.
+- `src/engine/types.ts` (new): `ExecutionResult`, the plain serializable result union.
+- `vite.config.ts` (modified): `vite-plugin-static-copy` self-hosts Pyodide's runtime assets;
+  `optimizeDeps.exclude` and `worker.format` per Pyodide's documented Vite integration requirements.
+
+**Tests**
+
+- `src/engine/guardrails.test.ts` (new, 11 tests): real Pyodide under Node (`@vitest-environment
+  node`) proving every guardrail trips at the right boundary, ordinary programs and runtime errors
+  are handled correctly, and the `__builtins__`-false-positive edge case doesn't happen.
+- `src/engine/worker.test.ts` (new, 3 tests): structural proof of AC-2.5 (no `loadPackage`/
+  `micropip`) and the AC-2.2 lazy-load mechanism, comment-stripped so the module's own doc comments
+  explaining what's *absent* don't trip the check.
+- `src/engine/client.test.ts` (new, 1 test): proves invalid code never constructs a `Worker` at all.
+
+**App / docs**
+
+- `src/App.tsx` (modified): the temporary dev harness — textarea, Run button, output panel.
+- `README.md` (modified): status line, engine start-up section with a table for the owner to fill
+  in after a real-browser check.
+- `docs/PLAN_v2.md` (modified): v2 notes on AC-2.1/AC-2.2, milestone-table note, Resume-here box.
+- `docs/DESIGN_RATIONALE.md` (modified): §22 (the standing pre-build-audit practice) and §23 (the
+  four milestone-3 judgment calls).
+- `docs/decisions/003-pre-build-milestone-audit.md` (new).
+
+## Uncertain / worth double-checking
+
+1. ~~**Everything requiring a real browser is unverified by me**~~ **Resolved, and it found a real
+   bug.** The owner's first real-browser attempt at `while True: pass` was rejected as a syntax
+   error rather than reaching the engine — a milestone-2 parser gap (`parseSuite()` never handled
+   the single-line suite form), not an engine bug. Fixed, with a pinned regression test (see the
+   "real-browser testing found a genuine milestone-2 bug" addendum below). Re-tested after the fix:
+   `while True: pass` reaches the engine and stops via the step-count guardrail well under the
+   3-second budget (a trivial tight loop hits 2,000 steps almost instantly), the app stayed fully
+   usable afterward with no reload, and a normal multi-line program produced correct output.
+   Pyodide's self-hosted assets load correctly — no second `vite-plugin-static-copy` issue found.
+   AC-2.1's felt responsiveness wasn't separately stress-tested (every run so far has resolved in
+   well under a second), but nothing observed contradicts it, and it's architecturally guaranteed
+   by Worker isolation regardless — not blocking on a dedicated test for this alone.
+2. **Cold/warm start numbers are not filled in** — README has a table with placeholders. The worker
+   logs `[engine] Pyodide loaded in …ms` to the console specifically so this is a direct read, not a
+   derived estimate.
+3. **The hand-written validator's grammar still hasn't been cross-checked against real Python at
+   scale.** This milestone adds the *mechanism* for that (`validator_mismatch`, when Pyodide raises
+   `SyntaxError` on validator-accepted code) and a mechanism test proving it works, but hasn't run
+   the m2 fixture suite through real Python to look for an actual disagreement. Worth doing before
+   trusting the validator fully — a good candidate for early m4 work, since m4 needs real execution
+   of the fixtures anyway for the recorded-run snapshots.
+
+## Screenshots
+
+No real UI to screenshot (the dev harness is textboxes on a dark card, not worth a screenshot over
+just running it) — terminal evidence instead, same as milestones 1 and 2.
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  8 passed (8)
+                    Tests       112 passed (112)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in 148ms
+                    [vite-plugin-static-copy] Copied 5 items.
+```
+
+**Guardrails proven against real Python (Vitest + Pyodide-in-Node), not mocked:**
+
+```
+✓ guardrails.py — ordinary programs (4 tests)
+✓ guardrails.py — max steps (2,000) (2 tests)
+✓ guardrails.py — recursion depth (25) (2 tests)
+✓ guardrails.py — runtime list/dict size (25) (3 tests)
+```
+
+**A real bug the build output itself caught, not a test:** Pyodide's runtime assets initially
+landed at `dist/pyodide/node_modules/pyodide/*` instead of `dist/pyodide/*` — `worker.ts`'s
+`indexURL: "/pyodide/"` would have 404'd on every file in a real browser. Caught by inspecting
+`dist/pyodide/` directly after a build, not by any automated check (nothing in this stack can
+assert "these files are reachable from a real browser" without a real browser). Fixed with
+`rename: { stripBase: true }` in `vite.config.ts`; rebuilt and confirmed the files land flat.
+
+## Milestone 3 — code-review fixes (step 9, run before any commit this time)
+
+`/code-review` run properly this time — before any commit, pointed at the real diff — found 9
+real findings, 5 correctness bugs and 4 efficiency/reuse cleanups. All fixed:
+
+1. **`client.ts`: the 3-second timeout was never cleared when real execution won the race.** A
+   fast program left its timer ticking; if the same worker ran a second program within the next
+   ~2.9s, the orphaned timer fired mid-run and terminated the *wrong* execution, reporting a
+   spurious timeout for code that had already finished. Fixed with `try/finally` + `clearTimeout`.
+2. **`App.tsx`: `handleRun` had no `try/catch`.** A rejection from `execute()` left the Run button
+   stuck on "Running…" forever with a silent unhandled rejection. Fixed with try/catch/finally and
+   a visible error state.
+3. **`worker.ts`: a failed Pyodide load permanently wedged the worker.** `getPyodide()` cached the
+   rejected promise forever, so one transient network failure meant every future call in that
+   worker kept failing with no retry. Fixed by clearing the cache on failure.
+4. **`guardrails.py`: `SystemExit` could escape `execute_guarded` despite the docstring's "nothing
+   escapes" promise.** `except Exception` doesn't catch `SystemExit`/`KeyboardInterrupt`/
+   `GeneratorExit` — a real gap regardless of whether a bare `exit()`/`quit()` call is actually
+   reachable in Pyodide's builtins (the reviewer flagged that part as plausible, not certain).
+   Fixed with a second `except BaseException` clause; proved with a direct `raise SystemExit(...)`
+   test, since `raise` itself is blocked by the validator and this needs to bypass it to test.
+5. **`client.ts`: the background `warmUp()` call had no `.catch`.** A second load failure right
+   after a timeout vanished silently. Fixed with a `.catch` that logs it.
+6. **`guardrails.py`: the per-line guardrail walks every list/dict local on every line, even
+   unchanged ones.** Real, but genuinely cheap at this project's caps (≤2,000 steps, ≤25 items,
+   ≤100 lines) — documented as a deliberate non-fix rather than silently ignored, since "skip
+   unchanged locals" would need the same before/after diffing m4's real tracer is going to build
+   anyway.
+7. **The 25-item cap was three independent literals** (`guardrails.py`, and twice in
+   `parser.ts`). Consolidated the two TS call sites onto one `MAX_COLLECTION_SIZE` constant;
+   cross-referenced in both files' comments across the TS/Python boundary, which can't be closed
+   by an import.
+8. **AC-2.5's test only checked source text, not runtime behavior.** Added a stronger assertion in
+   `guardrails.test.ts` — `pyodide.loadedPackages` is `{}` after every guardrail test has run
+   real Pyodide, which a regex on `worker.ts`'s text alone couldn't prove.
+9. **`ExecutionResult`'s `rejected` variant duplicated `ValidationRejected`'s fields** instead of
+   reusing them, risking silent drift. Now built from `Pick<ValidationRejected, "line" | "message">`.
+
+Tests: 112 → 114 (the SystemExit proof and the runtime AC-2.5 check). All green; typecheck,
+format, and build clean throughout.
+
+## Github Commands for this milestone
+
+Everything above — the milestone itself and its review fixes — is still uncommitted as one
+working tree. One commit covers both, since the fixes were never merged separately:
+
+```bash
+git checkout -b milestone-3-execution-engine
+```
+
+Only needed if you're not already on a dedicated branch for this work — check `git status` first.
+
+```bash
+git add src/engine/ src/subset/parser.ts vite.config.ts src/App.tsx README.md docs/ package.json package-lock.json
+git commit -m "Milestone 3: execution engine (Pyodide, Web Worker, guardrails), plus code-review fixes"
+git push -u origin milestone-3-execution-engine
+```
+
+## Next
+
+**Before merging:** verify AC-2.1 and AC-2.4 yourself in a real browser via the dev harness (see
+Uncertain #1) — this is the milestone where that check matters most. Milestone 4 — the Tier 1 trace
+pipeline + recorded-run snapshots (§3) — begins once this is merged into `main`.
+
+---
+
+## Milestone 3 — real-browser testing found a genuine milestone-2 bug
+
+The owner's first real-browser attempt at the headline test typed `while True: pass` on one line
+(as documented — that's the exact form §2 specifies) and it was **rejected as a syntax error**
+instead of reaching the engine at all. Root cause: `parseSuite()` in `src/subset/parser.ts`
+(milestone 2) only ever handled the indented-block form of `if`/`while`/`for`/`def` — it
+unconditionally required a newline right after `:`, so it never accounted for real Python's
+same-line form (`while True: pass`, `if x: y`, `def f(): return 1`). This isn't an edge case for
+this project specifically: **it's the literal, verbatim text of §2's own headline test**, which
+means AC-2.4 had never actually been exercised — the "instant" result the owner saw was the
+validator rejecting the program, not the engine's guardrails succeeding.
+
+Separately, and part of why this surfaced now rather than earlier: the temporary dev harness's
+`<textarea>` doesn't support Tab-to-indent (a plain HTML textarea just shifts focus on Tab, the way
+any web page does — code editors add that behavior themselves, and this one hadn't yet). The owner
+worked around it by writing one-liners, which is exactly what exposed the gap. Both are now fixed:
+`parseSuite()` supports both suite forms (with a pinned regression test using this exact program),
+and the harness's textarea now inserts a real tab character on Tab instead of changing focus.
+
+**Re-tested after the fix — AC-2.4 now genuinely holds.** `while True: pass` reaches the engine and
+stops via the step-count guardrail (well under the 3-second budget), the app stayed fully usable
+afterward with no reload, and the owner separately confirmed a normal multi-line program (a `for`
+loop with `print` inside it) produces correct, correctly-ordered output. Milestone 3 is closed.
+
+## Files Modified (this addendum)
+
+- `src/subset/parser.ts`: `parseSuite()` now branches on whether `:` is followed by NEWLINE
+  (indented block) or a statement on the same line (single-line suite).
+- `src/subset/validate.test.ts`: pinned regression test using `while True: pass` verbatim.
+- `tests/fixtures/accepted/28_single_line_suites.py`: new fixture.
+- `src/App.tsx`: the dev harness's textarea now handles Tab.
+
+Tests: 114 → 116.

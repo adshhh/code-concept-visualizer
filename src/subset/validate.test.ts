@@ -9,6 +9,16 @@ describe("validate — accepted smoke cases", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts single-line suites — the exact shape of §2's headline test", () => {
+    // Found via manual real-browser testing of milestone 3's dev harness: `while True:
+    // pass` on one line was rejected as a syntax error, because parseSuite() only ever
+    // handled the indented-block form. This is §2's own headline test, so this fixture
+    // exists specifically to pin that regression.
+    expect(validate("while True: pass\n").ok).toBe(true);
+    expect(validate("x = 5\nif x > 0: print('pos')\n").ok).toBe(true);
+    expect(validate("def f(): return 1\n").ok).toBe(true);
+  });
+
   it("accepts if/elif/else", () => {
     const src =
       "x = 5\nif x > 0:\n    print('pos')\nelif x < 0:\n    print('neg')\nelse:\n    print('zero')\n";
