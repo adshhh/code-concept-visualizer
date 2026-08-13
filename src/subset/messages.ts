@@ -59,6 +59,10 @@ export const REASONS = {
     construct: "the while/else form",
     alt: "Just use a regular while loop.",
   },
+  forElse: {
+    construct: "the for/else form",
+    alt: "Just use a regular for loop.",
+  },
   keywordArgument: {
     construct: "keyword arguments (like func(x=1))",
     alt: "Pass arguments in order instead.",

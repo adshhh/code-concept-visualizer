@@ -934,11 +934,11 @@ with real work in between.
 
 ### `CLAUDE.md` (project root, under 50 lines, read every session)
 
-One-paragraph project description · the standing checkpoint instruction · the locked hard rules
-(25-item cap · no scrolling or virtualisation anywhere · the spotlight rule · nothing ships that isn't
-in the plan) · the never-touch-git rule · a pointer to `docs/PLAN_v2.md` as source of truth. Rules live
-here; _detail_ lives in the plan. Kept short deliberately — long rules files dilute the rules that
-matter.
+One-paragraph project description · the standing checkpoint instruction · the locked hard rules —
+**six in total**: nothing ships that isn't traceable to the plan · the 25-item cap · no scrolling or
+virtualisation anywhere · the spotlight rule · the player must never import the execution engine ·
+the never-touch-git rule — · a pointer to `docs/PLAN_v2.md` as source of truth. Rules live here;
+_detail_ lives in the plan. Kept short deliberately — long rules files dilute the rules that matter.
 
 ### Checkpoints
 

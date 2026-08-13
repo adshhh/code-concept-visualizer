@@ -166,12 +166,33 @@ describe("validate — rejected smoke cases", () => {
     if (!result.ok) expect(result.message).toMatch(/while\/else/);
   });
 
+  it("rejects a for/else form", () => {
+    const src =
+      "nums = [1, 2, 3]\nfor n in nums:\n    print(n)\nelse:\n    print('done')\n";
+    const result = validate(src);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toMatch(/for\/else/);
+  });
+
   it("rejects a program over 100 lines", () => {
     const src =
       Array.from({ length: 101 }, (_, i) => `x${i} = ${i}`).join("\n") + "\n";
     const result = validate(src);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toMatch(/programs over 100 lines/);
+  });
+
+  it("does not reject an exactly-100-line program that ends with a trailing newline", () => {
+    const src =
+      Array.from({ length: 100 }, (_, i) => `x${i} = ${i}`).join("\n") + "\n";
+    expect(validate(src).ok).toBe(true);
+  });
+
+  it("does not misdecode an escaped backslash followed by n as a newline", () => {
+    // Python source containing \\n (backslash, backslash, n) should decode to a literal
+    // backslash followed by the letter n — not an actual newline character.
+    const result = validate("s = 'a\\\\nb'\n");
+    expect(result.ok).toBe(true);
   });
 
   it("rejects a list literal with more than 25 items", () => {
