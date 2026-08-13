@@ -60,11 +60,18 @@ Three constraints shape every decision:
 > (`decisions/001-living-plan-split.md`). Agent visual self-review is settled: Playwright moved to
 > m5, writing PNGs the agent reads (`DESIGN_RATIONALE.md` §19).
 >
-> **Next: milestone 2** — the Python subset validator and fixture suite (§1). The owner should merge
-> `milestone-1-scaffold` into `main` first (step 10 of the build loop), which also gives production
-> its first real deploy.
+> **Milestone 1 is merged into `main`**, confirmed live on production.
 >
-> Then: **milestone 2** — the Python subset validator and fixture suite (§1). See the Build
+> **Milestone 2 is built and checkpointed** (see `checkpoint_report.md`). The subset validator
+> (`src/subset/`: a hand-written tokenizer + parser, no Pyodide dependency) and the fixture suite
+> (27 accepted, 21 rejected, 2 guardrail fixtures — all comfortably over the ≥25/≥20 minimums) are
+> done. AC-1.1 through AC-1.5 fully hold. AC-1.6 holds for the two guardrails checkable without an
+> execution engine (source length, oversized literals); the other three move to m3 — see the v2 note
+> on AC-1.6 above and `DESIGN_RATIONALE.md` §21, which also logs the two owner-approved design calls
+> (a hand-rolled checker instead of pulling Pyodide forward; the two-item swap idiom allowed as the
+> one exception to "tuples are out of scope") plus five smaller judgment calls made along the way.
+>
+> **Next: milestone 3** — the execution engine (Pyodide, Web Worker, guardrails, §2). See the Build
 > milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
@@ -284,6 +291,11 @@ keyword arguments · slice assignment.
    `"<construct> isn't supported yet — line N. <suggested alternative>"` — never a raw traceback.
 6. Each of the five guardrails has a fixture that trips it and yields a specific message — never a
    crash, never a hang, never silent truncation.
+   > **v2 re-sequencing:** only two of the five are checkable at **m2** without executing anything —
+   > max source length, and a list/dict **literal** over 25 (both visible in the source text itself).
+   > The other three — max steps, max wall-clock, max recursion depth — describe things that happen
+   > while code is *running*, which nothing can do until m3's engine exists. **Verified at m3.** Same
+   > shape as the AC-2.3/AC-2.7 re-sequencing above. See `docs/DESIGN_RATIONALE.md` §21.
 
 ---
 

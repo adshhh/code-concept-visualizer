@@ -577,6 +577,66 @@ reopened and re-locked in the same pass.
 
 ---
 
+## 21. Seven scope decisions the milestone 2 validator plan didn't specify
+
+**The situation.** §1 defines the subset validator's job precisely — which constructs, which
+messages, which guardrails — but not *how* to build it, and building it surfaced several places
+where the written spec runs out before implementation can start: two big enough to check with the
+owner first, five small enough to decide and simply document.
+
+**1. How does the validator check syntax with no Pyodide until m3?**
+_Options:_ write a small Python grammar checker in TypeScript ourselves, or pull Pyodide into m2
+early and use Python's own `ast.parse()`. _Decision (owner's call):_ our own checker — matches the
+milestone table's own framing of m2 as "fully testable with zero execution," and keeps the heaviest
+dependency in the milestone (m3) that's actually about running code. _Trade-off:_ real risk of the
+hand-written grammar disagreeing with actual Python somewhere; no fully authoritative cross-check
+exists until m3+ can run the same fixtures for real.
+
+**2. Tuples are out of scope, but a normal Python swap (`a[i], a[i+1] = a[i+1], a[i]`) is tuple
+syntax, and sort lessons need swaps.** _Options:_ special-case exactly the two-item swap as legal, or
+ban it and require sort lessons to write a three-line temp-variable swap instead. _Decision (owner's
+call):_ special-case the swap. Keeps sort lessons idiomatic; tuples stay banned everywhere else — no
+literals, no unpacking beyond this one shape, no 3-way rotations.
+
+**3. AC-1.6 asks for a fixture per guardrail, but four of the five guardrails only trip while code is
+*running*, and nothing can run code until m3.** _Decision:_ only max source length (and an over-25
+*list/dict literal*, which is visible in the source) gets a fixture at m2. The other three — max
+steps, wall-clock, recursion depth — move to m3, flagged with a v2 annotation on AC-1.6 in
+`PLAN_v2.md`, the same move already used for AC-2.3/AC-2.7 in the milestone-1 audit.
+
+**4. Where does the validator live — `src/engine/` or somewhere else?** _Decision:_ a new folder,
+`src/subset/`. The validator has no Pyodide dependency, and the future code editor (m6) needs to call
+it for live inline errors before Run is ever pressed. Putting it in `src/engine/` would force that
+editor code to import from `src/engine/`, which is exactly what the D22 boundary test exists to
+block. `src/player/README.md` already names this pattern: shared logic belongs to neither side.
+
+**5. `pass` appears in neither §1 list.** _Decision:_ accept it. Rejecting a harmless no-op statement
+would be a surprising gap, not a real scope choice, and §1 gives no indication it was meant to be
+excluded.
+
+**6. Nested function definitions aren't named in either §1 list either.** _Decision:_ reject them. A
+`def` inside another `def` is the mechanism that would let closures in through the back door, and
+closures are explicitly out of scope.
+
+**7. AC-1.2 ("never reaches the runner") and half of AC-1.3 ("run to completion") describe things
+that need a runner, which doesn't exist until m3.** _Decision:_ read both as validation-only claims
+at m2. AC-1.2 is satisfied structurally — a test proves the validator module itself never executes or
+evaluates anything. AC-1.3's fixtures assert `validate().ok === true`; actually running them to
+completion becomes checkable once m3 exists.
+
+**Why none of this reopens anything LOCKED.** §1's actual text — the in/out-of-scope lists, the
+guardrail numbers, the message format — is untouched by any of the seven. These are all
+implementation decisions the plan left open, exactly the kind the Autonomy boundary (§13) says the
+agent decides and notes rather than stops and asks about — except the first two, which went to the
+owner anyway because they change what a lesson author can and can't write, not just how the
+validator is built internally.
+
+**Trade-off.** Bundling seven decisions into one entry trades some findability for readability —
+same precedent as §16's audit bundling. Anyone looking for one of these later should search this
+document by keyword, not by entry number.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
