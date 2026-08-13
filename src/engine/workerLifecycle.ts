@@ -5,6 +5,38 @@ export interface WorkerHandle<Api> {
   api: Comlink.Remote<Api>;
 }
 
+/** Generous — this bounds a one-time, network-dependent Pyodide download (a few MB over
+ * whatever connection the visitor has), not user code. Kept separate from
+ * EXECUTION_TIMEOUT_MS so a slow cold load is never misattributed to "this program ran too
+ * long" (see raceWithTimeout's call sites in client.ts/run.ts). */
+export const LOAD_TIMEOUT_MS = 10_000;
+
+/** AC-2.4's own 3-second budget — only ever wraps the actual execution/trace call, once the
+ * engine is confirmed warm. */
+export const EXECUTION_TIMEOUT_MS = 3_000;
+
+/** Races `promise` against a timeout, returning one shape either way instead of resolving
+ * or rejecting differently depending on which wins — every call site gets the same
+ * `if (!result.ok)` branch regardless of what it's timing. Always clears its own timer, so a
+ * promise that settles first never leaves an orphaned setTimeout ticking. */
+export async function raceWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<{ ok: true; value: T } | { ok: false }> {
+  let timeoutId!: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<{ ok: false }>((resolve) => {
+    timeoutId = setTimeout(() => resolve({ ok: false }), timeoutMs);
+  });
+  try {
+    return await Promise.race([
+      promise.then((value) => ({ ok: true as const, value })),
+      timeout,
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 /** Everything both client.ts's execute() and run.ts's run() need to manage a Comlink-wrapped
  * worker: lazy creation, and terminate-and-replace-with-a-warming-replacement on timeout.
  * Factored out because the two call sites had drifted into hand-copies of the same lifecycle

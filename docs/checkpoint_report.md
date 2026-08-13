@@ -791,3 +791,56 @@ git push -u origin milestone-4-trace-pipeline
 Milestone 5 — the drawing system: value shapes, the spotlight rule, motion vocabulary, plus
 Playwright arriving for agent visual self-review (§5, §6, §13). This is the first milestone with
 anything to actually look at, so it's also the first real visual review.
+
+---
+
+## Milestone 4 — real-browser testing found a genuine bug (again, same pattern as m3)
+
+The owner's real-browser check of the preview hit a false timeout: `for i in range(5): print(i *
+i)` — a five-line, trivially-fast program — reported `{"status": "timeout", "message": "This
+program ran too long..."}`. A second click, same page, completed instantly, which was the
+diagnostic clue: this was cold-load latency, not a logic bug.
+
+Root cause: `client.ts`'s `execute()` (and m4's `run()`) raced the *entire* `executeInWorker` call
+— including its internal `await getPyodide()` on a cold worker — against the same 3-second
+`TIMEOUT_MS` meant for catching stuck user code. `worker.ts` now loads two Python files at startup
+instead of one (`guardrails.py` then `tracer.py`), pushing an already-marginal cold-load budget
+over the edge on the real deployed network. A perfectly fine program was told it ran too long,
+purely because Pyodide hadn't finished loading yet.
+
+**Fix:** `workerLifecycle.ts` gained a `raceWithTimeout()` primitive plus two named constants —
+`LOAD_TIMEOUT_MS` (10s, generous, for the one-time download) and `EXECUTION_TIMEOUT_MS` (3s,
+AC-2.4's own number, unchanged). `client.ts` and `run.ts` now race `warmUp()` against the load
+budget *first* (a miss there leaves the worker alone — it's mid-download, not stuck, so
+terminating would only slow the retry down), then race the real call against the strict execution
+budget only once the engine is confirmed warm. Full reasoning in `DESIGN_RATIONALE.md` §25,
+including the honest trade-off: a truly cold, slow-network first click can now take up to ~13s
+worst-case before any message appears, longer wall-clock-from-click than AC-2.4's literal 3
+seconds — accepted deliberately, since the message is now an accurate diagnosis instead of a
+wrong one, and the original design never actually held that 3-second number under cold-load
+conditions to begin with (the original headline-test verification was implicitly against an
+already-warm worker).
+
+**Files:**
+
+- `src/engine/workerLifecycle.ts`: adds `raceWithTimeout`, `LOAD_TIMEOUT_MS`,
+  `EXECUTION_TIMEOUT_MS`.
+- `src/engine/client.ts`, `src/engine/run.ts`: two-phase load-then-execute timeout, replacing the
+  single combined race.
+- `src/engine/workerLifecycle.test.ts` (new, 4 tests): pins `raceWithTimeout`'s core behavior —
+  resolves with the value on a win, `{ok: false}` on a timeout, always clears its own timer, and
+  two sequential calls don't bleed budgets into each other.
+- `docs/DESIGN_RATIONALE.md`: §25.
+
+Tests: 164 → 168. Typecheck, format, and build clean throughout. This is the same shape as m3's
+`parseSuite()` bug: found only by the owner actually using the deployed preview, not by anything
+Pyodide-in-Node testing could have caught (the timing/network dynamics this bug lives in don't
+exist in that test environment at all).
+
+## Github Commands for this milestone
+
+```bash
+git add src/engine/ docs/
+git commit -m "Milestone 4 follow-up: split engine-load timeout from execution timeout"
+git push
+```
