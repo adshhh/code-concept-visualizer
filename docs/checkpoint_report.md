@@ -194,3 +194,172 @@ push is what triggers CI for the first time.
 
 Milestone 2 — the Python subset validator and fixture suite (§1) — begins once Vercel is connected
 and the preview URL confirms this milestone, still in Phase A (Foundation).
+
+---
+
+# Milestone 2 Completed
+
+**The Python subset validator, and a fixture suite proving it — built entirely without Pyodide.**
+
+`src/subset/` now exists: a hand-written tokenizer and parser that reads Python source and decides,
+before anything executes, whether it fits the supported subset. It's small on purpose — not a real
+Python parser, just enough grammar to recognize every in-scope construct and name the specific
+out-of-scope one when it isn't. 27 accepted fixtures and 21 rejected fixtures (both comfortably over
+the ≥25/≥20 minimums) exercise it, plus 2 guardrail fixtures, all wired into the existing `npm test` —
+no new plumbing needed. `docs/SUBSET.md` documents the contract for anyone who hits a rejection
+message and wants to know why.
+
+## Why
+
+Two decisions changed what this milestone actually builds, and I checked both with the owner before
+writing code — plus five smaller ones decided independently. All seven are logged in
+`docs/DESIGN_RATIONALE.md` §21; the short version:
+
+- **The validator is our own TypeScript checker, not Pyodide's `ast` module.** Pyodide doesn't arrive
+  until m3, and pulling it in a milestone early would blur the "fully testable with zero execution"
+  boundary the plan itself draws around m2. Real risk this carries: our hand-written grammar could
+  disagree with actual Python somewhere fixtures don't cover — nothing catches that until m3+ can run
+  the same programs for real.
+- **The two-item swap idiom (`a[i], a[j] = a[j], a[i]`) is allowed**, as the one exception to "tuples
+  are out of scope" — otherwise sort lessons (m8/m9) couldn't write a swap the normal Python way. The
+  validator checks the shape exactly: two targets, two values, values textually reversed. Anything
+  looser (3-way rotations, parallel assignment that isn't a reversal) is still rejected as a tuple.
+- **AC-1.6 only partly holds this milestone.** Only max source length and an oversized list/dict
+  *literal* are visible in source text; the other three guardrails (max steps, wall-clock, recursion
+  depth) require actually running code, which nothing can do until m3. Annotated inline on AC-1.6 in
+  `PLAN_v2.md`, same treatment as the AC-2.3/AC-2.7 re-sequencing from milestone 1.
+- **The validator lives in `src/subset/`, not `src/engine/`.** It has zero Pyodide dependency, and
+  the code editor (m6) will need to call it for live inline errors before Run is ever pressed. Inside
+  `src/engine/` would force that editor code to import from `src/engine/` — exactly what the D22
+  boundary test exists to block.
+- **`pass` is accepted; nested function definitions are rejected.** Neither is named in §1's lists.
+  `pass` is a harmless no-op with no reason to exclude it. Nested `def` is the mechanism that would
+  let closures — already out of scope — in through the back door.
+- **AC-1.2 and part of AC-1.3 are read as validation-only claims at m2.** "Never reaches the runner"
+  is proved structurally (a test scans the validator's own source for `eval`/`Function`/dynamic
+  `import`). "Run to completion" becomes checkable once m3's runner exists; for now the accepted
+  fixtures only assert that they validate cleanly.
+
+## Files Created/Modified
+
+**Plan and decision documents**
+
+- `docs/DESIGN_RATIONALE.md` (modified): §21, all seven decisions above.
+- `docs/PLAN_v2.md` (modified): v2 note on AC-1.6; Resume-here box updated.
+- `docs/SUBSET.md` (new): AC-1.1 — the in/out-of-scope lists and guardrail table, standalone.
+- `docs/checkpoint_report.md` (modified): this entry.
+
+**Validator**
+
+- `src/subset/types.ts` (new): `Token`, `FStringPart`, `ValidationResult`, `RejectionError`.
+- `src/subset/messages.ts` (new): one rejection reason (construct + suggested alternative) per
+  out-of-scope construct — the single source of the AC-1.5 message format.
+- `src/subset/tokenizer.ts` (new): indentation-aware (INDENT/DEDENT), bracket-continuation-aware,
+  f-string-aware. Out-of-scope keywords (`class`, `import`, `lambda`, etc.) are caught here, at the
+  lexical level, before the parser ever sees them.
+- `src/subset/parser.ts` (new): recursive-descent recognizer — no AST is built, since nothing later
+  in this milestone needs one; it either accepts the token stream or throws a specific rejection.
+  Handles the swap-idiom special case, the closure/nested-`def` check, and the oversized-literal
+  guardrail.
+- `src/subset/validate.ts` (new): the public entry point, `validate(source) -> ValidationResult`.
+  Checks max source length before tokenizing at all.
+
+**Tests and fixtures**
+
+- `src/subset/tokenizer.test.ts` (new, 11 tests): indentation, f-string splitting, operator
+  precedence in tokenization, line numbers across multi-line brackets.
+- `src/subset/validate.test.ts` (new, 26 tests): accept/reject smoke cases across the whole subset,
+  plus the AC-1.2 structural proof.
+- `src/subset/fixtures.test.ts` (new): reads every file under `tests/fixtures/**` and runs it through
+  `validate()`.
+- `tests/fixtures/accepted/*.py` (27 new): arithmetic, comparisons, booleans, membership, all control
+  flow, recursion (factorial, fibonacci), lists (negative index, slicing, nesting, `.append`/`.pop`/
+  `.insert`), dicts, strings/f-strings, every named builtin, chained/augmented assignment, the swap
+  idiom, `pass`, and three realistic programs (linear search, bubble sort, binary search) that double
+  as forward material for later lessons.
+- `tests/fixtures/rejected/*.py` (21 new): one file per out-of-scope construct, each starting with a
+  `# reject: line N` comment the test reads instead of a separate manifest file.
+- `tests/fixtures/guardrails/*.py` (2 new): the over-100-lines and over-25-item-literal cases.
+
+## Uncertain / worth double-checking
+
+1. **I didn't confirm which branch this was built on.** Per the build loop, the owner creates the
+   milestone branch before plan mode starts — I never saw a `git status` this session to confirm. The
+   commands below assume `milestone-2-subset-validator`; adjust if you named it differently.
+2. **The hand-written grammar's fidelity to real Python is untested against real Python.** The
+   fixture suite proves internal consistency (the validator agrees with itself), not that every
+   accepted fixture is actually valid, runnable Python, or that every rejected one would actually
+   fail in CPython for the stated reason. That cross-check only becomes possible once m3's Pyodide
+   engine exists to run the same fixtures for real — worth treating as a real to-do for m3/m4, not
+   assuming it "probably matches."
+3. **The swap-idiom detector requires an exact textual reversal.** `a[i], a[j] = a[j], a[i]` is
+   accepted; `a[i], a[j] = b[j], b[i]` (different list) is rejected as a tuple, even though it's
+   arguably a reasonable parallel-assignment use. This was a deliberate narrow reading of what you
+   approved — flagging in case you intended something looser.
+4. **`is` and a few rare keywords (`del`, `raise`, `assert`) get a generic fallback message** ("this
+   construct isn't part of the supported subset") rather than a tailored one, since §1 didn't name
+   them specifically. Low-traffic paths, but worth a look if a lesson ever needs one of them.
+
+## Screenshots
+
+No UI exists yet — Playwright doesn't arrive until m5 — so terminal output stands in as evidence,
+same as milestone 1's infrastructure checkpoint.
+
+**All four gates green, whole project:**
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  5 passed (5)
+                    Tests       93 passed (93)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in 143ms
+```
+
+**The subset suite in isolation** (`npx vitest run src/subset/`):
+
+```
+Test Files  3 passed (3)
+     Tests  90 passed (90)
+```
+
+27 accepted fixtures, 21 rejected fixtures, 2 guardrail fixtures, 26 validate.test.ts smoke cases,
+11 tokenizer.test.ts cases — all green on the first full run after fixing one real bug caught along
+the way (see below).
+
+**A real bug the fixture suite caught before it shipped.** Drafting the dict-comprehension rejected
+fixture surfaced that `parseBraceBody` only checked for a trailing `for` after the dict's *key*, not
+after its *value* — so `{x: x*x for x in range(10)}` fell through to a generic syntax error instead
+of naming "comprehensions" specifically, violating AC-1.5's message format. Fixed by adding the same
+check after the value is parsed too; the fixture now passes with the correct message.
+
+## Github Commands for this milestone
+
+```bash
+git status
+```
+
+Confirms the branch and what's about to be staged — worth checking given uncertainty 1 above.
+
+```bash
+git add -A
+```
+
+Stages `docs/`, `src/subset/`, and `tests/fixtures/`.
+
+```bash
+git commit -m "Milestone 2: Python subset validator + fixture suite (no Pyodide dependency)"
+```
+
+```bash
+git push -u origin milestone-2-subset-validator
+```
+
+Pushes the branch. **Swap in your actual branch name if it differs** (see uncertainty 1). This
+milestone has no UI, so there's nothing new to check on a preview URL — the review surface is the
+test output above and the diff itself.
+
+## Next
+
+Milestone 3 — the execution engine (Pyodide, Web Worker, guardrails, §2) — begins once this branch is
+merged into `main`. This is also where the three deferred guardrail fixtures (max steps, wall-clock,
+recursion depth) finally get built, alongside `while True: pass` (§2's headline test).
