@@ -1,26 +1,6 @@
 import { RejectionError, type FStringPart, type Token } from "./types";
 import { REASONS, formatRejection } from "./messages";
 
-const KEYWORDS = new Set([
-  "and",
-  "or",
-  "not",
-  "in",
-  "if",
-  "elif",
-  "else",
-  "for",
-  "while",
-  "break",
-  "continue",
-  "pass",
-  "def",
-  "return",
-  "None",
-  "True",
-  "False",
-]);
-
 /** Recognized-but-unsupported keywords, each with its own reason in messages.ts. */
 const OUT_OF_SCOPE_KEYWORDS: Record<string, keyof typeof REASONS> = {
   class: "class",
@@ -132,12 +112,24 @@ function readString(
 }
 
 function unescape(raw: string): string {
-  return raw
-    .replace(/\\n/g, "\n")
-    .replace(/\\t/g, "\t")
-    .replace(/\\\\/g, "\\")
-    .replace(/\\'/g, "'")
-    .replace(/\\"/g, '"');
+  // A single regex pass, so `\\n` (an escaped backslash followed by the letter n) can't be
+  // misread as `\` + `\n` by a later, separate replacement pass over the same text.
+  return raw.replace(/\\(.)/g, (_match, ch: string) => {
+    switch (ch) {
+      case "n":
+        return "\n";
+      case "t":
+        return "\t";
+      case "\\":
+        return "\\";
+      case "'":
+        return "'";
+      case '"':
+        return '"';
+      default:
+        return `\\${ch}`;
+    }
+  });
 }
 
 /** Splits an f-string body into literal text and `{expr}` parts. Nested brackets inside an
@@ -290,8 +282,6 @@ export function tokenizeLine(
 
   return { tokens, depthDelta };
 }
-
-export { KEYWORDS };
 
 /** Tokenizes a full program: indentation-aware, bracket-continuation-aware. Produces INDENT/
  * DEDENT/NEWLINE tokens the way Python's own tokenizer does, so the parser can rely on them for

@@ -12,7 +12,11 @@ const MAX_SOURCE_LINES = 100;
  * of it. This is the single entry point every caller — the fixture suite now, the code editor's
  * live validation later — should use. */
 export function validate(source: string): ValidationResult {
-  const lineCount = source.split("\n").length;
+  const lines = source.split("\n");
+  // A single trailing newline (the normal way editors save files) produces one extra empty
+  // element from split() that isn't a real line — don't count it against the cap.
+  const lineCount =
+    lines[lines.length - 1] === "" ? lines.length - 1 : lines.length;
   if (lineCount > MAX_SOURCE_LINES) {
     const line = MAX_SOURCE_LINES + 1;
     return {

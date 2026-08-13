@@ -53,13 +53,7 @@ function splitTopLevel(tokens: Token[], opValue: string): Token[][] {
 }
 
 function hasTopLevelOp(tokens: Token[], opValue: string): boolean {
-  let depth = 0;
-  for (const tok of tokens) {
-    if (tok.type === "OP" && "([{".includes(tok.value)) depth++;
-    if (tok.type === "OP" && ")]}".includes(tok.value)) depth--;
-    if (depth === 0 && tok.type === "OP" && tok.value === opValue) return true;
-  }
-  return false;
+  return splitTopLevel(tokens, opValue).length > 1;
 }
 
 export class Parser {
@@ -178,6 +172,7 @@ export class Parser {
     this.advance();
     this.parseExpression();
     this.parseSuite();
+    if (this.isName("else")) reject(this.peek().line, "forElse");
   }
 
   private parseWhile(): void {
@@ -497,13 +492,11 @@ export class Parser {
     }
     if (this.isOp("(")) {
       this.advance();
-      const start = this.pos;
       this.parseExpression();
       if (this.isOp(",")) {
         reject(tok.line, "tuple");
       }
       this.expectOp(")");
-      void start;
       return;
     }
     if (this.isOp("[")) {
