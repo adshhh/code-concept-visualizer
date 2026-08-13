@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "one line if\npositive\n1\n",
+  "source": "if True: print(\"one line if\")\n\nx = 5\nif x > 0: print(\"positive\")\n\nwhile False: print(\"never runs\")\n\n\ndef one_liner():\n    return 1\n\n\nprint(one_liner())\n",
   "frames": [
     {
       "step": 1,

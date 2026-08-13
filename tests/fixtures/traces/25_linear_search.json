@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "2\n-1\n",
+  "source": "def linear_search(nums, target):\n    for i in range(len(nums)):\n        if nums[i] == target:\n            return i\n    return -1\n\n\nnums = [4, 2, 7, 1, 9, 3]\nprint(linear_search(nums, 7))\nprint(linear_search(nums, 100))\n",
   "frames": [
     {
       "step": 1,

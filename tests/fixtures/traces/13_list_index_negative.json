@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "10\n50\n40\n[99, 20, 30, 40, 100]\n",
+  "source": "nums = [10, 20, 30, 40, 50]\nprint(nums[0])\nprint(nums[-1])\nprint(nums[-2])\nnums[0] = 99\nnums[-1] = 100\nprint(nums)\n",
   "frames": [
     {
       "step": 1,

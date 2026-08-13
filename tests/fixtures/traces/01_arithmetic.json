@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "9 5 14 3.5 3 1 49 -7\n",
+  "source": "a = 7\nb = 2\nsum_result = a + b\ndiff = a - b\nprod = a * b\nquot = a / b\nfloor_quot = a // b\nremainder = a % b\npower = a**b\nnegative = -a\nprint(sum_result, diff, prod, quot, floor_quot, remainder, power, negative)\n",
   "frames": [
     {
       "step": 1,

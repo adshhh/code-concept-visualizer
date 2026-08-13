@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "True\nTrue\nTrue\nTrue\n",
+  "source": "nums = [1, 2, 3, 4, 5]\nprint(3 in nums)\nprint(9 not in nums)\n\nword = \"hello\"\nprint(\"h\" in word)\nprint(\"z\" not in word)\n",
   "frames": [
     {
       "step": 1,

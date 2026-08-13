@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "21\n",
+  "source": "def fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\n\nprint(fib(8))\n",
   "frames": [
     {
       "step": 1,

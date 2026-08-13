@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "h\ne\nl\nl\no\n",
+  "source": "word = \"hello\"\nfor ch in word:\n    print(ch)\n",
   "frames": [
     {
       "step": 1,

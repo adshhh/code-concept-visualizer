@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "0 0 0\n",
+  "source": "a = b = c = 0\nprint(a, b, c)\n",
   "frames": [
     {
       "step": 1,

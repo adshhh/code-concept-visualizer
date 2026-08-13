@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "stdout": "120\n",
+  "source": "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\n\nprint(factorial(5))\n",
   "frames": [
     {
       "step": 1,
