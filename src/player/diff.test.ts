@@ -241,7 +241,7 @@ describe("diffFrames — against real committed trace data", () => {
     // A cheap but real regression guard: run the diff across every step of every fixture
     // trace, not just the handful spot-checked above.
     const dir = join(process.cwd(), "tests/fixtures/traces");
-    for (const file of readdirSync(dir)) {
+    for (const file of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
       const { frames } = loadTrace(file);
       expect(() => {
         for (let i = 1; i < frames.length; i++) {

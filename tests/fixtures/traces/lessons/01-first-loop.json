@@ -1,0 +1,117 @@
+{
+  "status": "ok",
+  "stdout": "0\n1\n2\n3\n4\n",
+  "source": "for number in range(5):\n    print(number)\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "number": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: for number in range(5):"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "number": 0
+      },
+      "callStack": [],
+      "stdout": "0\n",
+      "narration": "line 2: print(number)"
+    },
+    {
+      "step": 3,
+      "line": 1,
+      "variables": {
+        "number": 1
+      },
+      "callStack": [],
+      "stdout": "0\n",
+      "narration": "line 1: for number in range(5):"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {
+        "number": 1
+      },
+      "callStack": [],
+      "stdout": "0\n1\n",
+      "narration": "line 2: print(number)"
+    },
+    {
+      "step": 5,
+      "line": 1,
+      "variables": {
+        "number": 2
+      },
+      "callStack": [],
+      "stdout": "0\n1\n",
+      "narration": "line 1: for number in range(5):"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {
+        "number": 2
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n",
+      "narration": "line 2: print(number)"
+    },
+    {
+      "step": 7,
+      "line": 1,
+      "variables": {
+        "number": 3
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n",
+      "narration": "line 1: for number in range(5):"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {
+        "number": 3
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n3\n",
+      "narration": "line 2: print(number)"
+    },
+    {
+      "step": 9,
+      "line": 1,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n3\n",
+      "narration": "line 1: for number in range(5):"
+    },
+    {
+      "step": 10,
+      "line": 2,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n3\n4\n",
+      "narration": "line 2: print(number)"
+    },
+    {
+      "step": 11,
+      "line": 1,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n2\n3\n4\n",
+      "narration": "line 1: for number in range(5):"
+    }
+  ]
+}
