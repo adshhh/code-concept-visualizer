@@ -13,26 +13,15 @@
 // enforces this the same way `toMatchSnapshot` does — a mismatch fails the test, and updating
 // the committed file requires the explicit `--update` flag, never default `npm test` behavior.
 import { describe, expect, it, beforeAll } from "vitest";
-import { loadPyodide, type PyodideInterface } from "pyodide";
+import type { PyodideInterface } from "pyodide";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { loadTestPyodide } from "./loadTestPyodide";
 
 let pyodide: PyodideInterface;
 
 beforeAll(async () => {
-  pyodide = await loadPyodide({
-    indexURL: join(process.cwd(), "node_modules/pyodide"),
-  });
-  const guardrailsSource = readFileSync(
-    join(process.cwd(), "src/engine/guardrails.py"),
-    "utf-8",
-  );
-  const tracerSource = readFileSync(
-    join(process.cwd(), "src/engine/tracer.py"),
-    "utf-8",
-  );
-  pyodide.runPython(guardrailsSource);
-  pyodide.runPython(tracerSource);
+  pyodide = await loadTestPyodide();
 }, 30_000);
 
 function trace(source: string): string {

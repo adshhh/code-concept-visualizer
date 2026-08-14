@@ -1323,3 +1323,121 @@ git push
 
 Milestone 7 — Lesson 1 plus authoring `/new-lesson` from it (§4, §10). Pattern-setting: get the
 lesson shape right once, from a real example, rather than eight times from a guess.
+
+# Milestone 7 Completed
+
+**`src/lessons/` is the §4 registry, and Lesson 1 ("Your first loop," Mode A) is a real, tested
+lesson instead of `Workspace.tsx`'s old hardcoded placeholder.** Per the owner's own decision
+(asked directly, since the milestone table's plain assignment and the established
+`.claude/commands/` ownership split were in real tension), `/new-lesson` itself is **not** built
+this milestone — the owner authors it from Lesson 1's own files.
+
+## Why
+
+- **The pre-build audit found two of §4's four acceptance criteria can't be checked with only one
+  lesson.** Criteria 2 ("Mode B lessons render source read-only") and 4 ("a test asserts both
+  modes invoke the identical `run()` path") both need a real Mode B lesson to exist against, and
+  D14 already sequences Mode A lessons (1–8, m7–m8) before Mode B (9–11, m9) — so neither is
+  checkable before m9 regardless of what this milestone builds. **Re-sequenced via a v2 note on
+  §4**, same shape as every prior instance of this pattern.
+- **Lesson 1's starter code is checked against the real engine, not assumed.**
+  `registry.test.ts` loads Pyodide in Node (same strategy as `tracer.test.ts`/`traces.test.ts`)
+  and runs `record_trace` directly against `lesson.starterCode`, asserting `validate()` accepts it
+  (AC-10.4) and it completes with `status: "ok"` (AC-10.2) — not just that the string looks like
+  valid Python.
+- **A committed trace snapshot for Lesson 1 exists from this milestone, not deferred to m10.**
+  D23 ties "every lesson ships a saved recording" to m10, and the actual shipped, engine-free
+  playback mechanism depends on §11's landing page, which doesn't exist yet — building that now
+  would be m10's job, done early. But the committed snapshot itself
+  (`tests/fixtures/traces/lessons/01-first-loop.json`, via `toMatchFileSnapshot`, same "a changed
+  snapshot may never be silently re-recorded" discipline as m4's fixture traces) is cheap to add
+  now and keeps "the committed snapshot and the shipped recording are the same artifact" true from
+  the very first lesson, rather than retrofitted later. Kept in its own subdirectory so it doesn't
+  touch `traces.test.ts`'s own ≥25-fixture glob.
+- **`src/lessons/` (not a top-level `lessons/`) — decided independently.** `/checkpoint.md`'s own
+  illustrative example (`lessons/recursion.py`) suggested a top-level folder, but every other
+  content module in this project (`engine/`, `player/`, `subset/`, `recording/`) lives under
+  `src/`. Matched the project's own established convention instead.
+- **One `starterCode` field, not two.** §4 AC-1 lists "source" and "starter template" as separate
+  registry fields, but nothing in either mode ever needs them to differ — for Mode A it's what
+  "reset to example" returns to; for Mode B it's the fixed algorithm itself. Same string either
+  way, so the schema only has one field for it.
+- **`editable` is declared per lesson entry, not derived from `mode`,** per AC-4's own literal
+  wording — pinned by a registry test asserting `editable === (mode === "A")` for every entry, so
+  the two fields can never quietly drift apart even though today they always agree.
+- **A real bug found only by running the new tests, not anticipated in the plan:** adding
+  `tests/fixtures/traces/lessons/` as a subdirectory broke `diff.test.ts`'s own regression test,
+  which does an unfiltered `readdirSync` over `tests/fixtures/traces` and tries to read every
+  entry as a trace file — the new `lessons` directory entry threw `EISDIR`. Fixed by filtering
+  that loop to `.json` files only, a one-line fix directly caused by this milestone's own change.
+
+## Files Created/Modified
+
+**Lesson registry** (`src/lessons/`, new)
+
+- `types.ts` (new): the `Lesson` interface — `id`, `title`, `mode`, `editable`, `starterCode`,
+  `explanation`, optional `viewHints` (Mode B-only, unused until m9, declared now to avoid a
+  breaking schema change later).
+- `01-first-loop.py` (new): Lesson 1's real starter program, as an actual `.py` file (not a
+  string literal), imported via Vite's `?raw` suffix.
+- `registry.ts` (new): `LESSONS: Lesson[]` and `getLesson(id)`.
+- `registry.test.ts` (new): registry-shape invariants (`editable === (mode === "A")`, no
+  duplicate ids) plus the Pyodide-in-Node checks against the real engine described above, plus
+  the committed trace snapshot assertion.
+
+**Wiring**
+
+- `Workspace.tsx` (modified): `DEFAULT_SOURCE` replaced by `LESSONS[0]`; initial `source` state
+  and "Reset to example" both point at `activeLesson.starterCode`; a new title/explanation panel
+  renders above the editor/picture row; `CodeEditor` receives
+  `readOnly={activeLesson.mode === "B"}` (inert for Lesson 1, so Mode B needs no second wiring
+  pass at m9).
+- `Workspace.test.tsx` (modified): the one assertion referencing the old placeholder source text
+  updated to Lesson 1's real content.
+- `scripts/screenshots/smokes.spec.ts` (modified): smoke #1's text assertion updated to Lesson 1's
+  real starter code; its docstring comment (which said "lessons don't exist until m7") updated
+  since that's no longer true.
+- `src/player/diff.test.ts` (modified): the `readdirSync` bug fix described above.
+
+**Docs**: v2 note on §4 (criteria 2/4 re-sequenced to m9); v2 note on §10 (criteria checked
+against whichever lessons exist at each milestone); Resume-here box.
+
+## Uncertain / worth double-checking
+
+1. **The lesson-info panel's placement and styling (title + explanation above the editor/picture
+   row) was decided independently** as a small visual detail — §4/§10 require the explanation to
+   exist and render, not where.
+2. **`viewHints?: Record<string, unknown>` is unused and untyped beyond "some object."** Its real
+   shape depends on which Mode B lessons need which rendering hints, not decidable from Lesson 1
+   alone — worth a look once m9's first Mode B lesson defines what it actually needs.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  25 passed (25)
+                    Tests       292 passed (292)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~900ms
+=== playwright ===  17 passed (13.6s) — 5 smokes + 11 picture scenarios + 1 Tab-indent regression
+```
+
+A fresh screenshot against a real `vite preview` build (not committed to `docs/images/`, same as
+m6's throwaway verification scripts) confirms the whole pipeline end to end: the app opens
+directly on "Your first loop" with its explanation panel, the real starter code
+(`for number in range(5): / print(number)`) pre-filled in the editor, and clicking Run produces a
+live picture (`number` chip showing `0`) plus a working playback bar reading "step 1 of 11" —
+nothing hardcoded or placeholder anywhere in the loaded state.
+
+## Github Commands for this milestone
+
+```bash
+git add src/lessons/ src/Workspace.tsx src/Workspace.test.tsx src/player/diff.test.ts scripts/screenshots/smokes.spec.ts tests/fixtures/traces/lessons/ docs/
+git commit -m "Milestone 7: Lesson 1 + the src/lessons/ registry pattern"
+git push
+```
+
+## Next
+
+Milestone 8 — Mode A lessons 2–8 (§10). Homogeneous work, batched to avoid seven near-identical
+checkpoints.

@@ -54,7 +54,9 @@ describe("Workspace — Run wires the engine's result into the player", () => {
       expect(screen.getByText("step 1 of 2")).toBeInTheDocument(),
     );
     expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
-    expect(run).toHaveBeenCalledWith("for i in range(5):\n    print(i * i)\n");
+    expect(run).toHaveBeenCalledWith(
+      "for number in range(5):\n    print(number)\n",
+    );
   });
 });
 

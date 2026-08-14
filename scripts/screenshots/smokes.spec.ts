@@ -3,17 +3,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // AC-12.4: 5 click-through smokes against a real browser — load, open a lesson, Run, play,
-// step back, per §12's own wording. Lessons don't exist until milestone 7, so "open a lesson"
-// is adapted to the single Workspace this milestone builds instead (the checkpoint notes this
-// as a scheduling adaptation, same shape as the AC-2.1/AC-2.2 and AC-5 re-sequencing notes
-// already in PLAN_v2.md). Runs against `vite preview` (the production build), same as the
+// step back, per §12's own wording. As of m7, Lesson 1 is what actually loads (registered in
+// src/lessons/registry.ts), so "open a lesson" is Workspace's own default state — no
+// adaptation needed anymore. Runs against `vite preview` (the production build), same as the
 // screenshot suite, so these smokes exercise what actually ships.
 test.describe("click-through smokes (AC-12.4)", () => {
   test("1. the app loads with the starter code visible, nothing blank", async ({
     page,
   }) => {
     await page.goto("/");
-    await expect(page.getByText("for i in range(5):")).toBeVisible();
+    await expect(page.getByText("for number in range(5):")).toBeVisible();
     await expect(page.getByText("press Run to see this")).toBeVisible();
   });
 
