@@ -989,11 +989,81 @@ proves in `docs/VISUALS.md`: `shading-fallback-negative.png`, `shading-fallback-
 `index-arrow-i-j.png`'s), not by any automated check — fixed, rebuilt, and re-captured before this
 checkpoint.
 
+## Milestone 5 — code-review fixes (step 9, run before commit)
+
+`/code-review` found 9 real findings. All fixed and tested before this branch is committed —
+including one place where the *first* fix was wrong and had to be caught and reverted before it
+became a second bug.
+
+**Real correctness bugs:**
+
+1. **Out-of-range `step` crashed the whole render.** `App.tsx`'s `readInitialParams` read `step`
+   straight from a URL query param with no bounds/NaN check, and `Picture.tsx` indexed
+   `recording.frames[step]` under a non-null assertion before its own `if (!frame) return null`
+   guard ever ran. A stale bookmark or hand-edited URL (`?step=9999`, negative, NaN) threw
+   `TypeError` on load. Fixed at both layers: `Picture` now clamps `step` defensively (and
+   handles a zero-frame recording), `App.tsx` clamps against the actually-resolved fixture's own
+   frame count. Pinned with 5 new tests (`Picture.test.tsx`) covering way-past-the-end, negative,
+   NaN, and zero-frame cases.
+2. **Nested-list emphasis was looked up by column index instead of row index.** `diff.ts` only
+   diffs a nested list one level deep (Tier 1 has no per-cell event for a matrix write), so a
+   changed row produces one `CellChange` keyed by *row* index — but `Picture.tsx` looked up
+   emphasis per *column* index identically for every row, so a changed row 1 lit up column 1 of
+   every row instead of row 1's own cells. Fixed by computing one emphasis value per row and
+   applying it uniformly across that row's cells, matching the granularity `diff.ts` actually
+   reports.
+3. **The swap gesture's "arc" was never wired up.** `variants.ts` defined `swapArcKeyframes` and
+   documented a shared-`layoutId`-based cross-motion, but nothing referenced it — `NumberList`
+   keyed cells by index, not value, so a swap only ever changed a box's displayed number in
+   place, no motion. Fixed with a different, working mechanism: the two swapped cells briefly
+   remount (a `-swapping` key suffix) so `initial` can start each one offset toward where its
+   value conceptually came from, animating back to its natural grid position with a keyframed
+   vertical bump layered on top.
+4. **`CallStackCards` never applied spotlight emphasis to anything it rendered** — a direct gap
+   against CLAUDE.md's hard rule ("This applies to every renderer, not just some"), while
+   `DictTable`/`NestedGrid` already did. Fixed: every local now gets a real `emphasisOf` lookup
+   and the shared `emphasisVariants` treatment.
+5. **The innermost call was being double-rendered** — full shape treatment in the main picture,
+   *and* a plain-text card, contradicting Picture.tsx's own doc comment that claimed cards only
+   showed paused outer calls. **First fix attempt dropped the innermost call from the cards
+   entirely** — which silently broke AC-5.7's explicit "depth 10 renders 10 cards" (depth 10 then
+   rendered 9). Caught by re-checking against the acceptance criterion before committing, not by
+   another review pass. **Reverted and fixed the other direction instead**: every call gets a
+   card, including the current one — matching AC-5.7's literal count — and the main picture's own
+   rendering of the current call is now documented as an intentional complementary detail view
+   (the "stack panel plus current-frame detail pane" pattern most debuggers use), not a
+   duplication to eliminate. Pinned with 2 new tests asserting the exact card count at two
+   different depths.
+
+**Cleanups:**
+
+6. `currentScopeDescriptor` was duplicated verbatim in `Picture.tsx` and `spotlight.ts`. Moved
+   into `scope.ts`, both now import it — a future change to "what counts as current scope" can no
+   longer update one copy and silently miss the other.
+7. `classifyValue` was recomputed 2–3× per variable per render (once in a `.filter`, again in the
+   corresponding `.map`, for both the scalar and shape rows). Fixed: each entry is classified once
+   and reused.
+8. `NumberList`/`StringList` had drifted into near-duplicate wrapper/grid/arrow-row JSX — already
+   visibly inconsistent (`StringList`'s cells were missing `relative overflow-hidden`). Extracted
+   the shared shell into `ListFrame.tsx`; both components now only own the cell content that
+   actually differs (shading fill vs. plain text).
+9. `changedIndicesFor` hand-rolled a scope-equality check that duplicated `pathKey`'s own
+   encoding. Fixed to reuse `pathKey` directly (already imported from `spotlight.ts`), so scope
+   comparisons can't drift between the two.
+
+Two new test files (`Picture.test.tsx`, 7 tests) plus the existing suite: 232 → 240. All 11
+Playwright screenshots re-captured and re-reviewed after every fix; zero console errors confirmed
+by scripting 10 steps forward through a swap-heavy fixture. `docs/VISUALS.md` updated to describe
+the swap mechanism accurately. Typecheck, format, and build clean throughout.
+
 ## Github Commands for this milestone
+
+Everything above — the milestone itself and its review fixes — is still uncommitted as one
+working tree. One commit covers both, since the fixes were never merged separately:
 
 ```bash
 git add src/recording/ src/player/ src/App.tsx src/engine/types.ts src/engine/tracer.py tests/fixtures/ playwright.config.ts scripts/ docs/ package.json package-lock.json
-git commit -m "Milestone 5: drawing system (value shapes, spotlight rule, motion vocabulary)"
+git commit -m "Milestone 5: drawing system (value shapes, spotlight rule, motion vocabulary), plus code-review fixes"
 git push -u origin milestone-5-drawing-system
 ```
 

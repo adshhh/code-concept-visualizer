@@ -121,10 +121,20 @@ function readInitialParams(): { fixture: string; step: number } {
   const params = new URLSearchParams(window.location.search);
   const names = Object.keys(RECORDINGS).sort();
   const fixture = params.get("fixture");
-  return {
-    fixture: fixture && fixture in RECORDINGS ? fixture : (names[0] ?? ""),
-    step: Number(params.get("step") ?? 0),
-  };
+  const resolvedFixture =
+    fixture && fixture in RECORDINGS ? fixture : (names[0] ?? "");
+
+  // A stale bookmark or a hand-edited URL can carry a step for a *different* fixture, or
+  // simply an out-of-range/NaN number — clamped against the actually-resolved fixture's own
+  // frame count rather than trusted as-is. Picture itself also clamps defensively, but doing
+  // it here too means the harness's own `step N of total` readout is never wrong on load.
+  const frameCount = RECORDINGS[resolvedFixture]?.frames.length ?? 1;
+  const rawStep = Number(params.get("step") ?? 0);
+  const step = Number.isFinite(rawStep)
+    ? Math.min(Math.max(Math.trunc(rawStep), 0), frameCount - 1)
+    : 0;
+
+  return { fixture: resolvedFixture, step };
 }
 
 /** Temporary scaffolding, not the real editor/playback controls (§7/§8, milestone 6). Lets

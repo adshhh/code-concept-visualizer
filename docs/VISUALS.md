@@ -106,7 +106,7 @@ plays it:
 | Gesture | Evidence |
 | --- | --- |
 | write | digit-roll (`NumberChip`'s keyed `AnimatePresence`) + flash (`flashVariants`) |
-| swap | [`swap-in-progress.png`](images/swap-in-progress.png) — shared-`layoutId` cross with a keyframed arc bump |
+| swap | [`swap-in-progress.png`](images/swap-in-progress.png) — the two affected cells remount with a `-swapping` key suffix so `initial` can start each one offset toward where its value came from, animating back to its natural grid position with a keyframed vertical bump on top (`swapArcKeyframes`) |
 | append | [`append.png`](images/append.png) |
 | pop | [`pop.png`](images/pop.png) |
 | call / return | [`call-stack-depth-10.png`](images/call-stack-depth-10.png) — `CallStackCards`, push/pop order |
