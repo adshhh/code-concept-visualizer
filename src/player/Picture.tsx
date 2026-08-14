@@ -6,10 +6,15 @@ import {
   type ValueShape,
 } from "./values/classify";
 import { diffFrames, type StepDiff, type VarPath } from "./diff";
-import { computeEmphasis, emphasisOf, type Emphasis } from "./spotlight";
+import {
+  computeEmphasis,
+  emphasisOf,
+  pathKey,
+  type Emphasis,
+} from "./spotlight";
 import { detectIndexArrows, type IndexArrowSpec } from "./indexVars";
 import { hasComparisonOperator } from "./lineAnalysis";
-import { resolveScope } from "./scope";
+import { currentScopeDescriptor, resolveScope } from "./scope";
 import { CallStackCards } from "./CallStackCards";
 import { NumberChip } from "./values/NumberChip";
 import { BooleanChip } from "./values/BooleanChip";
@@ -22,22 +27,11 @@ import { DictTable } from "./values/DictTable";
 import { Chip } from "./values/Chip";
 
 type Frame = Recording["frames"][number];
+type EmphasisMap = Map<string, Emphasis>;
 
-/** The main picture always shows whatever scope is *currently executing* — module-level
- * variables when nothing is called, or the innermost call's own locals otherwise (mirrors
- * scope.ts's resolveScope, and real Python scoping — module names aren't visible from
- * inside a call either). This matters more than it might look: in every non-trivial fixture
- * this project ships (bubble sort, binary search, recursion), the interesting list/dict
- * manipulation happens *inside* a function, not at module level — an earlier version of
- * this component only ever rendered `frame.variables` and was silently blank for exactly
- * those cases, caught only by actually looking at a screenshot, not by any test (nothing
- * asserted the picture was non-empty). CallStackCards still shows every paused outer call
- * as a simple text card; only the current/innermost scope gets full shape rendering here. */
-function currentScopeDescriptor(frame: Frame): VarPath["scope"] {
-  return frame.callStack.length > 0
-    ? { callDepth: frame.callStack.length - 1 }
-    : "module";
-}
+const EMPTY_DIFF: StepDiff = { changes: [], callStackDelta: "same" };
+const EMPTY_EMPHASIS: EmphasisMap = new Map();
+const EMPTY_ARROWS: Map<string, ResolvedArrow[]> = new Map();
 
 /** Resolves which of `arrows` (every occurrence anywhere in the source) actually point at a
  * real cell *this step* — only specs on the current line, whose index variable currently
@@ -86,7 +80,7 @@ function resolveArrowsForStep(
 }
 
 function cellEmphasisArray(
-  emphasisMap: ReturnType<typeof computeEmphasis>,
+  emphasisMap: EmphasisMap,
   scope: VarPath["scope"],
   name: string,
   length: number,
@@ -99,21 +93,19 @@ function cellEmphasisArray(
 /** Every index of `name` (in `scope`) that had a *real* change this step (write/swap/
  * append/pop), per diff.ts. Used to tell "primary because it changed" (write — flash) apart
  * from "primary because it's merely referenced on this line" (compare/read — lift, no
- * flash) — computeEmphasis's "primary" tier alone conflates the two. */
+ * flash) — computeEmphasis's "primary" tier alone conflates the two. Compares scopes via
+ * `pathKey` (the same encoding spotlight.ts itself uses for its map), rather than a second,
+ * hand-rolled scope-equality check that could drift from it. */
 function changedIndicesFor(
   diff: StepDiff,
   scope: VarPath["scope"],
   name: string,
 ): Set<number> {
   const indices = new Set<number>();
-  const sameScopeAndName = (path: VarPath) =>
-    path.name === name &&
-    (path.scope === "module"
-      ? scope === "module"
-      : typeof scope === "object" && scope.callDepth === path.scope.callDepth);
+  const targetKey = pathKey(scope, name);
 
   for (const change of diff.changes) {
-    if (!sameScopeAndName(change.path)) continue;
+    if (pathKey(change.path.scope, change.path.name) !== targetKey) continue;
     if (change.kind === "write" && typeof change.path.index === "number") {
       indices.add(change.path.index);
     } else if (change.kind === "swap") {
@@ -131,7 +123,7 @@ function changedIndicesFor(
  * this step, and the current line contains a comparison operator — distinguishing it from
  * a plain single-value `read` (glow only, no lift), which §5 draws as a different gesture. */
 function liftedIndicesFor(
-  emphasisMap: ReturnType<typeof computeEmphasis>,
+  emphasisMap: EmphasisMap,
   diff: StepDiff,
   scope: VarPath["scope"],
   name: string,
@@ -147,9 +139,26 @@ function liftedIndicesFor(
   );
 }
 
+/** The swap gesture's two affected indices for `name` this step, if this step's diff
+ * contains a swap on it — see NumberList's own comment for why the component needs this
+ * explicitly rather than inferring it from emphasis alone (two cells being simultaneously
+ * primary doesn't by itself distinguish a swap from two independent writes). */
+function swapPairFor(
+  diff: StepDiff,
+  scope: VarPath["scope"],
+  name: string,
+): [number, number] | null {
+  const targetKey = pathKey(scope, name);
+  for (const change of diff.changes) {
+    if (change.kind !== "swap") continue;
+    if (pathKey(change.path.scope, change.path.name) !== targetKey) continue;
+    return [change.indexA, change.indexB];
+  }
+  return null;
+}
+
 function stringifyForTable(value: unknown): string {
-  const shape = classifyValue(value);
-  return stringifyShape(shape);
+  return stringifyShape(classifyValue(value));
 }
 
 function stringifyShape(shape: ValueShape): string {
@@ -177,7 +186,13 @@ function stringifyShape(shape: ValueShape): string {
 
 /** The top-level orchestrator: turns one step of a Recording into §5's picture. Builds only
  * the "picture" itself — the ~35% code-pane column is a placeholder in the dev harness, not
- * a real editor (that's §8, milestone 6). */
+ * a real editor (that's §8, milestone 6).
+ *
+ * `step` is clamped defensively, not trusted as already-valid: callers like the dev harness
+ * read it straight from a URL query param, and an out-of-range or NaN value (a stale link,
+ * a hand-edited URL) would otherwise index `recording.frames` out of bounds and crash the
+ * whole render — found by code review, not a test, since every test so far only ever passed
+ * an in-range step. */
 export function Picture({
   recording,
   step,
@@ -185,40 +200,57 @@ export function Picture({
   recording: Recording;
   step: number;
 }) {
-  const frame = recording.frames[step];
-  const prevFrame = step > 0 ? recording.frames[step - 1] : undefined;
+  const frameCount = recording.frames.length;
+  const safeStep =
+    frameCount === 0
+      ? 0
+      : Math.min(Math.max(Math.trunc(step) || 0, 0), frameCount - 1);
+  const frame = recording.frames[safeStep];
+  const prevFrame = safeStep > 0 ? recording.frames[safeStep - 1] : undefined;
 
-  const diff = useMemo(() => diffFrames(prevFrame, frame!), [prevFrame, frame]);
+  const diff = useMemo(
+    () => (frame ? diffFrames(prevFrame, frame) : EMPTY_DIFF),
+    [prevFrame, frame],
+  );
   const allArrows = useMemo(
     () => detectIndexArrows(recording.source),
     [recording.source],
   );
   const emphasisMap = useMemo(
-    () => computeEmphasis(frame!, prevFrame, diff, recording.source),
+    () =>
+      frame
+        ? computeEmphasis(frame, prevFrame, diff, recording.source)
+        : EMPTY_EMPHASIS,
     [frame, prevFrame, diff, recording.source],
   );
   const arrowsByList = useMemo(
-    () => resolveArrowsForStep(allArrows, frame!),
+    () => (frame ? resolveArrowsForStep(allArrows, frame) : EMPTY_ARROWS),
     [allArrows, frame],
   );
 
   if (!frame) return null;
 
   const scope = currentScopeDescriptor(frame);
-  const entries = Object.entries(resolveScope(frame));
   const isComparisonLine = hasComparisonOperator(recording.source, frame.line);
+
+  // Classified once per entry and reused by both the scalar/shape split below and each
+  // render branch, rather than calling classifyValue() again for every read (found by code
+  // review: the previous version classified the same value up to 3 times per render).
+  const classifiedEntries = Object.entries(resolveScope(frame)).map(
+    ([name, value]) => [name, value, classifyValue(value)] as const,
+  );
+  const isScalar = (shape: ValueShape) =>
+    shape.kind === "number" ||
+    shape.kind === "boolean" ||
+    shape.kind === "none";
 
   return (
     <div className="flex h-full w-full gap-4 p-4">
       <div className="flex flex-1 flex-col gap-3">
         <div className="flex flex-wrap gap-2">
-          {entries
-            .filter(([, value]) => {
-              const kind = classifyValue(value).kind;
-              return kind === "number" || kind === "boolean" || kind === "none";
-            })
-            .map(([name, value]) => {
-              const shape = classifyValue(value);
+          {classifiedEntries
+            .filter(([, , shape]) => isScalar(shape))
+            .map(([name, , shape]) => {
               const emphasis = emphasisOf(emphasisMap, scope, name);
               if (shape.kind === "number") {
                 return (
@@ -245,13 +277,9 @@ export function Picture({
         </div>
 
         <div className="flex flex-1 flex-wrap items-start gap-3">
-          {entries
-            .filter(([, value]) => {
-              const kind = classifyValue(value).kind;
-              return kind !== "number" && kind !== "boolean" && kind !== "none";
-            })
-            .map(([name, value]) => {
-              const shape = classifyValue(value);
+          {classifiedEntries
+            .filter(([, , shape]) => !isScalar(shape))
+            .map(([name, , shape]) => {
               const emphasis = emphasisOf(emphasisMap, scope, name);
               const arrows = arrowsByList.get(name) ?? [];
 
@@ -294,6 +322,7 @@ export function Picture({
                         shape.items.length,
                         isComparisonLine,
                       )}
+                      swapPair={swapPairFor(diff, scope, name)}
                     />
                   );
                 case "list-of-strings":
@@ -326,31 +355,39 @@ export function Picture({
                       arrows={arrows}
                     />
                   );
-                case "nested-list":
+                case "nested-list": {
+                  // diff.ts only diffs a nested list one level deep (§3: Tier 1 has no
+                  // per-cell event for a matrix write), so a changed row produces exactly
+                  // one CellChange keyed by *row* index — not one per cell. Looking up
+                  // emphasis per *column* index here (as an earlier version did) would
+                  // apply row 1's emphasis to column 1 of every row instead of to row 1's
+                  // own cells, found by code review, not by any test (nothing exercised
+                  // more than one row changing at once). Fixed by looking up one emphasis
+                  // per row and applying it uniformly across that row's own cells.
+                  const rows = shape.items.map((row) =>
+                    row.kind === "list-of-numbers" ||
+                    row.kind === "list-of-strings"
+                      ? row.items.map(String)
+                      : [stringifyShape(row)],
+                  );
+                  const cellEmphasis = shape.items.map((row, r) => {
+                    const rowEmphasis = emphasisOf(emphasisMap, scope, name, r);
+                    const rowLength =
+                      row.kind === "list-of-numbers" ||
+                      row.kind === "list-of-strings"
+                        ? row.items.length
+                        : 1;
+                    return Array.from({ length: rowLength }, () => rowEmphasis);
+                  });
                   return (
                     <NestedGrid
                       key={name}
                       name={name}
-                      rows={shape.items.map((row) =>
-                        row.kind === "list-of-numbers" ||
-                        row.kind === "list-of-strings"
-                          ? row.items.map(String)
-                          : [stringifyShape(row)],
-                      )}
-                      cellEmphasis={shape.items.map((_, r) =>
-                        cellEmphasisArray(
-                          emphasisMap,
-                          scope,
-                          name,
-                          shape.items[r]!.kind === "list-of-numbers" ||
-                            shape.items[r]!.kind === "list-of-strings"
-                            ? (shape.items[r] as { items: unknown[] }).items
-                                .length
-                            : 1,
-                        ),
-                      )}
+                      rows={rows}
+                      cellEmphasis={cellEmphasis}
                     />
                   );
+                }
                 case "dict":
                   return (
                     <DictTable
@@ -386,9 +423,7 @@ export function Picture({
         )}
       </div>
 
-      {frame.callStack.length > 0 && (
-        <CallStackCards callStack={frame.callStack} />
-      )}
+      <CallStackCards callStack={frame.callStack} emphasisMap={emphasisMap} />
     </div>
   );
 }

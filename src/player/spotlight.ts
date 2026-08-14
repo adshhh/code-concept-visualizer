@@ -1,7 +1,7 @@
 import type { Frame } from "../recording/types";
 import type { StepDiff, VarPath } from "./diff";
 import { namesReferencedOnLine } from "./lineAnalysis";
-import { resolveScope } from "./scope";
+import { currentScopeDescriptor, resolveScope } from "./scope";
 
 /** §5's spotlight rule, three tiers: `primary` (this step touches it — changed, or
  * mentioned on the current line), `secondary` (its container is primary but this specific
@@ -19,12 +19,6 @@ export function pathKey(
   return index === undefined
     ? `${scopeKey}:${name}`
     : `${scopeKey}:${name}:${index}`;
-}
-
-function currentScopeDescriptor(frame: Frame): VarPath["scope"] {
-  return frame.callStack.length > 0
-    ? { callDepth: frame.callStack.length - 1 }
-    : "module";
 }
 
 /** Every (scope, name, value) triple visible in `frame` — module variables plus each call's

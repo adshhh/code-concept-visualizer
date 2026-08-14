@@ -1,12 +1,13 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
   liftOffset,
   listItemVariants,
+  swapArcKeyframes,
 } from "../motion/variants";
-import { IndexArrow } from "./IndexArrow";
+import { ListFrame } from "./ListFrame";
 
 export interface ResolvedArrow {
   index: number;
@@ -16,11 +17,14 @@ export interface ResolvedArrow {
 /** "Row of equal-size boxes, shaded from the bottom in proportion to value, digit always
  * printed inside" (§5) — with the flat-box fallback per `shadingDisabled` (D8/AC-5.3: the
  * digit stays readable either way, since it's never actually inside the shaded region's
- * only signal — it's printed on top regardless). Boxes and their arrow row below share one
- * `grid-template-columns`, so an arrow's column position always lines up with its box
- * without any DOM measurement (see IndexArrow.tsx). `lifted` renders the compare gesture
- * ("two boxes lift, connector appears" — no ✔/✘, see variants.ts) — a connector bar spans
- * from the first to the last lifted index when there are two or more. */
+ * only signal — it's printed on top regardless). `lifted` renders the compare gesture
+ * ("two boxes lift, connector appears" — no ✔/✘, see variants.ts). `swapPair`, when set,
+ * renders the swap gesture as a real directional cross rather than the two cells merely
+ * changing colour in place: the two affected cells remount (their key briefly gains a
+ * `-swapping` suffix) so `initial` can start each one offset toward where its value came
+ * from, animating back to its natural grid position — that remount is what makes Framer
+ * Motion play a transition at all, since the cells are otherwise keyed by index, not value,
+ * and two indices swapping values alone produces no layout change to animate. */
 export function NumberList({
   name,
   items,
@@ -28,6 +32,7 @@ export function NumberList({
   shadingDisabled,
   arrows,
   lifted = [],
+  swapPair = null,
 }: {
   name: string;
   items: number[];
@@ -35,80 +40,74 @@ export function NumberList({
   shadingDisabled: boolean;
   arrows: ResolvedArrow[];
   lifted?: boolean[];
+  swapPair?: [number, number] | null;
 }) {
   const max = items.length > 0 ? Math.max(...items.map((v) => Math.abs(v))) : 0;
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
   const liftedIndices = items.map((_, i) => i).filter((i) => lifted[i]);
 
   return (
-    <div className="rounded-lg bg-slate-900 p-3 ring-1 ring-slate-800">
-      <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
+    <ListFrame
+      name={name}
+      columns={columns}
+      itemCount={items.length}
+      arrows={arrows}
+      connectorRange={
+        liftedIndices.length >= 2
+          ? [Math.min(...liftedIndices), Math.max(...liftedIndices)]
+          : undefined
+      }
+    >
+      {items.map((value, i) => {
+        const heightPct =
+          !shadingDisabled && max > 0
+            ? Math.max((Math.abs(value) / max) * 100, 8)
+            : 0;
+        const emphasis = cellEmphasis[i] ?? "dim";
+        const isSwapping =
+          swapPair !== null && (i === swapPair[0] || i === swapPair[1]);
+        const otherIndex = isSwapping
+          ? i === swapPair![0]
+            ? swapPair![1]
+            : swapPair![0]
+          : null;
 
-      {liftedIndices.length >= 2 && (
-        <div
-          className="grid gap-1 pb-1"
-          style={{ gridTemplateColumns: columns }}
-        >
+        const animateTarget = lifted[i]
+          ? { ...emphasisVariants[emphasis], ...liftOffset, x: 0 }
+          : isSwapping
+            ? { ...emphasisVariants[emphasis], x: 0, y: swapArcKeyframes.y }
+            : { ...emphasisVariants[emphasis], x: 0 };
+
+        return (
           <motion.div
+            key={
+              isSwapping ? `${name}-cell-${i}-swapping` : `${name}-cell-${i}`
+            }
             layout
-            className="h-0.5 rounded bg-amber-400/70"
-            style={{
-              gridColumnStart: Math.min(...liftedIndices) + 1,
-              gridColumnEnd: Math.max(...liftedIndices) + 2,
-            }}
-            aria-hidden="true"
-          />
-        </div>
-      )}
-
-      <div className="grid gap-1" style={{ gridTemplateColumns: columns }}>
-        <AnimatePresence initial={false}>
-          {items.map((value, i) => {
-            const heightPct =
-              !shadingDisabled && max > 0
-                ? Math.max((Math.abs(value) / max) * 100, 8)
-                : 0;
-            const emphasis = cellEmphasis[i] ?? "dim";
-            return (
-              <motion.div
-                key={`${name}-cell-${i}`}
-                layout
-                variants={listItemVariants}
-                initial="initial"
-                animate={
-                  lifted[i]
-                    ? { ...emphasisVariants[emphasis], ...liftOffset }
-                    : emphasisVariants[emphasis]
-                }
-                exit="exit"
-                transition={GESTURE_TRANSITION}
-                className="relative flex h-16 items-end overflow-hidden rounded bg-slate-800 ring-1 ring-slate-700"
-              >
-                {!shadingDisabled && (
-                  <div
-                    className="absolute inset-x-0 bottom-0 bg-emerald-500/20"
-                    style={{ height: `${heightPct}%` }}
-                    aria-hidden="true"
-                  />
-                )}
-                <span className="relative z-10 w-full pb-1 text-center font-mono text-sm text-slate-100">
-                  {Number.isNaN(value) ? "NaN" : value}
-                </span>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-      <div className="grid gap-1 pt-1" style={{ gridTemplateColumns: columns }}>
-        {items.map((_, i) => {
-          const arrow = arrows.find((a) => a.index === i);
-          return (
-            <div key={`${name}-arrow-${i}`} className="flex justify-center">
-              {arrow && <IndexArrow listVar={name} labels={arrow.labels} />}
-            </div>
-          );
-        })}
-      </div>
-    </div>
+            variants={listItemVariants}
+            initial={
+              isSwapping
+                ? { x: `${(otherIndex! - i) * 100}%`, opacity: 1 }
+                : "initial"
+            }
+            animate={animateTarget}
+            exit="exit"
+            transition={GESTURE_TRANSITION}
+            className="relative flex h-16 items-end overflow-hidden rounded bg-slate-800 ring-1 ring-slate-700"
+          >
+            {!shadingDisabled && (
+              <div
+                className="absolute inset-x-0 bottom-0 bg-emerald-500/20"
+                style={{ height: `${heightPct}%` }}
+                aria-hidden="true"
+              />
+            )}
+            <span className="relative z-10 w-full pb-1 text-center font-mono text-sm text-slate-100">
+              {Number.isNaN(value) ? "NaN" : value}
+            </span>
+          </motion.div>
+        );
+      })}
+    </ListFrame>
   );
 }
