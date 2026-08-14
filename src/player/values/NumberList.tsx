@@ -33,6 +33,7 @@ export function NumberList({
   arrows,
   lifted = [],
   swapPair = null,
+  error = false,
 }: {
   name: string;
   items: number[];
@@ -41,6 +42,7 @@ export function NumberList({
   arrows: ResolvedArrow[];
   lifted?: boolean[];
   swapPair?: [number, number] | null;
+  error?: boolean;
 }) {
   const max = items.length > 0 ? Math.max(...items.map((v) => Math.abs(v))) : 0;
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
@@ -50,6 +52,7 @@ export function NumberList({
     <ListFrame
       name={name}
       columns={columns}
+      error={error}
       itemCount={items.length}
       arrows={arrows}
       connectorRange={

@@ -11,15 +11,17 @@ export function StringChip({
   value,
   emphasis,
   expanded = false,
+  error = false,
 }: {
   name: string;
   value: string;
   emphasis: Emphasis;
   expanded?: boolean;
+  error?: boolean;
 }) {
   if (!expanded) {
     return (
-      <Chip name={name} emphasis={emphasis}>
+      <Chip name={name} emphasis={emphasis} error={error}>
         &quot;{value}&quot;
       </Chip>
     );
@@ -28,7 +30,7 @@ export function StringChip({
   return (
     <motion.div
       layout
-      className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ring-slate-800"
+      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
     >
       <span className="text-xs font-medium text-slate-500">{name}</span>
       <div className="flex gap-0.5">

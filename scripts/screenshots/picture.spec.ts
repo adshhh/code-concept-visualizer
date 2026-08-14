@@ -82,18 +82,16 @@ const SCENARIOS: {
 
 for (const scenario of SCENARIOS) {
   test(`picture: ${scenario.label}`, async ({ page }) => {
+    // Milestone 6 replaced the temporary PictureDevHarness with the real Workspace — the
+    // same `?fixture=&step=` deep-link still works (Workspace.tsx's readDevPreload), now
+    // against a stable `data-testid` instead of a harness-specific label that no longer
+    // exists.
     await page.goto(`/?fixture=${scenario.fixture}&step=${scenario.step}`);
-    // Screenshot just the harness element itself, not the full page — the harness stacks
-    // below milestone 1's and 3's placeholders, so a viewport capture would miss it
-    // entirely without scrolling, and a full-page capture would include irrelevant
-    // scaffolding above it.
-    const harness = page
-      .getByText("Milestone 5 · Temporary picture dev harness")
-      .locator("..");
-    await harness.scrollIntoViewIfNeeded();
+    const pane = page.getByTestId("picture-pane");
+    await pane.scrollIntoViewIfNeeded();
     // Let the step's enter animations settle before capturing — screenshots are meant to
     // show the resolved state of a step, not a mid-transition frame.
     await page.waitForTimeout(500);
-    await harness.screenshot({ path: `docs/images/${scenario.label}.png` });
+    await pane.screenshot({ path: `docs/images/${scenario.label}.png` });
   });
 }

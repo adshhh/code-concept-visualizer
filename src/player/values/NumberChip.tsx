@@ -9,13 +9,15 @@ export function NumberChip({
   name,
   value,
   emphasis,
+  error = false,
 }: {
   name: string;
   value: number;
   emphasis: Emphasis;
+  error?: boolean;
 }) {
   return (
-    <Chip name={name} emphasis={emphasis}>
+    <Chip name={name} emphasis={emphasis} error={error}>
       <span className="relative inline-block overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span

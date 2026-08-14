@@ -107,6 +107,46 @@ describe("Picture — nested-list emphasis is looked up per row, not per column"
   });
 });
 
+describe("Picture — errorCell (AC-8.3: the offending box highlights in red)", () => {
+  it("rings the named container red when errorCell matches it", () => {
+    const recording: Recording = {
+      source: "nums = [1, 2, 3]\n",
+      frames: [
+        {
+          step: 1,
+          line: 1,
+          variables: { nums: [1, 2, 3] },
+          callStack: [],
+          stdout: "",
+          narration: "line 1",
+        },
+      ],
+    };
+    const { container } = render(
+      <Picture recording={recording} step={0} errorCell={{ name: "nums" }} />,
+    );
+    expect(container.querySelector(".ring-red-500")).not.toBeNull();
+  });
+
+  it("rings nothing red when errorCell is absent", () => {
+    const recording: Recording = {
+      source: "nums = [1, 2, 3]\n",
+      frames: [
+        {
+          step: 1,
+          line: 1,
+          variables: { nums: [1, 2, 3] },
+          callStack: [],
+          stdout: "",
+          narration: "line 1",
+        },
+      ],
+    };
+    const { container } = render(<Picture recording={recording} step={0} />);
+    expect(container.querySelector(".ring-red-500")).toBeNull();
+  });
+});
+
 describe("Picture — every call gets a card, matching AC-5.7's exact depth-N-renders-N-cards count", () => {
   it("a single active call still renders its own card", () => {
     // Earlier in this milestone's build, CallStackCards dropped the innermost/current call

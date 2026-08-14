@@ -11,6 +11,7 @@ export function Chip({
   emphasis,
   children,
   accent,
+  error = false,
 }: {
   name: string;
   emphasis: Emphasis;
@@ -18,13 +19,16 @@ export function Chip({
   /** Tailwind text-colour class for the value itself — the one per-shape visual difference
    * (e.g. boolean true/false), layered on top of the shared emphasis animation. */
   accent?: string;
+  /** AC-8.3: "the offending box highlights in red" — additive to the normal emphasis ring,
+   * not a new Emphasis tier, so nothing else consuming `emphasisVariants` needs to change. */
+  error?: boolean;
 }) {
   return (
     <motion.div
       layout
       animate={emphasisVariants[emphasis]}
       transition={GESTURE_TRANSITION}
-      className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ring-slate-800"
+      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
     >
       <span className="text-xs font-medium text-slate-500">{name}</span>
       <span

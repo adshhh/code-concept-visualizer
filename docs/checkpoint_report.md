@@ -1072,3 +1072,167 @@ git push -u origin milestone-5-drawing-system
 Milestone 6 — playback controls and the code editor & error UX, plus the 5 click-through smoke
 tests (§7, §8, §12 layer 4). This is also where the `compare` gesture's ✓/✗ resolution becomes
 buildable, once a real code pane exists to show which branch was taken.
+
+---
+
+# Milestone 6 Completed
+
+**`src/Workspace.tsx` is the real shell around the picture: a CodeMirror 6 editor, §7's full
+playback bar, and §8's error UX, wired to `run()` (m4) and `Picture` (m5) — the first genuinely
+demoable build. Both m3's `EngineDevHarness` and m5's `PictureDevHarness` are gone, exactly as
+their own docstrings said they would be.**
+
+The pre-build audit found that runtime-error messages were not actually beginner-language yet —
+`tracer.py`'s `message` field is Python's raw `str(exc)` (`"list index out of range"`, no line, no
+list name, no index) — so AC-8.2's own example sentence needed a real translator, not just display
+wiring. That translator turned out to be the biggest single piece of this milestone.
+
+## Why
+
+- **A new `src/player/errorMessages.ts` turns a `runtime_error` result into the exact AC-8.2 shape**
+  (`"Line 3 — you asked for position 10, but \`nums\` only has 5 items (positions 0 to 4)."`).
+  Confirmed by re-reading `tracer.py`'s own `'exception'`-event handling: the *last* frame a
+  `runtime_error` run ever captures is the failing line itself (its `'line'` event already set
+  `pending[fid]`; the `'exception'` event flushes that same pending line), with variables exactly
+  as they stood right before that line's own effect. That's precisely the (line, scope) pair a
+  translator needs, with no tracer changes required. Per-type translators reuse
+  `lineAnalysis.ts`'s tokenizer (the same bracket-matching shape as `indexVars.ts`) to find the
+  offending name/index expression on that one line, and fail closed to a generic-but-still-plain
+  sentence — never a raw traceback — whenever a case can't be confidently resolved. `TypeError`
+  covers the two patterns actually reachable within the §1 subset (str+non-str concatenation, a
+  mismatched-type binary operator) rather than attempting to enumerate Python's full message space.
+  The recursion-depth guardrail needed no translator at all — `guardrails.py` already wrote that
+  message in plain English back at m3.
+- **The deferred `compare` ✓/✗ resolution (v2 note on §5) needed no new gesture code.** Re-reading
+  the note: the honest one-step-later signal *is* the code pane's own active-line highlight, which
+  this milestone builds anyway for §8 AC-8.5. Adding a ✓/✗ badge to the number boxes themselves
+  would still be fabricating same-step data — exactly what m5 declined to do. `diffFrames().branch`
+  (exported since m5, unused until now) needed no changes either.
+- **"The offending box highlights in red" (AC-8.3) is additive, not a new `Emphasis` tier.** `Chip`,
+  `ListFrame`, and `DictTable` each gained a plain `error?: boolean` prop (the same pattern as
+  `Chip`'s existing `accent` prop) that swaps the ring to red — so no component that already
+  consumes `emphasisVariants` needed to change. `Picture` only rings a cell when the translator
+  could confidently resolve one *and* the currently-viewed step is the actual failing step —
+  fails closed the same way `indexVars.ts` does for arrows.
+- **A real bug found only in a real browser, not by any test:** `usePlayback`'s `atEnd` is `true`
+  whenever `frameCount === 0` (nothing has been run yet) as well as at the real end of a
+  recording — `PlaybackControls` read that as "Replay" before a single Run had happened. A
+  Playwright screenshot of the empty workspace caught it; fixed by also requiring `frameCount > 0`
+  before the label switches, pinned with a regression test.
+- **A real, unrelated bug found while adding `PlaybackControls.test.tsx`:** Testing Library's
+  automatic per-test cleanup never fires in this project, because `vitest.config.ts` doesn't set
+  `globals: true` (which RTL's auto-cleanup registration depends on). Every test file that only
+  ever queried its own `render()`-returned `container` was accidentally safe; the first test using
+  `screen.getByRole` across multiple `render()` calls in one file wasn't — it picked up buttons and
+  sliders left over from earlier tests in the same file. Fixed once, project-wide, in
+  `src/test-setup.ts` (`afterEach(() => cleanup())`), rather than working around it per test file.
+- **Keyboard shortcuts are scoped at the Workspace level, not inside `PlaybackControls`,** and are
+  a no-op whenever `document.activeElement` is inside `.cm-editor` — otherwise space/arrow keys
+  typed into the code would steer playback instead of typing.
+- **Framer Motion's default retarget behavior was kept over a literal "snap to end, then begin the
+  next" mechanism.** §7's prose describes the felt problem (queued/laggy stepping); Framer Motion
+  already satisfies AC-7.5's testable claims (correct end state, nothing queued or dropped) by
+  smoothly redirecting mid-animation, without fighting the smoothness `variants.ts` was built for
+  at m5. Decided independently, noted here rather than silently assumed.
+- **AC-12.4's "open a lesson" step has no lesson yet** (those start at m7) — the 5 click-through
+  smokes target the single Workspace this milestone builds instead: load · Run · Play · step back ·
+  a runtime-error fixture reaching its failing step with a beginner message and zero raw traceback
+  text anywhere in the DOM. Same re-sequencing shape as the AC-2.1/2.2 and AC-5 v2 notes already in
+  `PLAN_v2.md`.
+- **The milestone-1 placeholder box is gone, not just the two dev harnesses.** Decided
+  independently: keeping a "hello world, React rendered" box above a real, running workspace would
+  just be confusing now that there's something real to look at. The actual landing page (§11)
+  still arrives at m10 — this is a single always-on workspace, not a lesson picker, since lessons
+  don't exist until m7.
+
+## Files Created/Modified
+
+**Runtime error translation** (`src/player/`, pure logic + its own tests)
+
+- `errorMessages.ts` (new): `translateRuntimeError` — per-type translators for `IndexError`,
+  `KeyError`, `NameError`, `ZeroDivisionError`, `TypeError`, plus a generic fails-closed fallback.
+- `tests/fixtures/runtime_errors/` (new): one real fixture per required error type, run through
+  the real engine (Pyodide-in-Node, same strategy as `tracer.test.ts`) — never hand-authored
+  errorType/message data.
+
+**Editor + playback**
+
+- `player/CodeEditor.tsx` (new): CodeMirror 6, Python highlighting, active-line decoration,
+  `@codemirror/lint`-based inline diagnostics (serves both AC-8.1's rejection marker and
+  AC-8.3's runtime-error line marker with one mechanism).
+- `player/usePlayback.ts` (new): the playback state machine — step/playing/speed, auto-advance,
+  stop-at-end (never loops), manual navigation always pauses first.
+- `player/PlaybackControls.tsx` (new): the §7 bottom bar.
+
+**Wiring**
+
+- `player/Picture.tsx`, `player/values/{Chip,ListFrame,DictTable,NumberChip,BooleanChip,NoneChip,StringChip,NumberList,StringList}.tsx`
+  (modified): the additive `error?: boolean` prop threaded through to `Picture`'s new `errorCell`.
+- `Workspace.tsx` (new, top-level — not under `player/` or `engine/`, since it's the one place
+  both may be imported): owns `source`/`result`/`traceSource`, the "editing invalidates the
+  trace" dim state, keyboard shortcuts, and a dev-only `?fixture=&step=` preload (reusing m4's
+  committed traces) that keeps the Playwright screenshot suite deterministic without a real
+  Pyodide run per scenario.
+- `App.tsx` (rewritten): `EngineDevHarness`, `PictureDevHarness`, and the m1 placeholder are gone;
+  `App()` renders `Workspace` as the whole page.
+- `src/test-setup.ts` (modified): `afterEach(() => cleanup())` — the project-wide RTL cleanup fix.
+
+**Playwright**
+
+- `scripts/screenshots/smokes.spec.ts` (new): the 5 click-through smokes (AC-12.4).
+- `scripts/screenshots/picture.spec.ts` (modified): re-pointed at `Workspace`'s
+  `data-testid="picture-pane"` (the harness-specific locator it used is gone); all 11 m5
+  screenshots re-captured under the new shell.
+
+**Dependencies**: `@uiw/react-codemirror`, `@codemirror/lang-python`, `@codemirror/lint` — all
+first installed this milestone, per the stack table.
+
+## Uncertain / worth double-checking
+
+1. **`TypeError` translation only covers two patterns** (str+non-str concatenation, a
+   mismatched-type binary operator) — anything else falls back to a generic-but-still-plain
+   sentence quoting Python's own message. Reachable within the §1 subset's small operator set, but
+   worth a look if a lesson later produces a `TypeError` shape neither pattern catches.
+2. **The red-ring highlight only ever targets one whole container**, never a specific missing cell
+   (there's nothing to point at — the position that failed doesn't exist). For `NameError` there's
+   no highlight at all, only the message, since nothing was ever bound to ring.
+3. **The dev-preload mechanism (`?fixture=&step=`) ships in the production bundle**, same as m5's
+   now-deleted `PictureDevHarness` did — the committed trace JSON adds some bundle weight in
+   exchange for deterministic Playwright screenshots against the real `vite preview` build. Not a
+   new problem this milestone introduced, just carried forward under a new name.
+4. **Speed control (0.5×/1×/2×/4×) and general layout proportions were decided independently** as
+   small visual details, not specified in §7 beyond "speed" existing as a control.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  23 passed (23)
+                    Tests       269 passed (269)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~350ms
+=== playwright ===  16 passed (12.3s) — 5 smokes + 11 re-captured picture scenarios
+```
+
+All 11 `docs/images/*.png` scenarios from m5 re-captured under the new Workspace shell (visually
+unchanged in content, just cropped to the picture pane itself rather than the old harness's
+surrounding chrome) — `call-stack-depth-10.png` still shows exactly 10 cards, `swap-in-progress.png`
+still shows the lift/connector and index-arrow labels correctly. New behavior confirmed via a
+throwaway Playwright script against a real `vite preview` build before writing the formal smokes:
+an `IndexError` fixture typed into the real editor, run through the real engine, played forward to
+its failing step, showing the exact translated sentence, a red ring around the `nums` list, and a
+red squiggly diagnostic under `nums[i]` in the editor — the whole pipeline working end to end in one
+real interaction, not just in isolated unit tests.
+
+## Github Commands for this milestone
+
+```bash
+git add src/Workspace.tsx src/Workspace.test.tsx src/App.tsx src/test-setup.ts src/player/ scripts/screenshots/ docs/ tests/fixtures/runtime_errors/ package.json package-lock.json
+git commit -m "Milestone 6: playback controls, code editor & error UX, 5 click-through smokes"
+git push -u origin milestone-6-playback-controls
+```
+
+## Next
+
+Milestone 7 — Lesson 1 plus authoring `/new-lesson` from it (§4, §10). Pattern-setting: get the
+lesson shape right once, from a real example, rather than eight times from a guess.

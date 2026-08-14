@@ -7,12 +7,19 @@ import type { Emphasis } from "../spotlight";
 export function NoneChip({
   name,
   emphasis,
+  error = false,
 }: {
   name: string;
   emphasis: Emphasis;
+  error?: boolean;
 }) {
   return (
-    <Chip name={name} emphasis={emphasis} accent="text-slate-500 italic">
+    <Chip
+      name={name}
+      emphasis={emphasis}
+      accent="text-slate-500 italic"
+      error={error}
+    >
       None
     </Chip>
   );

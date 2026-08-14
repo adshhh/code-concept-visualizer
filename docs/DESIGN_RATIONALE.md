@@ -890,6 +890,83 @@ split is a m1-anticipated implementation detail, not a scope or requirement chan
 
 ---
 
+## 27. Milestone 6's error UX: translating a raw exception into a sentence, and closing the compare-gesture loop for free
+
+**The situation.** §7/§8 sound like pure wiring — playback controls and a code editor around a
+picture that already exists — and most of it was. One piece wasn't: AC-8.2 requires a beginner
+sentence naming the exact position, list, and size involved in an `IndexError` (its own example
+text: `"Line 4 — you asked for position 10, but nums only has 5 items (positions 0 to 4)"`), but
+`tracer.py`'s `record_trace` (m4) puts Python's raw `str(exc)` straight into the result — `"list
+index out of range"`, with none of that information in it at all. Building that sentence required
+real logic, not display formatting.
+
+**Decision: a new `src/player/errorMessages.ts`.** The key fact that makes it possible without
+touching `tracer.py`: `sys.settrace`'s `'exception'` event fires against the same frame whose
+`'line'` event just set `pending[fid]` — so the *last* frame a `runtime_error` run ever captures
+is the failing line itself, with variables exactly as they stood immediately before that line's
+own effect. That's the (line, scope) pair a translator needs, already sitting in data m4 produces.
+Per-type translators reuse `lineAnalysis.ts`'s tokenizer — the same bracket-matching shape
+`indexVars.ts` already uses for arrows — to find the offending name/index expression on that one
+line, and fail closed to a generic-but-still-plain sentence (never a raw traceback) whenever a
+case can't be confidently resolved, the same discipline `indexVars.ts` uses for arrows it won't
+guess at. `TypeError` deliberately covers only the two patterns actually reachable within the §1
+subset's small operator set, rather than attempting to enumerate Python's full message space — a
+scope decision, noted rather than silently narrow. The recursion-depth guardrail needed no
+translator at all: `guardrails.py` already wrote that message in plain English back at m3.
+
+**Decision: the deferred `compare` ✓/✗ resolution (m5's own v2 note) needed no new gesture code.**
+Re-reading the note while auditing this milestone: it says resolution becomes possible "once a code
+pane can show which branch was actually taken" — and the code pane's own active-line highlight,
+which m6 builds anyway for AC-8.5, *is* that signal. The line that lights up next, one step after a
+comparison, tells you which way it went. Adding a ✓/✗ badge to the number boxes themselves would
+still be fabricating same-step data, exactly what m5 declined to do. `diffFrames().branch`
+(exported since m5, never consumed until now) needed no changes either. The lesson here: a deferred
+decision is worth re-reading closely before building its resolution, rather than assuming it means
+"build the thing that was deferred" — sometimes the thing it was actually waiting on turns out to
+already answer the question by existing.
+
+**Decision: "the offending box highlights in red" (AC-8.3) is additive, not a new emphasis tier.**
+`Chip`, `ListFrame`, and `DictTable` each gained a plain `error?: boolean` prop — the same shape as
+`Chip`'s existing `accent` prop — rather than a fourth value in the `Emphasis` union, which would
+have forced every component already switching on `Emphasis` to grow a new case. `Picture` only
+rings a cell when the translator resolved one with confidence *and* the step currently being viewed
+is the actual failing step (the last frame of that recording) — otherwise no ring, same "fails
+closed" choice as everywhere else in the drawing system.
+
+**Two real bugs, both found only in a real browser — not by the 266 tests passing at the time.**
+
+`usePlayback`'s `atEnd` flag is `true` both at the real end of a recording *and* whenever
+`frameCount` is `0` (nothing has been run yet) — both are "step >= lastFrameIndex" under the same
+clamped arithmetic. `PlaybackControls` read `atEnd` alone to decide between "Play" and "Replay," so
+the very first screenshot of an empty Workspace showed a green "Replay" button with nothing to
+replay. Every `usePlayback` unit test had exercised a real, non-empty recording; nothing had
+exercised the actual empty state a fresh page load starts in. Fixed by also requiring
+`frameCount > 0` before the label switches, pinned with a regression test.
+
+The second was unrelated to the feature work entirely: writing `PlaybackControls.test.tsx` (the
+first test in this project to call `screen.getByRole` across several `render()` calls in one file)
+surfaced that Testing Library's automatic per-test cleanup was never actually running anywhere in
+this project. `vitest.config.ts` doesn't set `globals: true`, which is what RTL's own cleanup
+registration depends on — every earlier test file had been accidentally safe because each only
+ever queried its own returned `container`, never the shared `document.body` that `screen` reads
+from. Fixed once, project-wide, in `src/test-setup.ts` (`afterEach(() => cleanup())`), rather than
+as a one-off workaround in the file that happened to expose it.
+
+**Why this is worth stating plainly, again.** Same shape as m3's `parseSuite()` gap, m4's cold-load
+timeout, and m5's blank-picture/duplicate-arrow-label bugs: every one of them lived in exactly the
+state a comprehensive unit-test suite, written against the same mental model that produced the bug,
+has no particular reason to exercise. A real browser (or, for the test-cleanup bug, simply writing
+a *new kind* of test against old infrastructure) surfaced what four milestones of green checks
+hadn't.
+
+**Why none of this reopens anything LOCKED.** §7/§8's acceptance criteria are unchanged. The
+compare-gesture note is marked resolved, not altered; AC-12.4's smoke scenarios are adapted to the
+one Workspace that exists (same re-sequencing shape as every prior instance of this), not narrowed
+in what they prove; and the error-message translator, the red-ring mechanism, and dropping the m1
+placeholder are all implementation/autonomy-boundary decisions within what m6 already owned.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

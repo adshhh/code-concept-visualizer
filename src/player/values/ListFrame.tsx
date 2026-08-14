@@ -16,6 +16,7 @@ export function ListFrame({
   arrows,
   connectorRange,
   children,
+  error = false,
 }: {
   name: string;
   columns: string;
@@ -25,9 +26,15 @@ export function ListFrame({
    * another (§5: "connector appears") — see Picture.tsx's liftedIndicesFor. */
   connectorRange?: [number, number];
   children: ReactNode;
+  /** AC-8.3: the whole container rings red when a runtime error was traced to this list
+   * (e.g. an out-of-range index) but not to one specific cell — Tier 1 has no data for
+   * which cell *would* have been there. */
+  error?: boolean;
 }) {
   return (
-    <div className="rounded-lg bg-slate-900 p-3 ring-1 ring-slate-800">
+    <div
+      className={`rounded-lg bg-slate-900 p-3 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
+    >
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
 
       {connectorRange && (

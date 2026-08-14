@@ -10,13 +10,17 @@ export function DictTable({
   name,
   entries,
   valueEmphasis,
+  error = false,
 }: {
   name: string;
   entries: { key: string; value: string }[];
   valueEmphasis: Record<string, Emphasis>;
+  error?: boolean;
 }) {
   return (
-    <div className="rounded-lg bg-slate-900 p-3 ring-1 ring-slate-800">
+    <div
+      className={`rounded-lg bg-slate-900 p-3 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
+    >
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
       <table className="w-full border-collapse text-sm">
         <tbody>
