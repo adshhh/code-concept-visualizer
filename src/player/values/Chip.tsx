@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import type { Emphasis } from "../spotlight";
 import { emphasisVariants, GESTURE_TRANSITION } from "../motion/variants";
+import { ringClass } from "./errorRing";
 
 /** The shared shell every scalar chip (Number/Boolean/String/None) renders through — "name
  * left, value large" (§5), with emphasis applied via the one shared variant object so every
@@ -28,7 +29,7 @@ export function Chip({
       layout
       animate={emphasisVariants[emphasis]}
       transition={GESTURE_TRANSITION}
-      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
+      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ${ringClass(error)}`}
     >
       <span className="text-xs font-medium text-slate-500">{name}</span>
       <span

@@ -69,3 +69,65 @@ describe("Workspace — Reset to example", () => {
     expect(screen.getByText("press Run to see this")).toBeInTheDocument();
   });
 });
+
+describe("Workspace — feedback shows for every RunResult status, not just recording-bearing ones", () => {
+  // Found by code review: an earlier version gated the banner/diagnostic on "does this result
+  // have a Recording," which is true for ok/guardrail/runtime_error but never for
+  // rejected/timeout/validator_mismatch — so those three showed no feedback at all despite
+  // deriveFeedback building a real message for them.
+  it("shows the validator's own message when the run is rejected", async () => {
+    vi.mocked(run).mockResolvedValue({
+      status: "rejected",
+      line: 1,
+      message:
+        "import isn't supported yet — line 1. Everything you need is already available.",
+    });
+    const user = userEvent.setup();
+    render(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "import isn't supported yet — line 1. Everything you need is already available.",
+        ),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("shows the timeout message when the run times out", async () => {
+    vi.mocked(run).mockResolvedValue({
+      status: "timeout",
+      message:
+        "This program ran too long — it may contain a loop that never ends.",
+    });
+    const user = userEvent.setup();
+    render(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "This program ran too long — it may contain a loop that never ends.",
+        ),
+      ).toBeInTheDocument(),
+    );
+  });
+});
+
+describe("Workspace — a run() rejection is caught, not left to wedge the Run button", () => {
+  // Found by code review: run()'s own "every branch is a result, nothing throws" contract can
+  // have a gap (raceWithTimeout has no .catch on a genuine worker/Comlink rejection) — without
+  // a guard here, that leaves "Running…" showing forever with no visible error.
+  it("shows a visible message and re-enables Run instead of hanging on Running…", async () => {
+    vi.mocked(run).mockRejectedValue(new Error("worker script failed to load"));
+    const user = userEvent.setup();
+    render(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Run" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/worker script failed to load/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+  });
+});

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import type { Emphasis } from "../spotlight";
 import { emphasisVariants, GESTURE_TRANSITION } from "../motion/variants";
+import { ringClass } from "./errorRing";
 
 /** "Grid, rows stacked — for matrices and DP tables" (§5). Each row is a list of already-
  * stringified cell values (the caller flattens whatever ValueShape each row classified as —
@@ -12,15 +13,20 @@ export function NestedGrid({
   name,
   rows,
   cellEmphasis,
+  error = false,
 }: {
   name: string;
   rows: string[][];
   cellEmphasis: Emphasis[][];
+  /** AC-8.3: found missing by code review — every other container shape already had this
+   * additive red-ring highlight wired through; a runtime error resolving to a matrix/nested-
+   * list variable rendered with no highlight at all until this was added. */
+  error?: boolean;
 }) {
   const columnCount = Math.max(...rows.map((row) => row.length), 1);
 
   return (
-    <div className="rounded-lg bg-slate-900 p-3 ring-1 ring-slate-800">
+    <div className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}>
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
       <div className="flex flex-col gap-1">
         {rows.map((row, r) => (

@@ -9,7 +9,13 @@
 // pending line the 'line' event just recorded), with variables exactly as they stood right
 // before that line's own effect — see docs/DESIGN_RATIONALE.md for the confirming trace
 // through tracer.py's make_tracer.
-import { tokensForLine } from "./lineAnalysis";
+import {
+  bracketExprsOnLine,
+  findOperatorToken,
+  matchNamePlusOffset,
+  tokensForLine,
+} from "./lineAnalysis";
+import { classifyValue } from "./values/classify";
 import type { Token } from "../subset/types";
 
 /** Which single value, if any, the failure can be confidently pinned to — Picture.tsx uses
@@ -25,38 +31,23 @@ export interface TranslatedError {
   highlight?: ErrorHighlight;
 }
 
-/** Finds the first `NAME [ ... ]` bracket group on the line — same bracket-matching shape as
- * indexVars.ts's specsOnLine, deliberately not shared with it: that module reports every
- * occurrence across the whole source for arrow drawing, this only ever needs the one bracket
- * expression on the single failing line. Only the *first* match is used — Tier 1 has no
+/** The first `NAME [ ... ]` bracket group on the line, via the same `bracketExprsOnLine`
+ * primitive indexVars.ts uses for arrow drawing (found duplicated between the two by code
+ * review; now one shared implementation). Only the *first* match is used — Tier 1 has no
  * sub-expression trace, so a line with more than one bracket expression can't be disambiguated
  * (`nums[i] = other[j]`); picking the first is a reasonable guess for the fixtures this
  * project ships, not a general solution. */
 function firstBracketExpr(
   tokens: Token[],
 ): { containerName: string; contents: Token[] } | null {
-  for (let k = 0; k < tokens.length; k++) {
-    const token = tokens[k]!;
-    if (token.type !== "OP" || token.value !== "[") continue;
-    const nameToken = tokens[k - 1];
-    if (!nameToken || nameToken.type !== "NAME") continue;
-
-    let depth = 1;
-    let m = k + 1;
-    while (m < tokens.length && depth > 0) {
-      if (tokens[m]!.type === "OP" && tokens[m]!.value === "[") depth++;
-      else if (tokens[m]!.type === "OP" && tokens[m]!.value === "]") depth--;
-      if (depth > 0) m++;
-    }
-    if (depth !== 0) continue;
-    return { containerName: nameToken.value, contents: tokens.slice(k + 1, m) };
-  }
-  return null;
+  return bracketExprsOnLine(tokens)[0] ?? null;
 }
 
-/** Resolves a bracket's contents to a concrete number — a literal, a bare name looked up in
- * `scope`, or `name±literal` (the same three shapes indexVars.ts draws arrows for). Anything
- * else (a function call, a second index, an expression) returns null rather than a guess. */
+/** Resolves a bracket's contents to a concrete number — a literal, or `matchNamePlusOffset`'s
+ * `name`/`name±N` shapes looked up in `scope` (the same primitive indexVars.ts uses to resolve
+ * arrow targets, so the two can't silently disagree on what counts as a resolvable index).
+ * Anything else (a function call, a second index, an expression) returns null rather than a
+ * guess. */
 function resolveNumericIndex(
   contents: Token[],
   scope: Record<string, unknown>,
@@ -64,33 +55,35 @@ function resolveNumericIndex(
   if (contents.length === 1 && contents[0]!.type === "NUMBER") {
     return Number(contents[0]!.value);
   }
-  if (contents.length === 1 && contents[0]!.type === "NAME") {
-    const value = scope[contents[0]!.value];
-    return typeof value === "number" ? value : null;
-  }
-  if (
-    contents.length === 3 &&
-    contents[0]!.type === "NAME" &&
-    contents[1]!.type === "OP" &&
-    (contents[1]!.value === "+" || contents[1]!.value === "-") &&
-    contents[2]!.type === "NUMBER"
-  ) {
-    const base = scope[contents[0]!.value];
-    if (typeof base !== "number") return null;
-    const magnitude = Number(contents[2]!.value);
-    return contents[1]!.value === "-" ? base - magnitude : base + magnitude;
-  }
-  return null;
+  const symbolic = matchNamePlusOffset(contents);
+  if (!symbolic) return null;
+  const base = scope[symbolic.name];
+  return typeof base === "number" ? base + symbolic.offset : null;
 }
 
+/** Delegates to `classify.ts`'s canonical `classifyValue` rather than a second, ad hoc
+ * "is this a list" check — so a container's reported length always matches what the picture
+ * itself would show (including edge cases classify.ts already handles, like the non-finite
+ * sentinel strings, that a hand-rolled `Array.isArray`/`typeof` check would silently miss). */
 function containerLength(value: unknown): number | null {
-  if (Array.isArray(value)) return value.length;
-  if (typeof value === "string") return value.length;
-  return null;
+  const shape = classifyValue(value);
+  switch (shape.kind) {
+    case "empty-list":
+      return 0;
+    case "list-of-numbers":
+    case "list-of-strings":
+    case "mixed-list":
+    case "nested-list":
+      return shape.items.length;
+    case "string":
+      return shape.value.length;
+    default:
+      return null;
+  }
 }
 
-function isDictLike(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
+function isDictLike(value: unknown): boolean {
+  return classifyValue(value).kind === "dict";
 }
 
 function translateIndexError(
@@ -171,9 +164,7 @@ function translateZeroDivisionError(
   failingLine: number,
 ): TranslatedError {
   const tokens = tokensForLine(source, failingLine);
-  const opIndex = tokens.findIndex(
-    (token) => token.type === "OP" && DIVISION_OPS.has(token.value),
-  );
+  const opIndex = findOperatorToken(tokens, DIVISION_OPS);
   const divisorToken = opIndex >= 0 ? tokens[opIndex + 1] : undefined;
   if (
     !divisorToken ||

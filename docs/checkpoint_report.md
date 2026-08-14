@@ -1224,12 +1224,99 @@ its failing step, showing the exact translated sentence, a red ring around the `
 red squiggly diagnostic under `nums[i]` in the editor — the whole pipeline working end to end in one
 real interaction, not just in isolated unit tests.
 
+## Milestone 6 — code-review fixes (step 9, run before commit)
+
+`/code-review` ran 8 parallel review passes (reuse, bandaid fixes, simplification, CLAUDE.md
+conventions, efficiency, and three independent bug-hunting angles). Several real bugs were each
+caught by 2–4 agents independently, which is strong signal they're real rather than one agent's
+misreading. All fixed and verified before this branch is committed.
+
+**Real correctness bugs, confirmed by re-reading the actual code before fixing (not just trusting
+the review):**
+
+1. **`rejected`/`timeout`/`validator_mismatch` results showed no feedback at all — a direct break
+   of AC-8.1.** The banner and inline editor diagnostic were gated on `showResult`, which required a
+   `Recording` — but three of six `RunResult` statuses never produce one. Pasting an unsupported
+   construct or a timing-out program silently reverted to "press Run to see this" with zero
+   indication why, despite `deriveFeedback` already building the right message for all three. Found
+   independently by two review angles; confirmed by re-reading `Workspace.tsx` directly, and by my
+   own real-browser check never having actually exercised the rejected/timeout path (only
+   `runtime_error`, which does carry a recording). Fixed by decoupling feedback display from
+   `recording` entirely: a renamed `lastRunSource` (see #10 below) now gates the banner/diagnostic on
+   "is this the source the last run actually produced," independent of whether that run left a
+   recording behind. Verified in a real browser: pasting `import os` now shows the validator's exact
+   message in the red banner.
+2. **`handleRun` had no `try`/`catch` — a genuine rejection from `run()` would wedge the Run button
+   on "Running…" forever.** `run()`'s own contract is "every branch is a result, nothing throws," but
+   `raceWithTimeout` (the primitive it's built on) has no `.catch` on the real promise it races
+   against a timeout — a Comlink/worker-load failure that isn't a timeout would propagate out as an
+   unhandled rejection, and `setRunning(false)` would never run. This exact gap was why the deleted
+   `EngineDevHarness` had its own `try`/`catch`, per that code's own comment — lost when it was
+   replaced. Confirmed by reading `workerLifecycle.ts`'s `raceWithTimeout` directly: the claim holds.
+   Fixed with a `try`/`catch`/`finally`, surfacing a visible banner instead of a silent hang.
+3. **`NestedGrid` never received the `error` prop — AC-8.3's red-ring highlight silently couldn't
+   render for any matrix/2D-list value.** Every other value shape (`Chip`, `NumberList`, `StringList`,
+   `DictTable`) got `error={isError}` wired through when that mechanism was first built; the
+   `nested-list` case in `Picture.tsx` was the one left out, and `NestedGrid.tsx` had no `error` prop
+   to receive it even if it had been passed. Found independently by **four** separate review angles —
+   the strongest signal of any finding this round. Fixed by adding the same additive `error?: boolean`
+   prop `NestedGrid` was missing, wired through Picture.tsx's `nested-list` case; pinned with a new
+   `Picture.test.tsx` test using a `grid` matrix variable.
+4. **Tab no longer indents in the code editor.** The deleted `EngineDevHarness`'s plain `<textarea>`
+   explicitly handled Tab (its own comment called this "genuinely painful" to be without);
+   CodeMirror 6's default keymap leaves Tab unbound by design unless `indentWithTab` (from
+   `@codemirror/commands`, added as a direct dependency) is included. Fixed; verified with a real
+   keypress in Playwright, not jsdom — a real CodeMirror keydown throws an uncaught async error in
+   jsdom (missing `Range.getClientRects`), discovered while trying to pin this with a unit test.
+5. **(Lower confidence, plausible) Dev-preload deep links flashed frame 0 before jumping to the
+   requested step.** `result`/`source` were seeded synchronously from the URL, but `usePlayback`'s own
+   `step` only moved to the requested value in a post-mount effect. Fixed by giving `usePlayback` an
+   optional `initialStep` parameter, seeded via a lazy `useState` initializer so the very first render
+   is already correct — removes the post-mount effect entirely.
+
+**Cleanups:**
+
+6. `Workspace.tsx` had re-typed the deleted `PictureDevHarness`'s trace-loading/step-clamping logic
+   by hand, and the two versions had already silently drifted (old version defaulted to the first
+   fixture; new version fell back to the starter program instead). Extracted to a new
+   `src/devPreload.ts`, isolating this dev/test-only scaffolding from the file that actually ships.
+7. `errorMessages.ts`'s bracket-matching loop and `NAME±NUMBER` shape check duplicated logic already
+   written in `indexVars.ts`. Extracted `bracketExprsOnLine`/`matchNamePlusOffset`/`findOperatorToken`
+   into `lineAnalysis.ts` (which gained its own test file), used by both now.
+8. `errorMessages.ts`'s `containerLength`/`isDictLike` reimplemented a slice of `classify.ts`'s
+   canonical value-shape logic with ad hoc `Array.isArray`/`typeof` checks. Fixed to delegate to
+   `classifyValue` directly, so a container's reported length/type can't silently diverge from what
+   the picture itself would show.
+9. The exact red-ring class string was duplicated verbatim across `Chip.tsx`, `DictTable.tsx`,
+   `ListFrame.tsx`, and `StringChip.tsx`. Extracted a shared `ringClass()` helper
+   (`values/errorRing.ts`), also used by `NestedGrid.tsx`'s new `error` prop (#3).
+10. `usePlayback`'s `stepForward`/`stepBack` closed over `step` directly, giving them a new identity
+    every autoplay tick; `Workspace.tsx`'s keydown-listener effect depended on the whole `playback`
+    object, so it tore down and re-added a `window` listener on every tick during Play. Fixed both:
+    `stepForward`/`stepBack` now use the same functional-updater form the interval callback already
+    does, and the keydown listener mounts once (empty deps), reading current state through a ref
+    instead of depending on `playback` directly. (`traceSource` was also proposed for removal as fully
+    redundant with `recording.source` — but fixing #1 means staleness must now cover the three
+    non-recording statuses too, which don't carry a `source` field at all, so it stayed — renamed to
+    `lastRunSource` to reflect its real scope instead.)
+
+Not fixed, deliberately: the removed per-step `window.history` URL sync from the deleted dev harness
+— that was manual-QA convenience, not a spec requirement, and nothing in §7/§8 asks for it.
+
+Two new test files (`lineAnalysis.test.ts`, `devPreload.ts` has none — see below) plus new tests in
+`usePlayback.test.ts`, `Picture.test.tsx`, and `Workspace.test.tsx`: 269 → 286. `devPreload.ts` itself
+has no dedicated unit test — it's pure URL-parsing glue already exercised end-to-end by every
+Playwright scenario in `picture.spec.ts`, and mocking `window.location` just to re-test that glue in
+jsdom seemed like low-value duplication of coverage that already exists for real. All 17 Playwright
+tests (5 smokes + 11 picture scenarios + 1 new Tab-indent regression check) pass against a real
+`vite preview` build. Typecheck, format, and build clean throughout.
+
 ## Github Commands for this milestone
 
 ```bash
-git add src/Workspace.tsx src/Workspace.test.tsx src/App.tsx src/test-setup.ts src/player/ scripts/screenshots/ docs/ tests/fixtures/runtime_errors/ package.json package-lock.json
-git commit -m "Milestone 6: playback controls, code editor & error UX, 5 click-through smokes"
-git push -u origin milestone-6-playback-controls
+git add src/Workspace.tsx src/Workspace.test.tsx src/App.tsx src/test-setup.ts src/devPreload.ts src/player/ scripts/screenshots/ docs/ tests/fixtures/runtime_errors/ package.json package-lock.json
+git commit -m "Milestone 6: playback controls, code editor & error UX, 5 click-through smokes, plus code-review fixes"
+git push
 ```
 
 ## Next

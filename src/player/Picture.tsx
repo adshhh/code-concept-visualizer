@@ -412,6 +412,7 @@ export function Picture({
                       name={name}
                       rows={rows}
                       cellEmphasis={cellEmphasis}
+                      error={isError}
                     />
                   );
                 }

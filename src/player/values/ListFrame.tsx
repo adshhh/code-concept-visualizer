@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { IndexArrow } from "./IndexArrow";
 import type { ResolvedArrow } from "./NumberList";
+import { ringClass } from "./errorRing";
 
 /** The wrapper, connector row, and arrow row shared by NumberList and StringList — factored
  * out after both had drifted into near-identical hand-copies of this shell (found by
@@ -32,9 +33,7 @@ export function ListFrame({
   error?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-lg bg-slate-900 p-3 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
-    >
+    <div className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}>
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
 
       {connectorRange && (

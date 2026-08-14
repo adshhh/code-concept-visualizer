@@ -165,7 +165,14 @@ Three constraints shape every decision:
 > button read "Replay" with nothing to replay — fixed and pinned. A second, unrelated bug was found
 > while writing this milestone's own tests: Testing Library's automatic cleanup between tests was
 > never actually running project-wide (`vitest.config.ts` doesn't set `globals: true`), fixed once
-> in `src/test-setup.ts` rather than per test file. Full trail in `checkpoint_report.md`.
+> in `src/test-setup.ts` rather than per test file.
+>
+> **`/code-review` found and fixed 5 real bugs before commit**, three confirmed independently by
+> multiple of its 8 parallel review passes — most notably that `rejected`/`timeout`/
+> `validator_mismatch` results showed no feedback at all (a direct AC-8.1 break, since the banner
+> and diagnostic were wrongly gated on "does this result have a recording") and that `NestedGrid`
+> never received the red-ring `error` prop every other value shape had (AC-8.3 silently failing for
+> matrices). Full trail in `checkpoint_report.md`.
 >
 > **Next: milestone 7** — Lesson 1, plus authoring `/new-lesson` from it (§4, §10). See the Build
 > milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
