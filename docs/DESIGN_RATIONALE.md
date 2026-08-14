@@ -967,6 +967,66 @@ placeholder are all implementation/autonomy-boundary decisions within what m6 al
 
 ---
 
+## 28. Milestone 7's lesson registry: four small scope calls, made explicit before building the pattern everything else copies
+
+Milestone 7 was explicitly **pattern-setting** — the milestone table's own words are "get it wrong
+once, not eight times." That framing raised the stakes on every small schema and scope decision
+enough to write each one down here, rather than letting them fall out implicitly from whatever
+code got written first.
+
+**Decision: `editable === (mode === "A")` today, but declared per lesson entry, not derived.**
+§4's own acceptance criteria list mode, source, editability, view hints, and starter template as
+separate things a registry entry declares — not editability as a computed property of mode. The
+two happen to always agree in this project (no lesson has ever been proposed where they wouldn't),
+but "always agree so far" and "structurally guaranteed to agree" are different claims, and only
+the registry test (`editable === (mode === "A")` asserted for every entry) makes the second one
+true going forward. Deriving it would have been fewer characters; asserting it is what the
+acceptance criterion actually said.
+
+**Decision: one `starterCode` field, not the two ("source" and "starter template") the acceptance
+criteria literally list.** For Mode A, the starter code is exactly what "reset to example" returns
+to. For Mode B, the fixed algorithm is both the thing that runs and the thing that displays — a
+second field could only ever hold an identical copy of the first. Two fields that can never
+legitimately diverge is a bug waiting to happen (which one does `Workspace` read from, and what
+happens the day someone edits only one of them?), not extra flexibility.
+
+**Decision: `src/lessons/`, not a top-level `lessons/` directory.** The one piece of prior art
+pointing the other way was `/checkpoint.md`'s own illustrative example, `lessons/recursion.py` —
+written before any lesson code existed, clearly aspirational rather than a placement decision.
+Every actual content module in this project (`engine/`, `player/`, `subset/`, `recording/`) lives
+under `src/`; matching that beats matching a hypothetical example from a different document.
+
+**Decision: a committed trace snapshot for Lesson 1 now; the shipped, engine-free playback
+mechanism stays m10's job.** D23 says every lesson ships a saved recording, and ties that to m10 —
+but m10 needs it because m10 is where §11's landing page (which plays lessons back without loading
+Pyodide at all, per the player/engine boundary in `CLAUDE.md`) gets built. Building that mechanism
+now, for one lesson, before the thing that consumes it exists, would be scope creep dressed up as
+diligence. What *is* cheap and worth doing now: committing Lesson 1's trace as a JSON fixture via
+the same `toMatchFileSnapshot` mechanism m4 already established for the engine's own fixture
+suite. That file is the recording — D23 says the committed snapshot and the shipped recording are
+the same artifact, so committing it early costs nothing and means m10 is wiring up playback for an
+artifact that already exists, rather than generating it for the first time under deadline.
+
+**Why the audit caught two acceptance criteria this milestone structurally cannot satisfy.** §4's
+criteria 2 ("Mode B renders read-only") and 4 ("a test asserts both modes hit the identical
+`run()` path") both require a Mode B lesson to exist. Lesson 1 is Mode A. No amount of careful
+building inside milestone 7 changes that arithmetic — D14 already put Mode A lessons at m7–m8 and
+Mode B at m9, so these two criteria were never m7's to satisfy in the first place. The audit's job
+here wasn't finding a bug; it was confirming that a criterion looking unmet after m7 is the plan
+working as designed, not a milestone falling short — logged as a v2 re-sequencing note on §4 so
+that distinction is visible to whoever reads the plan next, not just remembered.
+
+**Why the diff.test.ts break was worth fixing inline rather than working around.** Adding
+`tests/fixtures/traces/lessons/` as a subdirectory of `tests/fixtures/traces/` broke
+`diff.test.ts`'s own regression test, which enumerates every entry in that directory with
+`readdirSync` and reads each one as a trace file — a directory entry has no `.json` extension to
+filter on if nothing filters, and `readFileSync` on a directory throws `EISDIR`. The fix (filter
+the loop to `.json` files) is a one-line change directly caused by this milestone's own new
+directory, not a pre-existing bug being fixed opportunistically — the kind of thing worth doing
+without asking, per the autonomy boundary, since it doesn't change what the test proves.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

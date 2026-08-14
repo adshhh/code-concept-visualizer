@@ -174,8 +174,28 @@ Three constraints shape every decision:
 > never received the red-ring `error` prop every other value shape had (AC-8.3 silently failing for
 > matrices). Full trail in `checkpoint_report.md`.
 >
-> **Next: milestone 7** — Lesson 1, plus authoring `/new-lesson` from it (§4, §10). See the Build
-> milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
+> **Milestone 7 is built and checkpointed** (see `checkpoint_report.md`). `src/lessons/` is the
+> registry (§4 AC-1): a `Lesson` type, Lesson 1 ("Your first loop," Mode A) with real Python source
+> in its own `.py` file, and `getLesson(id)`. `Workspace.tsx` now opens on Lesson 1 instead of the
+> milestone-1 placeholder — "Reset to example" and the editor's `readOnly` both key off the active
+> lesson, and a small title/explanation panel renders above the editor (AC-10.3). Lesson 1's starter
+> code is checked against the real engine, not assumed: `registry.test.ts` runs it through the same
+> Pyodide-in-Node `record_trace` path as `tracer.test.ts`, asserting it both `validate()`s (AC-10.4)
+> and completes with `status: "ok"` (AC-10.2), and a committed trace snapshot
+> (`tests/fixtures/traces/lessons/01-first-loop.json`) makes Lesson 1's recording exist from its
+> first milestone, per D23 — kept in its own subdirectory so it doesn't touch `traces.test.ts`'s own
+> ≥25-fixture glob. AC-1/AC-3 of §4 hold; AC-2/AC-4 (both Mode B-only) are re-sequenced to m9 — see
+> the v2 note on §4. §10's AC-10.1/10.2/10.3/10.4 hold for Lesson 1; AC-10.5 (all 8 Mode A lessons
+> built before Mode B starts) holds trivially since nothing else was touched this milestone. Per the
+> owner's decision, `/new-lesson` itself is **not** built here — the owner authors it from this
+> milestone's own files, matching `/checkpoint.md`/`/log-decision.md`. A real bug was found only by
+> running the new tests, not anticipated in the plan: adding `tests/fixtures/traces/lessons/` as a
+> subdirectory broke `diff.test.ts`'s own unfiltered `readdirSync` over `tests/fixtures/traces`
+> (`EISDIR` trying to read a directory as a trace file) — fixed by filtering that loop to `.json`
+> files, a one-line, directly-caused fix rather than scope creep.
+>
+> **Next: milestone 8** — Mode A lessons 2–8 (§10). See the Build milestones table below, and
+> _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -575,6 +595,9 @@ purpose-built ones. The _events_ are identical either way — only the drawing c
    "reset to example" control. **No lesson ever opens as a blank box.**
 4. A test asserts both modes invoke the **identical** `run()` code path — the shared-pipeline claim is
    verified, not assumed.
+   > **v2 re-sequencing (m9):** criteria 2 and 4 both need a real Mode B lesson to exist against, and
+   > D14 already sequences Mode A lessons (1–8, m7–m8) before Mode B (9–11, m9). m7 (Lesson 1, Mode A)
+   > verifies criteria 1 and 3 only. **Verified at m9**, once the first Mode B lesson lands.
 
 ---
 
@@ -923,6 +946,10 @@ already provides the "now you try it" path.
 **Acceptance criteria**
 
 1. All 11 lessons exist, are reachable, and satisfy the §4 mode rules.
+   > **v2 re-sequencing:** lessons ship one milestone at a time (m7: Lesson 1 · m8: 2–8 · m9: 9–11) —
+   > criteria 1–4 below are checked against whichever lessons exist at each milestone, not asserted in
+   > full until all 11 do. Criterion 5 is checked at m9 (the first point it's possible to break); 6 at
+   > whatever milestone attempts the merge-sort stretch.
 2. Every Mode A lesson opens with working starter code that runs successfully on **first press of
    Run** — no lesson opens broken or blank.
 3. Every lesson has a written explanation in beginner language.

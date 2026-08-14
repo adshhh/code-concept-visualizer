@@ -10,8 +10,12 @@ import { PlaybackControls } from "./player/PlaybackControls";
 import { usePlayback, type Playback } from "./player/usePlayback";
 import { MotionRoot } from "./player/motion/MotionRoot";
 import { readDevPreload } from "./devPreload";
+import { LESSONS } from "./lessons/registry";
 
-const DEFAULT_SOURCE = "for i in range(5):\n    print(i * i)\n";
+// m7: Lesson 1 replaces the placeholder program that stood in here through m1–m6. Fixed to
+// the first registry entry for now — picking *which* lesson is loaded is a Mode B/m9 concern
+// (§4), not this milestone's.
+const activeLesson = LESSONS[0]!;
 
 interface RunFeedback {
   diagnostic: EditorDiagnostic | undefined;
@@ -107,7 +111,9 @@ function recordingFrom(result: RunResult | null): Recording | undefined {
  * because this milestone hadn't been built yet. */
 export function Workspace() {
   const devPreload = useMemo(readDevPreload, []);
-  const [source, setSource] = useState(devPreload?.source ?? DEFAULT_SOURCE);
+  const [source, setSource] = useState(
+    devPreload?.source ?? activeLesson.starterCode,
+  );
   const [result, setResult] = useState<RunResult | null>(
     devPreload?.result ?? null,
   );
@@ -154,7 +160,7 @@ export function Workspace() {
   }
 
   function handleResetToExample() {
-    setSource(DEFAULT_SOURCE);
+    setSource(activeLesson.starterCode);
   }
 
   // §7's keyboard shortcuts, mounted once (empty deps) rather than re-subscribed on every
@@ -242,12 +248,22 @@ export function Workspace() {
           </div>
         </div>
 
+        <div className="rounded-lg bg-slate-900/60 px-4 py-3 ring-1 ring-slate-800">
+          <h2 className="text-sm font-semibold text-slate-100">
+            {activeLesson.title}
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            {activeLesson.explanation}
+          </p>
+        </div>
+
         <MotionRoot>
           <div className="flex gap-4 rounded-xl bg-slate-950 ring-1 ring-slate-800">
             <div className="w-[35%] p-3">
               <CodeEditor
                 value={source}
                 onChange={setSource}
+                readOnly={activeLesson.mode === "B"}
                 activeLine={showPicture ? currentFrame?.line : undefined}
                 diagnostic={hasResult ? feedback.diagnostic : undefined}
               />
