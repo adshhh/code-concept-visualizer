@@ -16,11 +16,13 @@ export function StringList({
   items,
   cellEmphasis,
   arrows,
+  error = false,
 }: {
   name: string;
   items: string[];
   cellEmphasis: Emphasis[];
   arrows: ResolvedArrow[];
+  error?: boolean;
 }) {
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
 
@@ -30,6 +32,7 @@ export function StringList({
       columns={columns}
       itemCount={items.length}
       arrows={arrows}
+      error={error}
     >
       {items.map((value, i) => (
         <motion.div

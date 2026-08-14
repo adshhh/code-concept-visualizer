@@ -196,9 +196,16 @@ function stringifyShape(shape: ValueShape): string {
 export function Picture({
   recording,
   step,
+  errorCell,
 }: {
   recording: Recording;
   step: number;
+  /** AC-8.3: "the offending box highlights in red" — set by the caller (Workspace) only on
+   * the exact step where a runtime error's translated message (errorMessages.ts) resolved a
+   * specific container, and only for that container's name. Anything else (no match, or the
+   * translator couldn't confidently resolve one) renders with no red ring at all — the same
+   * "fails closed" choice indexVars.ts makes for arrows. */
+  errorCell?: { name: string };
 }) {
   const frameCount = recording.frames.length;
   const safeStep =
@@ -252,6 +259,7 @@ export function Picture({
             .filter(([, , shape]) => isScalar(shape))
             .map(([name, , shape]) => {
               const emphasis = emphasisOf(emphasisMap, scope, name);
+              const isError = errorCell?.name === name;
               if (shape.kind === "number") {
                 return (
                   <NumberChip
@@ -259,6 +267,7 @@ export function Picture({
                     name={name}
                     value={shape.value}
                     emphasis={emphasis}
+                    error={isError}
                   />
                 );
               }
@@ -269,10 +278,18 @@ export function Picture({
                     name={name}
                     value={shape.value}
                     emphasis={emphasis}
+                    error={isError}
                   />
                 );
               }
-              return <NoneChip key={name} name={name} emphasis={emphasis} />;
+              return (
+                <NoneChip
+                  key={name}
+                  name={name}
+                  emphasis={emphasis}
+                  error={isError}
+                />
+              );
             })}
         </div>
 
@@ -282,6 +299,7 @@ export function Picture({
             .map(([name, , shape]) => {
               const emphasis = emphasisOf(emphasisMap, scope, name);
               const arrows = arrowsByList.get(name) ?? [];
+              const isError = errorCell?.name === name;
 
               switch (shape.kind) {
                 case "string":
@@ -292,11 +310,17 @@ export function Picture({
                       value={shape.value}
                       emphasis={emphasis}
                       expanded={arrows.length > 0}
+                      error={isError}
                     />
                   );
                 case "empty-list":
                   return (
-                    <Chip key={name} name={name} emphasis={emphasis}>
+                    <Chip
+                      key={name}
+                      name={name}
+                      emphasis={emphasis}
+                      error={isError}
+                    >
                       []
                     </Chip>
                   );
@@ -323,6 +347,7 @@ export function Picture({
                         isComparisonLine,
                       )}
                       swapPair={swapPairFor(diff, scope, name)}
+                      error={isError}
                     />
                   );
                 case "list-of-strings":
@@ -338,6 +363,7 @@ export function Picture({
                         shape.items.length,
                       )}
                       arrows={arrows}
+                      error={isError}
                     />
                   );
                 case "mixed-list":
@@ -353,6 +379,7 @@ export function Picture({
                         shape.items.length,
                       )}
                       arrows={arrows}
+                      error={isError}
                     />
                   );
                 case "nested-list": {
@@ -403,6 +430,7 @@ export function Picture({
                           emphasisOf(emphasisMap, scope, name, e.key),
                         ]),
                       )}
+                      error={isError}
                     />
                   );
                 default:

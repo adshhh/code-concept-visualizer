@@ -148,9 +148,27 @@ Three constraints shape every decision:
 > were indistinguishable (both labeled "j" instead of "j" and "j+1"). Full trail in `docs/VISUALS.md`
 > and `DESIGN_RATIONALE.md`.
 >
-> **Next: milestone 6** — playback controls and the code editor & error UX, plus the 5 click-through
-> smoke tests (§7, §8, §12 layer 4). See the Build milestones table below, and _How the build actually
-> runs_ for the ten-step per-milestone loop.
+> **Milestone 6 is built and checkpointed** (see `checkpoint_report.md`). `src/Workspace.tsx` is the
+> real shell around the picture — a CodeMirror 6 editor (§8), the full playback bar (§7), and the
+> error UX, wired to `run()` (m4) and `Picture` (m5). Both m3's `EngineDevHarness` and m5's
+> `PictureDevHarness` are gone, along with the milestone-1 placeholder box — this is the first
+> genuinely demoable build. A new `src/player/errorMessages.ts` translates a `runtime_error`
+> result's raw Python message into AC-8.2's beginner-language sentence (e.g. "Line 3 — you asked
+> for position 10, but `nums` only has 5 items"), using the fact that `tracer.py`'s last captured
+> frame for a failed run *is* the failing line itself, with pre-failure scope. The deferred
+> `compare` ✓/✗ resolution (the v2 note below, on §5) needed no new gesture code — the code pane's
+> own active-line highlight, built for AC-8.5 anyway, is the honest one-step-later signal the note
+> already pointed at. AC-7/AC-8 hold; the 5 click-through smokes (AC-12.4) target the single
+> Workspace this milestone builds rather than a lesson, since lessons don't exist until m7 — same
+> re-sequencing shape as the notes already below. A real bug was found only in a real browser, not
+> by any test: `usePlayback`'s `atEnd` was also true before any Run had happened, so the Play
+> button read "Replay" with nothing to replay — fixed and pinned. A second, unrelated bug was found
+> while writing this milestone's own tests: Testing Library's automatic cleanup between tests was
+> never actually running project-wide (`vitest.config.ts` doesn't set `globals: true`), fixed once
+> in `src/test-setup.ts` rather than per test file. Full trail in `checkpoint_report.md`.
+>
+> **Next: milestone 7** — Lesson 1, plus authoring `/new-lesson` from it (§4, §10). See the Build
+> milestones table below, and _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -611,8 +629,11 @@ branch → taken line highlights, untaken dims.
 > one full step later. Showing a same-step ✓/✗ would mean inventing information the recording doesn't
 > contain. What m5 delivers instead: the lift + connector half, driven by a source-line-scanning
 > heuristic (honestly labeled as such, not a real sub-expression trace), distinguishing `compare` from
-> a plain `read` (glow only, no lift). **Verified at m6**, the first milestone with a code pane able to
-> show which branch was actually taken — the honest resolution signal. Same shape as the AC-2.1/2.2
+> a plain `read` (glow only, no lift). **Resolved at m6**, the first milestone with a code pane able to
+> show which branch was actually taken — the honest resolution signal. No separate ✓/✗ badge was
+> added on the number boxes themselves (that would still be fabricating same-step data); the
+> resolution *is* `CodeEditor`'s active-line highlight (§8 AC-8.5, built at m6 regardless), landing
+> on whichever line the comparison actually led to, one step later. Same shape as the AC-2.1/2.2
 > re-sequencing from m1/m3. See `docs/DESIGN_RATIONALE.md` and `docs/VISUALS.md`.
 
 **Acceptance criteria**
@@ -1004,7 +1025,11 @@ screenshot cannot convey motion, which is the entire premise of the project.
    mid-run · a swap in progress · a comparison in progress · call stack at depth 3 · a dict · a nested
    list · a runtime error state · a Challenge mode prompt. **→ m15**
 4. Five click-through smoke tests pass against a real browser. **→ m6** _(v2: previously unowned;
-   m6 is the first demoable build, so it is the first point at which a click-through is possible.)_
+   m6 is the first demoable build, so it is the first point at which a click-through is possible.
+   **Delivered at m6 (2026-08-13):** since lessons don't exist until m7, the 5 smokes target the
+   single Workspace m6 builds instead of "open a lesson" literally — load · Run · Play · step back
+   · a runtime-error fixture reaching its failing step with a beginner message. Same re-sequencing
+   shape as AC-2.1/2.2. See `checkpoint_report.md`.)_
 5. `while True: pass` is covered by an automated test, not a manual check. **→ m3**
 6. CI runs install → typecheck → test → build on every push and is green on `main`. **→ m1**
 7. Every milestone branch produces a working preview URL **before** the owner is asked to review it.

@@ -7,16 +7,19 @@ export function BooleanChip({
   name,
   value,
   emphasis,
+  error = false,
 }: {
   name: string;
   value: boolean;
   emphasis: Emphasis;
+  error?: boolean;
 }) {
   return (
     <Chip
       name={name}
       emphasis={emphasis}
       accent={value ? "text-emerald-400" : "text-red-400"}
+      error={error}
     >
       <span aria-hidden="true">{value ? "✓" : "✗"}</span>
       <span className="ml-1 text-sm text-slate-400">
