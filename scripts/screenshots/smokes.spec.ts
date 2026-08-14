@@ -87,3 +87,22 @@ test.describe("click-through smokes (AC-12.4)", () => {
     expect(bodyText).not.toContain("IndexError:");
   });
 });
+
+// Not one of the 5 numbered smokes above — a regression check found by code review. The
+// deleted EngineDevHarness's plain <textarea> handled Tab itself (its own comment called this
+// "genuinely painful" to be without); CodeMirror's default keymap doesn't, unless
+// `indentWithTab` is added (CodeEditor.tsx). jsdom can't exercise a real CodeMirror keypress
+// (its Range implementation is missing getClientRects, which CodeMirror's cursor measurement
+// needs), so this is verified here, in a real browser, instead of in a Vitest/jsdom test.
+test("regression: Tab indents in the code editor instead of moving focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const editor = page.locator(".cm-content");
+  await editor.click();
+  await page.keyboard.press("End");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("print(1)");
+  await expect(page.getByText("    print(1)")).toBeVisible();
+});

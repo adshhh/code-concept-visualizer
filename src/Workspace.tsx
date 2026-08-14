@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { run } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import type { Recording } from "./recording/types";
@@ -7,8 +7,9 @@ import { translateRuntimeError } from "./player/errorMessages";
 import { Picture } from "./player/Picture";
 import { CodeEditor, type EditorDiagnostic } from "./player/CodeEditor";
 import { PlaybackControls } from "./player/PlaybackControls";
-import { usePlayback } from "./player/usePlayback";
+import { usePlayback, type Playback } from "./player/usePlayback";
 import { MotionRoot } from "./player/motion/MotionRoot";
+import { readDevPreload } from "./devPreload";
 
 const DEFAULT_SOURCE = "for i in range(5):\n    print(i * i)\n";
 
@@ -29,7 +30,12 @@ const NO_FEEDBACK: RunFeedback = {
  * reuses its own already-beginner-language message (m3 — see errorMessages.ts's docstring).
  * `runtime_error` is the one variant that needs real translation (AC-8.2), via
  * errorMessages.ts against the last captured frame — the failing line itself, per
- * tracer.py's own capture-on-exception behavior. */
+ * tracer.py's own capture-on-exception behavior.
+ *
+ * Every branch below produces a `bannerText`/`diagnostic` when it has one — including
+ * `rejected`, `timeout`, and `validator_mismatch`, none of which carry a `Recording`. Found by
+ * code review: an earlier version gated all feedback display on "does this result have a
+ * recording," which silently hid the banner/diagnostic for exactly those three statuses. */
 function deriveFeedback(result: RunResult | null): RunFeedback {
   if (!result) return NO_FEEDBACK;
 
@@ -96,48 +102,6 @@ function recordingFrom(result: RunResult | null): Recording | undefined {
   return undefined;
 }
 
-// Real, committed trace data (m4) loaded eagerly — the same source m5's now-deleted
-// PictureDevHarness used, kept here (not restored as a separate component) purely so
-// Playwright's screenshot suite (scripts/screenshots/picture.spec.ts) can still deep-link a
-// specific fixture/step deterministically via ?fixture=&step=, without needing a real Pyodide
-// run inside the browser during a screenshot pass. Ignored entirely unless those params are
-// present, so it has no effect on normal use of the app.
-const TRACE_MODULES = import.meta.glob<{
-  default: Recording & { status: string };
-}>("../tests/fixtures/traces/*.json", { eager: true });
-
-const RECORDED_TRACES: Record<string, Recording> = Object.fromEntries(
-  Object.entries(TRACE_MODULES).map(([path, mod]) => [
-    path.replace("../tests/fixtures/traces/", "").replace(".json", ""),
-    { source: mod.default.source, frames: mod.default.frames },
-  ]),
-);
-
-function readDevPreload(): {
-  source: string;
-  result: RunResult;
-  step: number;
-} | null {
-  const params = new URLSearchParams(window.location.search);
-  const fixture = params.get("fixture");
-  if (!fixture || !(fixture in RECORDED_TRACES)) return null;
-  const recording = RECORDED_TRACES[fixture]!;
-  const rawStep = Number(params.get("step") ?? 0);
-  const step = Number.isFinite(rawStep)
-    ? Math.min(Math.max(Math.trunc(rawStep), 0), recording.frames.length - 1)
-    : 0;
-  return {
-    source: recording.source,
-    result: {
-      status: "ok",
-      stdout: "",
-      source: recording.source,
-      frames: recording.frames,
-    },
-    step,
-  };
-}
-
 /** The real shell around the picture (§7 playback controls, §8 editor + error UX) —
  * supersedes both m3's EngineDevHarness and m5's PictureDevHarness, which existed only
  * because this milestone hadn't been built yet. */
@@ -147,53 +111,76 @@ export function Workspace() {
   const [result, setResult] = useState<RunResult | null>(
     devPreload?.result ?? null,
   );
-  const [traceSource, setTraceSource] = useState<string | null>(
+  // The source `result` was actually produced from — independent of whether that result has a
+  // Recording, since staleness must gate the banner/diagnostic for every status, not just the
+  // three that carry frames. Not derivable from `result` itself: `rejected`/`timeout`/
+  // `validator_mismatch` don't carry a `source` field at all.
+  const [lastRunSource, setLastRunSource] = useState<string | null>(
     devPreload?.source ?? null,
   );
   const [running, setRunning] = useState(false);
+  // Defends the seam where run()'s own "every branch is a result, nothing throws" contract
+  // might have a gap (found by code review: raceWithTimeout has no .catch, so a genuine
+  // worker/Comlink rejection propagates out of run() as an unhandled rejection) — without
+  // this, that case leaves the Run button stuck on "Running…" forever with no visible error.
+  const [crashMessage, setCrashMessage] = useState<string | null>(null);
 
-  const isStale = traceSource !== null && source !== traceSource;
-  const recording = useMemo(() => recordingFrom(result), [result]);
+  const isStale = lastRunSource !== null && source !== lastRunSource;
+  const hasResult = result !== null && !isStale;
   const feedback = useMemo(() => deriveFeedback(result), [result]);
+  const recording = useMemo(() => recordingFrom(result), [result]);
   const frameCount = recording?.frames.length ?? 0;
-  const playback = usePlayback(frameCount);
+  const playback = usePlayback(frameCount, devPreload?.step ?? 0);
 
-  const showResult = recording !== undefined && !isStale;
-  const currentFrame = showResult
-    ? recording!.frames[playback.step]
-    : undefined;
-  const isFailingStep = showResult && playback.step === frameCount - 1;
-
-  useEffect(() => {
-    // Mount-once: seeks to the requested step when a dev-preload fixture is present, so
-    // Playwright can deep-link an exact scenario the same way m5's harness did.
-    if (devPreload) playback.goToStep(devPreload.step);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const showPicture = hasResult && recording !== undefined;
+  const currentFrame =
+    hasResult && recording ? recording.frames[playback.step] : undefined;
+  const isFailingStep = showPicture && playback.step === frameCount - 1;
 
   async function handleRun() {
     setRunning(true);
-    const outcome = await run(source);
-    setResult(outcome);
-    setTraceSource(source);
-    playback.reset();
-    setRunning(false);
+    setCrashMessage(null);
+    try {
+      const outcome = await run(source);
+      setResult(outcome);
+    } catch (error) {
+      setResult(null);
+      setCrashMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setLastRunSource(source);
+      playback.reset();
+      setRunning(false);
+    }
   }
 
   function handleResetToExample() {
     setSource(DEFAULT_SOURCE);
   }
 
-  // §7's keyboard shortcuts — scoped to the whole workspace, but a no-op whenever the code
-  // editor itself has focus, since space/arrow keys need to type there instead of steering
-  // playback.
+  // §7's keyboard shortcuts, mounted once (empty deps) rather than re-subscribed on every
+  // playback tick — `playback`'s own callbacks get a fresh identity whenever `step` changes,
+  // so depending on `playback` directly here would tear down and re-add this listener every
+  // ~250ms-2000ms during autoplay (found by code review). A ref holds whatever the latest
+  // values actually are; the listener itself never changes.
+  const latest = useRef({ playback, showPicture, frameCount });
+  latest.current = { playback, showPicture, frameCount };
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const active = document.activeElement;
       if (active instanceof HTMLElement && active.closest(".cm-editor")) {
         return;
       }
-      if (!showResult) return;
+      const {
+        playback,
+        showPicture,
+        frameCount,
+      }: {
+        playback: Playback;
+        showPicture: boolean;
+        frameCount: number;
+      } = latest.current;
+      if (!showPicture) return;
 
       switch (event.key) {
         case " ":
@@ -221,7 +208,13 @@ export function Workspace() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [playback, showResult, frameCount]);
+  }, []);
+
+  const bannerText = crashMessage
+    ? `Something went wrong running this program — try again. (${crashMessage})`
+    : hasResult
+      ? feedback.bannerText
+      : undefined;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -255,8 +248,8 @@ export function Workspace() {
               <CodeEditor
                 value={source}
                 onChange={setSource}
-                activeLine={showResult ? currentFrame?.line : undefined}
-                diagnostic={showResult ? feedback.diagnostic : undefined}
+                activeLine={showPicture ? currentFrame?.line : undefined}
+                diagnostic={hasResult ? feedback.diagnostic : undefined}
               />
             </div>
             <div className="relative w-[65%]" data-testid="picture-pane">
@@ -284,17 +277,17 @@ export function Workspace() {
           </div>
         </MotionRoot>
 
-        {showResult && feedback.bannerText && (
+        {bannerText && (
           <p className="rounded-lg bg-red-950/60 px-4 py-2 text-sm text-red-300 ring-1 ring-red-900">
-            {feedback.bannerText}
+            {bannerText}
           </p>
         )}
 
         <PlaybackControls
           playback={playback}
-          frameCount={showResult ? frameCount : 0}
+          frameCount={showPicture ? frameCount : 0}
           currentFrameNumber={currentFrame?.step}
-          disabled={!showResult}
+          disabled={!showPicture}
         />
       </div>
     </div>

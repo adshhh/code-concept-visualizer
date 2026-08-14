@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Chip } from "./Chip";
 import type { Emphasis } from "../spotlight";
 import { emphasisVariants, GESTURE_TRANSITION } from "../motion/variants";
+import { ringClass } from "./errorRing";
 
 /** "Chip with the text; opens into per-character boxes when indexed" (§5). `expanded` is
  * set by Picture.tsx when the current line indexes into this string (the same index-arrow
@@ -30,7 +31,7 @@ export function StringChip({
   return (
     <motion.div
       layout
-      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
+      className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ${ringClass(error)}`}
     >
       <span className="text-xs font-medium text-slate-500">{name}</span>
       <div className="flex gap-0.5">

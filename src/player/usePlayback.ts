@@ -26,9 +26,17 @@ export interface Playback {
  * independently testable (and safely importable from src/player/, which must never depend on
  * src/engine/ — D22). The caller (Workspace) is responsible for calling `reset()` whenever a
  * genuinely new recording arrives; this hook doesn't infer that from `frameCount` alone, since
- * two different recordings can coincidentally have the same length. */
-export function usePlayback(frameCount: number): Playback {
-  const [step, setStepState] = useState(0);
+ * two different recordings can coincidentally have the same length.
+ *
+ * `initialStep` seeds the very first render (clamped against `frameCount` immediately, via a
+ * lazy `useState` initializer) rather than being applied in a post-mount effect — a dev-preload
+ * deep link (`?fixture=&step=`) would otherwise paint frame 0 for one frame before jumping to
+ * the requested step (found by code review). Only read once, on mount; changing it later has no
+ * effect, matching every other "initial*" React convention. */
+export function usePlayback(frameCount: number, initialStep = 0): Playback {
+  const [step, setStepState] = useState(() =>
+    Math.min(Math.max(initialStep, 0), Math.max(frameCount - 1, 0)),
+  );
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
 
@@ -49,8 +57,18 @@ export function usePlayback(frameCount: number): Playback {
     },
     [clamp],
   );
-  const stepForward = useCallback(() => goToStep(step + 1), [goToStep, step]);
-  const stepBack = useCallback(() => goToStep(step - 1), [goToStep, step]);
+  // The functional-updater form (mirroring the interval callback below) rather than closing
+  // over `step` directly — keeps stepForward/stepBack's own identity stable across autoplay
+  // ticks instead of changing every time `step` does, found by code review (a consumer keyed
+  // on these — e.g. a keydown-listener effect — would otherwise re-subscribe every tick).
+  const stepForward = useCallback(() => {
+    setPlaying(false);
+    setStepState((s) => clamp(s + 1));
+  }, [clamp]);
+  const stepBack = useCallback(() => {
+    setPlaying(false);
+    setStepState((s) => clamp(s - 1));
+  }, [clamp]);
 
   const play = useCallback(() => {
     if (frameCount === 0) return;

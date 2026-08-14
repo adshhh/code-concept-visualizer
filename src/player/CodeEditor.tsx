@@ -1,9 +1,17 @@
 import { useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
-import { EditorView, Decoration } from "@codemirror/view";
+import { EditorView, Decoration, keymap } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { linter, type Diagnostic } from "@codemirror/lint";
+import { indentWithTab } from "@codemirror/commands";
+
+// CodeMirror 6's default keymap deliberately leaves Tab unbound (it's reserved for focus
+// navigation) unless `indentWithTab` is added explicitly — found by code review: the deleted
+// EngineDevHarness's plain <textarea> handled Tab itself (its own comment called this
+// "genuinely painful" to be without), and that handling was lost when the harness was
+// replaced by this component. Module-scope, not memoized per-render, since it never changes.
+const tabIndentKeymap = keymap.of([indentWithTab]);
 
 /** A one-shot inline marker: either the validator's rejection (AC-8.1, already in the exact
  * "<construct> isn't supported yet — line N. <alternative>" format from src/subset/) or a
@@ -89,6 +97,7 @@ export function CodeEditor({
   const extensions = useMemo(
     () => [
       python(),
+      tabIndentKeymap,
       activeLineExtension(value, activeLine),
       diagnosticExtension(value, diagnostic),
     ],

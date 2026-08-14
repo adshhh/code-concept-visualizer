@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Emphasis } from "../spotlight";
 import { emphasisVariants, GESTURE_TRANSITION } from "../motion/variants";
+import { ringClass } from "./errorRing";
 
 /** "Two-column key -> value table; rows slide in on insert" (§5). Values are pre-stringified
  * by the caller (Picture.tsx), same reasoning as NestedGrid — a dict's values are almost
@@ -18,9 +19,7 @@ export function DictTable({
   error?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-lg bg-slate-900 p-3 ring-1 ${error ? "ring-2 ring-red-500" : "ring-slate-800"}`}
-    >
+    <div className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}>
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
       <table className="w-full border-collapse text-sm">
         <tbody>

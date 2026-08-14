@@ -2,6 +2,23 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlayback } from "./usePlayback";
 
+describe("usePlayback — initialStep (seeded on mount, no post-mount jump)", () => {
+  it("starts at the given step immediately, on the very first render", () => {
+    const { result } = renderHook(() => usePlayback(10, 4));
+    expect(result.current.step).toBe(4);
+  });
+
+  it("clamps an out-of-range initialStep against frameCount", () => {
+    const { result } = renderHook(() => usePlayback(5, 999));
+    expect(result.current.step).toBe(4);
+  });
+
+  it("defaults to 0 when omitted", () => {
+    const { result } = renderHook(() => usePlayback(5));
+    expect(result.current.step).toBe(0);
+  });
+});
+
 describe("usePlayback — manual navigation", () => {
   it("stepForward/stepBack move by one and clamp at both ends", () => {
     const { result } = renderHook(() => usePlayback(5));

@@ -145,6 +145,34 @@ describe("Picture — errorCell (AC-8.3: the offending box highlights in red)", 
     const { container } = render(<Picture recording={recording} step={0} />);
     expect(container.querySelector(".ring-red-500")).toBeNull();
   });
+
+  it("rings a nested-list (matrix) container red too — found missing by code review", () => {
+    // NestedGrid was the one value shape left out when errorCell was first wired through
+    // Picture.tsx: every scalar/list/dict case forwarded `error={isError}`, but the
+    // nested-list case didn't, and NestedGrid itself had no `error` prop to receive it.
+    const recording: Recording = {
+      source: "grid = [[1, 2], [3, 4]]\n",
+      frames: [
+        {
+          step: 1,
+          line: 1,
+          variables: {
+            grid: [
+              [1, 2],
+              [3, 4],
+            ],
+          },
+          callStack: [],
+          stdout: "",
+          narration: "line 1",
+        },
+      ],
+    };
+    const { container } = render(
+      <Picture recording={recording} step={0} errorCell={{ name: "grid" }} />,
+    );
+    expect(container.querySelector(".ring-red-500")).not.toBeNull();
+  });
 });
 
 describe("Picture — every call gets a card, matching AC-5.7's exact depth-N-renders-N-cards count", () => {

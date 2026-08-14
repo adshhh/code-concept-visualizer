@@ -29,3 +29,11 @@ describe("CodeEditor — renders without throwing", () => {
     ).not.toThrow();
   });
 });
+
+// Tab-to-indent (indentWithTab in CodeEditor.tsx) is deliberately NOT tested here with a
+// simulated keypress: jsdom's Range implementation doesn't support getClientRects, which
+// CodeMirror's real cursor-measurement code needs — a real keydown against the mounted editor
+// throws an uncaught async error from inside CodeMirror's own measurement pass, even though
+// the assertion itself can pass. Verified instead in a real browser via the Playwright smoke
+// suite (scripts/screenshots/smokes.spec.ts), the same reasoning errorMessages.test.ts uses
+// for "exercised end-to-end instead of duplicated in jsdom."
