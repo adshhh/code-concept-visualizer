@@ -1027,6 +1027,46 @@ without asking, per the autonomy boundary, since it doesn't change what the test
 
 ---
 
+## 29. Milestone 8: the m7 pattern under real load, and a scope doc that undersold its own validator
+
+Milestone 8 added seven lessons in one pass — the first time the `/new-lesson` pattern from §28 had
+to hold up at more than one-lesson scale. It did, with one genuine discovery along the way.
+
+**Finding: the validator already accepts `for name in a_dict:`, and `SUBSET.md` just never said
+so.** The dictionaries lesson needed to iterate a dict's keys. `SUBSET.md`'s own "In scope" bullet
+listed `for` as working "over `range()`, a list, or a string" — read literally, that's a closed
+list, and a dict isn't on it. But `src/subset/parser.ts`'s `parseFor` doesn't actually check what
+kind of expression follows `in` — it calls the same generic `parseExpression()` used everywhere
+else, because the validator runs before any code executes and has no way to know what a name will
+hold at runtime. The one real restriction `parseFor` enforces is on the *loop variable*, not the
+iterable: a comma there (`for k, v in ...`) is rejected as a tuple target. So `for name in ages:`
+was always syntactically fine, and real Python's own semantics take it from there (iterating keys)
+— nothing in `src/subset/` needed to change. What did need to change was the doc: `SUBSET.md`
+gained one clause noting a dict is a valid iterable. The lesson here isn't about dicts specifically
+— it's that a scope-contract doc's prose is a description of the common cases its author had in
+mind, not a proof of what the validator actually enforces, and the two can drift apart silently in
+either direction (a doc claiming support the code doesn't have would be the more dangerous version
+of this same gap). Reading the parser directly, instead of trusting `SUBSET.md`'s bullet list, is
+what caught it before it became a bug report.
+
+**A smaller, related judgment call: a lesson's parenthetical ("why this one can run forever," "why
+[fibonacci] is slow") describes what its explanation teaches, not a requirement that the starter
+code demonstrate the failure live.** AC-10.2 says no lesson opens broken, full stop — read against
+that, shipping a `while True` or a fibonacci call built to trip the 2,000-step guardrail on first
+Run would satisfy §10's parenthetical while breaking its own numbered acceptance criterion. Both
+lessons ship correctly-terminating starter code instead, with the "why" carried entirely in prose
+(inviting the learner to imagine the change, in lesson 5's case). Flagged as uncertain in the
+checkpoint rather than treated as obviously correct, since §10 doesn't spell out which reading it
+intended either way.
+
+**Why this belongs here rather than just in the checkpoint report.** The checkpoint documents what
+happened this milestone; this entry is the reusable instinct behind it — when a scope-contract doc
+and its enforcing code might have quietly drifted apart, check the code, not the doc, before either
+writing content that assumes a restriction that isn't real or shipping content that relies on a
+permission that isn't real.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
