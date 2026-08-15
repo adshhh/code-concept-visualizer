@@ -1,0 +1,166 @@
+{
+  "status": "ok",
+  "stdout": "apple\nbanana\ncherry\ndate\n",
+  "source": "fruits = [\"apple\", \"banana\", \"cherry\", \"date\"]\nfor fruit in fruits:\n    print(fruit)\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: fruits = [\"apple\", \"banana\", \"cherry\", \"date\"]"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "apple"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: for fruit in fruits:"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "apple"
+      },
+      "callStack": [],
+      "stdout": "apple\n",
+      "narration": "line 3: print(fruit)"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "banana"
+      },
+      "callStack": [],
+      "stdout": "apple\n",
+      "narration": "line 2: for fruit in fruits:"
+    },
+    {
+      "step": 5,
+      "line": 3,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "banana"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\n",
+      "narration": "line 3: print(fruit)"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "cherry"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\n",
+      "narration": "line 2: for fruit in fruits:"
+    },
+    {
+      "step": 7,
+      "line": 3,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "cherry"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\ncherry\n",
+      "narration": "line 3: print(fruit)"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "date"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\ncherry\n",
+      "narration": "line 2: for fruit in fruits:"
+    },
+    {
+      "step": 9,
+      "line": 3,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "date"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\ncherry\ndate\n",
+      "narration": "line 3: print(fruit)"
+    },
+    {
+      "step": 10,
+      "line": 2,
+      "variables": {
+        "fruits": [
+          "apple",
+          "banana",
+          "cherry",
+          "date"
+        ],
+        "fruit": "date"
+      },
+      "callStack": [],
+      "stdout": "apple\nbanana\ncherry\ndate\n",
+      "narration": "line 2: for fruit in fruits:"
+    }
+  ]
+}

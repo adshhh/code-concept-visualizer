@@ -1,0 +1,126 @@
+{
+  "status": "ok",
+  "stdout": "Alice is 30 years old\nBob is 25 years old\nCharlie is 35 years old\n",
+  "source": "ages = {\"Alice\": 30, \"Bob\": 25, \"Charlie\": 35}\nfor name in ages:\n    print(name, \"is\", ages[name], \"years old\")\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        }
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: ages = {\"Alice\": 30, \"Bob\": 25, \"Charlie\": 35}"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Alice"
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: for name in ages:"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Alice"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\n",
+      "narration": "line 3: print(name, \"is\", ages[name], \"years old\")"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Bob"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\n",
+      "narration": "line 2: for name in ages:"
+    },
+    {
+      "step": 5,
+      "line": 3,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Bob"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\nBob is 25 years old\n",
+      "narration": "line 3: print(name, \"is\", ages[name], \"years old\")"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Charlie"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\nBob is 25 years old\n",
+      "narration": "line 2: for name in ages:"
+    },
+    {
+      "step": 7,
+      "line": 3,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Charlie"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\nBob is 25 years old\nCharlie is 35 years old\n",
+      "narration": "line 3: print(name, \"is\", ages[name], \"years old\")"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {
+        "ages": {
+          "Alice": 30,
+          "Bob": 25,
+          "Charlie": 35
+        },
+        "name": "Charlie"
+      },
+      "callStack": [],
+      "stdout": "Alice is 30 years old\nBob is 25 years old\nCharlie is 35 years old\n",
+      "narration": "line 2: for name in ages:"
+    }
+  ]
+}

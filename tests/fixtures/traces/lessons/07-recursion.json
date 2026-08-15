@@ -1,0 +1,383 @@
+{
+  "status": "ok",
+  "stdout": "120\n",
+  "source": "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def factorial(n):"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 5,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: if n <= 1:"
+    },
+    {
+      "step": 7,
+      "line": 3,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            1
+          ],
+          "locals": {
+            "n": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: return 1"
+    },
+    {
+      "step": 8,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            2
+          ],
+          "locals": {
+            "n": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return n * factorial(n - 1)"
+    },
+    {
+      "step": 9,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            3
+          ],
+          "locals": {
+            "n": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return n * factorial(n - 1)"
+    },
+    {
+      "step": 10,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        },
+        {
+          "name": "factorial",
+          "args": [
+            4
+          ],
+          "locals": {
+            "n": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return n * factorial(n - 1)"
+    },
+    {
+      "step": 11,
+      "line": 4,
+      "variables": {},
+      "callStack": [
+        {
+          "name": "factorial",
+          "args": [
+            5
+          ],
+          "locals": {
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: return n * factorial(n - 1)"
+    },
+    {
+      "step": 12,
+      "line": 6,
+      "variables": {},
+      "callStack": [],
+      "stdout": "120\n",
+      "narration": "line 6: print(factorial(5))"
+    }
+  ]
+}
