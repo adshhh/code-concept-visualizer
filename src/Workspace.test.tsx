@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { Workspace, parseNumberList } from "./Workspace";
-import { run } from "./engine/run";
+import { run, checkEngineAvailable } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import { getLesson } from "./lessons/registry";
 
@@ -33,8 +34,13 @@ describe("parseNumberList — the data-input panel's list parser", () => {
 
 // Workspace's job is wiring engine output into the player, not re-verifying the engine
 // itself (that's engine/run.test.ts, engine/tracer.test.ts, etc.) — so run() is mocked here,
-// same reasoning as any other integration seam.
-vi.mock("./engine/run", () => ({ run: vi.fn() }));
+// same reasoning as any other integration seam. checkEngineAvailable defaults to resolving
+// true so every existing test's behavior is unchanged; the AC-2.7 describe block below
+// overrides it for the one scenario that needs it false.
+vi.mock("./engine/run", () => ({
+  run: vi.fn(),
+  checkEngineAvailable: vi.fn().mockResolvedValue(true),
+}));
 
 const okResult: RunResult = {
   status: "ok",
@@ -60,9 +66,22 @@ const okResult: RunResult = {
   ],
 };
 
+// m10: real routing (`/lesson/:id`) replaces the m9 `?lesson=` dev override — Workspace now
+// reads its active lesson from useParams(), so it must always be rendered as the matched
+// route's own element, not bare, for that to resolve.
+function renderWorkspace(path = "/lesson/01-first-loop") {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/lesson/:id" element={<Workspace />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
 describe("Workspace — AC-8.4, opens pre-filled, never blank", () => {
   it("shows the starter code and a 'press Run' picture before any run", () => {
-    render(<Workspace />);
+    renderWorkspace();
     expect(screen.getByText("press Run to see this")).toBeInTheDocument();
     expect(screen.getByText("no run yet")).toBeInTheDocument();
   });
@@ -72,7 +91,7 @@ describe("Workspace — Run wires the engine's result into the player", () => {
   it("Run replaces the placeholder with real playback state", async () => {
     vi.mocked(run).mockResolvedValue(okResult);
     const user = userEvent.setup();
-    render(<Workspace />);
+    renderWorkspace();
 
     await user.click(screen.getByRole("button", { name: "Run" }));
 
@@ -92,7 +111,7 @@ describe("Workspace — Reset to example", () => {
     // smokes (a real browser, real typing) — this just confirms the control is wired and
     // doesn't throw, without duplicating that coverage in jsdom.
     const user = userEvent.setup();
-    render(<Workspace />);
+    renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Reset to example" }));
     expect(screen.getByText("press Run to see this")).toBeInTheDocument();
   });
@@ -111,7 +130,7 @@ describe("Workspace — feedback shows for every RunResult status, not just reco
         "import isn't supported yet — line 1. Everything you need is already available.",
     });
     const user = userEvent.setup();
-    render(<Workspace />);
+    renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Run" }));
     await waitFor(() =>
       expect(
@@ -129,7 +148,7 @@ describe("Workspace — feedback shows for every RunResult status, not just reco
         "This program ran too long — it may contain a loop that never ends.",
     });
     const user = userEvent.setup();
-    render(<Workspace />);
+    renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Run" }));
     await waitFor(() =>
       expect(
@@ -142,12 +161,6 @@ describe("Workspace — feedback shows for every RunResult status, not just reco
 });
 
 describe("Workspace — AC-4 (§4), Mode A and Mode B invoke the identical run() path", () => {
-  // The dev-only `?lesson=` override (m9) is what makes a Mode B lesson visible at all before
-  // §11's real navigation lands at m10 — reset the URL after so it can't leak into other tests.
-  afterEach(() => {
-    window.history.pushState({}, "", "/");
-  });
-
   it("renders a Mode B lesson read-only with a data-input panel, and both modes call the same mocked run()", async () => {
     // Earlier tests in this file already called the shared `run` mock — clear its call log so
     // this test's own call-count assertions aren't polluted by them.
@@ -155,13 +168,12 @@ describe("Workspace — AC-4 (§4), Mode A and Mode B invoke the identical run()
     vi.mocked(run).mockResolvedValue(okResult);
     const user = userEvent.setup();
 
-    const { unmount } = render(<Workspace />);
+    const { unmount } = renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Run" }));
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
     unmount();
 
-    window.history.pushState({}, "", "/?lesson=09-binary-search");
-    render(<Workspace />);
+    renderWorkspace("/lesson/09-binary-search");
 
     // AC-2 (§4): source renders, but the only editable thing is the data input.
     expect(screen.getByText("Sorted list to search")).toBeInTheDocument();
@@ -176,25 +188,6 @@ describe("Workspace — AC-4 (§4), Mode A and Mode B invoke the identical run()
     const binarySearch = getLesson("09-binary-search")!;
     expect(run).toHaveBeenNthCalledWith(2, binarySearch.starterCode);
   });
-
-  // Found by code review: `?fixture=&step=` seeds `result`/`lastRunSource` from an unrelated
-  // committed trace, while `effectiveSource` for a Mode B lesson is built from that lesson's
-  // own `buildSource` — the two would almost never match, leaving `isStale` permanently true
-  // and the preloaded picture immediately dimmed. Fixed by making the two dev-only overrides
-  // mutually exclusive: `?lesson=` wins, `?fixture=` is ignored whenever it's present.
-  it("ignores `?fixture=` whenever `?lesson=` is also present, instead of landing in a stuck-stale state", () => {
-    window.history.pushState(
-      {},
-      "",
-      "/?lesson=09-binary-search&fixture=26_bubble_sort&step=3",
-    );
-    render(<Workspace />);
-
-    // The Mode B lesson's own panel renders — not bubble sort's unrelated fixture content —
-    // and nothing is stuck showing a stale/dimmed picture with no way to clear it.
-    expect(screen.getByText("Sorted list to search")).toBeInTheDocument();
-    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
-  });
 });
 
 describe("Workspace — a run() rejection is caught, not left to wedge the Run button", () => {
@@ -204,7 +197,7 @@ describe("Workspace — a run() rejection is caught, not left to wedge the Run b
   it("shows a visible message and re-enables Run instead of hanging on Running…", async () => {
     vi.mocked(run).mockRejectedValue(new Error("worker script failed to load"));
     const user = userEvent.setup();
-    render(<Workspace />);
+    renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Run" }));
 
     await waitFor(() =>
@@ -213,5 +206,41 @@ describe("Workspace — a run() rejection is caught, not left to wedge the Run b
       ).toBeInTheDocument(),
     );
     expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+  });
+});
+
+describe("Workspace — AC-2.7, the engine failing to load falls back to the shipped recording", () => {
+  afterEach(() => {
+    vi.mocked(checkEngineAvailable).mockResolvedValue(true);
+  });
+
+  it("shows the lesson's committed recording with Run disabled and a clear message, instead of an empty 'press Run' state", async () => {
+    // Earlier tests in this file already called the shared `run` mock — clear its call log so
+    // this test's own "never called" assertion isn't polluted by them.
+    vi.mocked(run).mockClear();
+    vi.mocked(checkEngineAvailable).mockResolvedValue(false);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    // Found by code review: checking on mount meant every lesson-page visit silently started a
+    // real Pyodide download even for a visitor who never clicks Run. The check is now lazy — it
+    // only happens once Run is actually attempted — so this test drives that first attempt
+    // itself rather than just waiting for it to happen on its own.
+    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Run" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Running your own code isn't available right now — showing this lesson's example instead.",
+        ),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: "Run" })).toBeDisabled();
+    expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
+    expect(screen.getByText(/^step 1 of \d+$/)).toBeInTheDocument();
+    // The real run() is never called — checkEngineAvailable's own false short-circuits before
+    // reaching it.
+    expect(run).not.toHaveBeenCalled();
   });
 });

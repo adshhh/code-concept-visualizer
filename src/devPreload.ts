@@ -1,4 +1,5 @@
 import type { Recording } from "./recording/types";
+import { recordingsFromGlobModules } from "./recording/fromGlob";
 import type { RunResult } from "./engine/types";
 
 // Real, committed trace data (m4) loaded eagerly — dev/test-only scaffolding, isolated in its
@@ -14,11 +15,9 @@ const TRACE_MODULES = import.meta.glob<{
   default: Recording & { status: string };
 }>("../tests/fixtures/traces/*.json", { eager: true });
 
-const RECORDED_TRACES: Record<string, Recording> = Object.fromEntries(
-  Object.entries(TRACE_MODULES).map(([path, mod]) => [
-    path.replace("../tests/fixtures/traces/", "").replace(".json", ""),
-    { source: mod.default.source, frames: mod.default.frames },
-  ]),
+const RECORDED_TRACES = recordingsFromGlobModules(
+  TRACE_MODULES,
+  "../tests/fixtures/traces/",
 );
 
 export interface DevPreload {
@@ -49,14 +48,4 @@ export function readDevPreload(): DevPreload | null {
     },
     step,
   };
-}
-
-/** Reads `?lesson=<id>` from the current URL — a raw id, not resolved against the registry
- * here, so this module stays URL-parsing-only (the caller, `Workspace.tsx`, owns looking it up
- * via `getLesson` and falling back to `LESSONS[0]` for an unknown/missing id). m9: dev/test-only
- * scaffolding, same spirit as `readDevPreload` above — `Workspace` still only ever renders
- * `LESSONS[0]` for real visitors until §11's real lesson navigation lands at m10; this exists
- * purely so a Mode B lesson can be seen and screenshotted in a real browser before then. */
-export function readLessonOverride(): string | null {
-  return new URLSearchParams(window.location.search).get("lesson");
 }
