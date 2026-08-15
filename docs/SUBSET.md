@@ -13,8 +13,9 @@ raw Python traceback.
 - **Assignment:** simple, chained (`a = b = 0`), augmented (`+= -= *= /= //= %= **=`), and the
   two-item swap idiom (`a[i], a[i+1] = a[i+1], a[i]`) — see "The swap exception" below
 - **Operators:** `+ - * / // % **`, unary minus, `== != < <= > >=`, `and or not`, `in`, `not in`
-- **Control flow:** `if` / `elif` / `else` · `for` over `range()`, a list, or a string · `while` ·
-  `break` `continue` · `pass`
+- **Control flow:** `if` / `elif` / `else` · `for` over `range()`, a list, a string, or a dict (a
+  dict iterates its keys — the validator doesn't restrict the iterable's runtime type, only its
+  syntax) · `while` · `break` `continue` · `pass`
 - **Functions:** `def` with positional parameters, `return`, recursion
 - **Lists:** index read/write including negative indices, slice _read_, nested lists, `.append()`
   `.pop()` `.insert()`

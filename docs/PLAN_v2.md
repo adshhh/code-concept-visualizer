@@ -194,8 +194,20 @@ Three constraints shape every decision:
 > (`EISDIR` trying to read a directory as a trace file) — fixed by filtering that loop to `.json`
 > files, a one-line, directly-caused fix rather than scope creep.
 >
-> **Next: milestone 8** — Mode A lessons 2–8 (§10). See the Build milestones table below, and
-> _How the build actually runs_ for the ten-step per-milestone loop.
+> **Milestone 8 is built and checkpointed** (see `checkpoint_report.md`). Lessons 2–8 complete the
+> Mode A set: seven real `.py` starter files plus seven `registry.ts` entries, added by
+> hand-applying `/new-lesson`'s own steps rather than re-invoking it per lesson.
+> `registry.test.ts`'s `describe.each(LESSONS)` (built at m7) picked up all seven automatically —
+> no test code, `types.ts`, or `Workspace.tsx` changes were needed, confirming the m7 pattern holds
+> at more than one-lesson scale. One real discovery, not a bug: `src/subset/parser.ts`'s `parseFor`
+> accepts any expression as the iterable (no runtime-type restriction), so `for name in a_dict:`
+> already worked for Lesson 8 even though `SUBSET.md`'s prose only named `range()`/list/string —
+> fixed the doc, not the code. §10's AC-10.2/10.3/10.4 hold for all 8 lessons now built; AC-10.5
+> (Mode A complete before Mode B starts) is fully satisfied, clearing D14's gate for m9.
+>
+> **Next: milestone 9** — Mode B lessons 9–11, plus the merge sort stretch if time allows (§10).
+> See the Build milestones table below, and _How the build actually runs_ for the ten-step
+> per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >

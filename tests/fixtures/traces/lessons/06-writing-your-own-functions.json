@@ -1,0 +1,225 @@
+{
+  "status": "ok",
+  "stdout": "0\n1\n4\n9\n16\n",
+  "source": "def square(number):\n    return number * number\n\nfor value in range(5):\n    print(square(value))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def square(number):"
+    },
+    {
+      "step": 2,
+      "line": 4,
+      "variables": {
+        "value": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 4: for value in range(5):"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {
+        "value": 0
+      },
+      "callStack": [
+        {
+          "name": "square",
+          "args": [
+            0
+          ],
+          "locals": {
+            "number": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: return number * number"
+    },
+    {
+      "step": 4,
+      "line": 5,
+      "variables": {
+        "value": 0
+      },
+      "callStack": [],
+      "stdout": "0\n",
+      "narration": "line 5: print(square(value))"
+    },
+    {
+      "step": 5,
+      "line": 4,
+      "variables": {
+        "value": 1
+      },
+      "callStack": [],
+      "stdout": "0\n",
+      "narration": "line 4: for value in range(5):"
+    },
+    {
+      "step": 6,
+      "line": 2,
+      "variables": {
+        "value": 1
+      },
+      "callStack": [
+        {
+          "name": "square",
+          "args": [
+            1
+          ],
+          "locals": {
+            "number": 1
+          }
+        }
+      ],
+      "stdout": "0\n",
+      "narration": "line 2: return number * number"
+    },
+    {
+      "step": 7,
+      "line": 5,
+      "variables": {
+        "value": 1
+      },
+      "callStack": [],
+      "stdout": "0\n1\n",
+      "narration": "line 5: print(square(value))"
+    },
+    {
+      "step": 8,
+      "line": 4,
+      "variables": {
+        "value": 2
+      },
+      "callStack": [],
+      "stdout": "0\n1\n",
+      "narration": "line 4: for value in range(5):"
+    },
+    {
+      "step": 9,
+      "line": 2,
+      "variables": {
+        "value": 2
+      },
+      "callStack": [
+        {
+          "name": "square",
+          "args": [
+            2
+          ],
+          "locals": {
+            "number": 2
+          }
+        }
+      ],
+      "stdout": "0\n1\n",
+      "narration": "line 2: return number * number"
+    },
+    {
+      "step": 10,
+      "line": 5,
+      "variables": {
+        "value": 2
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n",
+      "narration": "line 5: print(square(value))"
+    },
+    {
+      "step": 11,
+      "line": 4,
+      "variables": {
+        "value": 3
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n",
+      "narration": "line 4: for value in range(5):"
+    },
+    {
+      "step": 12,
+      "line": 2,
+      "variables": {
+        "value": 3
+      },
+      "callStack": [
+        {
+          "name": "square",
+          "args": [
+            3
+          ],
+          "locals": {
+            "number": 3
+          }
+        }
+      ],
+      "stdout": "0\n1\n4\n",
+      "narration": "line 2: return number * number"
+    },
+    {
+      "step": 13,
+      "line": 5,
+      "variables": {
+        "value": 3
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n9\n",
+      "narration": "line 5: print(square(value))"
+    },
+    {
+      "step": 14,
+      "line": 4,
+      "variables": {
+        "value": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n9\n",
+      "narration": "line 4: for value in range(5):"
+    },
+    {
+      "step": 15,
+      "line": 2,
+      "variables": {
+        "value": 4
+      },
+      "callStack": [
+        {
+          "name": "square",
+          "args": [
+            4
+          ],
+          "locals": {
+            "number": 4
+          }
+        }
+      ],
+      "stdout": "0\n1\n4\n9\n",
+      "narration": "line 2: return number * number"
+    },
+    {
+      "step": 16,
+      "line": 5,
+      "variables": {
+        "value": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n9\n16\n",
+      "narration": "line 5: print(square(value))"
+    },
+    {
+      "step": 17,
+      "line": 4,
+      "variables": {
+        "value": 4
+      },
+      "callStack": [],
+      "stdout": "0\n1\n4\n9\n16\n",
+      "narration": "line 4: for value in range(5):"
+    }
+  ]
+}

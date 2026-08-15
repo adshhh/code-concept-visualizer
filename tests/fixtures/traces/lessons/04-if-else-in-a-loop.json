@@ -1,0 +1,317 @@
+{
+  "status": "ok",
+  "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n9 is odd\n",
+  "source": "for number in range(10):\n    if number % 2 == 0:\n        print(number, \"is even\")\n    else:\n        print(number, \"is odd\")\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {
+        "number": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 2,
+      "line": 2,
+      "variables": {
+        "number": 0
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 3,
+      "line": 3,
+      "variables": {
+        "number": 0
+      },
+      "callStack": [],
+      "stdout": "0 is even\n",
+      "narration": "line 3: print(number, \"is even\")"
+    },
+    {
+      "step": 4,
+      "line": 1,
+      "variables": {
+        "number": 1
+      },
+      "callStack": [],
+      "stdout": "0 is even\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 5,
+      "line": 2,
+      "variables": {
+        "number": 1
+      },
+      "callStack": [],
+      "stdout": "0 is even\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 6,
+      "line": 5,
+      "variables": {
+        "number": 1
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n",
+      "narration": "line 5: print(number, \"is odd\")"
+    },
+    {
+      "step": 7,
+      "line": 1,
+      "variables": {
+        "number": 2
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 8,
+      "line": 2,
+      "variables": {
+        "number": 2
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 9,
+      "line": 3,
+      "variables": {
+        "number": 2
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n",
+      "narration": "line 3: print(number, \"is even\")"
+    },
+    {
+      "step": 10,
+      "line": 1,
+      "variables": {
+        "number": 3
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 11,
+      "line": 2,
+      "variables": {
+        "number": 3
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 12,
+      "line": 5,
+      "variables": {
+        "number": 3
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n",
+      "narration": "line 5: print(number, \"is odd\")"
+    },
+    {
+      "step": 13,
+      "line": 1,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 14,
+      "line": 2,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 15,
+      "line": 3,
+      "variables": {
+        "number": 4
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n",
+      "narration": "line 3: print(number, \"is even\")"
+    },
+    {
+      "step": 16,
+      "line": 1,
+      "variables": {
+        "number": 5
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 17,
+      "line": 2,
+      "variables": {
+        "number": 5
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 18,
+      "line": 5,
+      "variables": {
+        "number": 5
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n",
+      "narration": "line 5: print(number, \"is odd\")"
+    },
+    {
+      "step": 19,
+      "line": 1,
+      "variables": {
+        "number": 6
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 20,
+      "line": 2,
+      "variables": {
+        "number": 6
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 21,
+      "line": 3,
+      "variables": {
+        "number": 6
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n",
+      "narration": "line 3: print(number, \"is even\")"
+    },
+    {
+      "step": 22,
+      "line": 1,
+      "variables": {
+        "number": 7
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 23,
+      "line": 2,
+      "variables": {
+        "number": 7
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 24,
+      "line": 5,
+      "variables": {
+        "number": 7
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n",
+      "narration": "line 5: print(number, \"is odd\")"
+    },
+    {
+      "step": 25,
+      "line": 1,
+      "variables": {
+        "number": 8
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 26,
+      "line": 2,
+      "variables": {
+        "number": 8
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 27,
+      "line": 3,
+      "variables": {
+        "number": 8
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n",
+      "narration": "line 3: print(number, \"is even\")"
+    },
+    {
+      "step": 28,
+      "line": 1,
+      "variables": {
+        "number": 9
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n",
+      "narration": "line 1: for number in range(10):"
+    },
+    {
+      "step": 29,
+      "line": 2,
+      "variables": {
+        "number": 9
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n",
+      "narration": "line 2: if number % 2 == 0:"
+    },
+    {
+      "step": 30,
+      "line": 5,
+      "variables": {
+        "number": 9
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n9 is odd\n",
+      "narration": "line 5: print(number, \"is odd\")"
+    },
+    {
+      "step": 31,
+      "line": 1,
+      "variables": {
+        "number": 9
+      },
+      "callStack": [],
+      "stdout": "0 is even\n1 is odd\n2 is even\n3 is odd\n4 is even\n5 is odd\n6 is even\n7 is odd\n8 is even\n9 is odd\n",
+      "narration": "line 1: for number in range(10):"
+    }
+  ]
+}
