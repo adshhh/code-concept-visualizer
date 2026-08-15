@@ -50,3 +50,13 @@ export function readDevPreload(): DevPreload | null {
     step,
   };
 }
+
+/** Reads `?lesson=<id>` from the current URL — a raw id, not resolved against the registry
+ * here, so this module stays URL-parsing-only (the caller, `Workspace.tsx`, owns looking it up
+ * via `getLesson` and falling back to `LESSONS[0]` for an unknown/missing id). m9: dev/test-only
+ * scaffolding, same spirit as `readDevPreload` above — `Workspace` still only ever renders
+ * `LESSONS[0]` for real visitors until §11's real lesson navigation lands at m10; this exists
+ * purely so a Mode B lesson can be seen and screenshotted in a real browser before then. */
+export function readLessonOverride(): string | null {
+  return new URLSearchParams(window.location.search).get("lesson");
+}

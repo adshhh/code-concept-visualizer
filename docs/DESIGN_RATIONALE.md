@@ -1067,6 +1067,53 @@ permission that isn't real.
 
 ---
 
+## 30. Milestone 9: resolving Mode B's open question, and why the answer changed nothing else
+
+Mode B had been a name and a `readOnly` prop since m6/m7, but never actually built — `tracer.py`'s
+`record_trace` has accepted an `input` parameter since m3/m4 that its own docstring explicitly
+called "an open question for whenever a real lesson first needs it." Milestone 9 was that lesson,
+and this entry is the record of how the question got answered, checked against the owner directly
+rather than decided alone, given how much downstream code the answer would shape.
+
+**The two real options, and why the simpler one won.** `tracer.py`'s `input` parameter suggested
+an obvious-looking path: extend the §1 subset with an `input()`-style builtin, and have the
+running Python program itself read the user's data at runtime, the way a real stdin-driven script
+would. The alternative: never use that parameter at all, and instead have each Mode B lesson
+assemble its own complete source text — fixed algorithm plus a generated data-assignment line —
+before anything runs, so Mode B's "custom data" is really just Mode A's "freely edited source,"
+except only the data line ever changes. Presented to the owner as a real fork (not something to
+decide silently, since it meant either reopening §1 — LOCKED — for a new builtin, or resolving a
+three-milestone-old open question by permanently retiring the parameter that posed it), the second
+option won for a concrete reason beyond simplicity: it makes "both modes invoke the identical
+`run()` code path" (§4's AC-4) true *by construction*. There's no branch inside `run()`, no
+Mode-aware code path to keep in sync — `Workspace.tsx` computes one `effectiveSource` and calls
+`run(effectiveSource)` once, full stop. A test asserting that claim (`Workspace.test.tsx`) is
+almost redundant with the architecture itself, which is exactly the point — the shared-pipeline
+claim §4 opens with ("Mode B is Mode A with the code box frozen") stops being a design intention
+and becomes a structural fact.
+
+**What this bought, concretely.** Zero changes to `src/engine/` or `src/subset/`. `tracer.py`'s
+`input` parameter is now permanently, deliberately unused — not a loose end, a closed question.
+The three-lesson `LessonInputField` schema (`number-list` | `number`) that fell out of actually
+writing binary search (which needs a list *and* a target, unlike either sort) turned out general
+enough that nothing about it feels sort-specific — a reasonable sign it'll still fit
+compare-the-algorithms (m12) without another redesign, though that's untested until it happens.
+
+**The other finding worth logging: `viewHints` (declared, unused, since m7) never got used.**
+§28 left its shape deliberately undecided, waiting for "a lesson that actually needs one." All
+three Mode B lessons shipped with it unset, verified by real screenshots rather than assumed safe
+— m5's generic renderers already produced a correct swap-in-progress visual for bubble sort and a
+correct shift-in-progress visual for insertion sort with no per-lesson help. This isn't a claim
+that `viewHints` will never be needed (merge sort or a later Mode B lesson still might), just that
+v1's three didn't — worth knowing precisely because the schema stayed speculative for two
+milestones without costing anything to carry.
+
+**Why none of this reopens anything LOCKED.** §4 and §10's acceptance criteria are unchanged —
+this milestone verifies criteria that were already re-sequenced here at m7, not new ones. §1 stays
+untouched, specifically because the harder option (extending it) was the one not taken.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

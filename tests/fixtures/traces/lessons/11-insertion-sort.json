@@ -1,0 +1,2422 @@
+{
+  "status": "ok",
+  "stdout": "[1, 3, 4, 7, 8, 9]\n",
+  "source": "def insertion_sort(nums):\n    for i in range(1, len(nums)):\n        key = nums[i]\n        j = i - 1\n        while j >= 0 and nums[j] > key:\n            nums[j + 1] = nums[j]\n            j = j - 1\n        nums[j + 1] = key\n    return nums\n\nnums = [9, 4, 7, 1, 3, 8]\nprint(insertion_sort(nums))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def insertion_sort(nums):"
+    },
+    {
+      "step": 2,
+      "line": 11,
+      "variables": {
+        "nums": [
+          9,
+          4,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 11: nums = [9, 4, 7, 1, 3, 8]"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {
+        "nums": [
+          9,
+          4,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 4,
+      "line": 3,
+      "variables": {
+        "nums": [
+          9,
+          4,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: key = nums[i]"
+    },
+    {
+      "step": 5,
+      "line": 4,
+      "variables": {
+        "nums": [
+          9,
+          4,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: j = i - 1"
+    },
+    {
+      "step": 6,
+      "line": 5,
+      "variables": {
+        "nums": [
+          9,
+          4,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              4,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 7,
+      "line": 6,
+      "variables": {
+        "nums": [
+          9,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 8,
+      "line": 7,
+      "variables": {
+        "nums": [
+          9,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 9,
+      "line": 5,
+      "variables": {
+        "nums": [
+          9,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              9,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 10,
+      "line": 8,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 1,
+            "key": 4,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: nums[j + 1] = key"
+    },
+    {
+      "step": 11,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 4,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 12,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: key = nums[i]"
+    },
+    {
+      "step": 13,
+      "line": 4,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: j = i - 1"
+    },
+    {
+      "step": 14,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          7,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              7,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 15,
+      "line": 6,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 16,
+      "line": 7,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 17,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          9,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              9,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 18,
+      "line": 8,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 2,
+            "key": 7,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: nums[j + 1] = key"
+    },
+    {
+      "step": 19,
+      "line": 2,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 7,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 20,
+      "line": 3,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: key = nums[i]"
+    },
+    {
+      "step": 21,
+      "line": 4,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: j = i - 1"
+    },
+    {
+      "step": 22,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          1,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              1,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 23,
+      "line": 6,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 24,
+      "line": 7,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 25,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          9,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              9,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 26,
+      "line": 6,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 27,
+      "line": 7,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 28,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          7,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              7,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 29,
+      "line": 6,
+      "variables": {
+        "nums": [
+          4,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 30,
+      "line": 7,
+      "variables": {
+        "nums": [
+          4,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 31,
+      "line": 5,
+      "variables": {
+        "nums": [
+          4,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              4,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 32,
+      "line": 8,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 3,
+            "key": 1,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: nums[j + 1] = key"
+    },
+    {
+      "step": 33,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 4,
+            "key": 1,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 34,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": -1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: key = nums[i]"
+    },
+    {
+      "step": 35,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: j = i - 1"
+    },
+    {
+      "step": 36,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          3,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              3,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 37,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 38,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 39,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          9,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              9,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 40,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 41,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 42,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          7,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              7,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 43,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 44,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 45,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          4,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              4,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 46,
+      "line": 8,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 4,
+            "key": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: nums[j + 1] = key"
+    },
+    {
+      "step": 47,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 5,
+            "key": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 48,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: key = nums[i]"
+    },
+    {
+      "step": 49,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: j = i - 1"
+    },
+    {
+      "step": 50,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          8
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              8
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 51,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j + 1] = nums[j]"
+    },
+    {
+      "step": 52,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: j = j - 1"
+    },
+    {
+      "step": 53,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          9,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              9,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: while j >= 0 and nums[j] > key:"
+    },
+    {
+      "step": 54,
+      "line": 8,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          8,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: nums[j + 1] = key"
+    },
+    {
+      "step": 55,
+      "line": 2,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          8,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: for i in range(1, len(nums)):"
+    },
+    {
+      "step": 56,
+      "line": 9,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          8,
+          9
+        ]
+      },
+      "callStack": [
+        {
+          "name": "insertion_sort",
+          "args": [
+            [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              3,
+              4,
+              7,
+              8,
+              9
+            ],
+            "i": 5,
+            "key": 8,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 9: return nums"
+    },
+    {
+      "step": 57,
+      "line": 12,
+      "variables": {
+        "nums": [
+          1,
+          3,
+          4,
+          7,
+          8,
+          9
+        ]
+      },
+      "callStack": [],
+      "stdout": "[1, 3, 4, 7, 8, 9]\n",
+      "narration": "line 12: print(insertion_sort(nums))"
+    }
+  ]
+}

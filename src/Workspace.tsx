@@ -9,13 +9,77 @@ import { CodeEditor, type EditorDiagnostic } from "./player/CodeEditor";
 import { PlaybackControls } from "./player/PlaybackControls";
 import { usePlayback, type Playback } from "./player/usePlayback";
 import { MotionRoot } from "./player/motion/MotionRoot";
-import { readDevPreload } from "./devPreload";
-import { LESSONS } from "./lessons/registry";
+import { readDevPreload, readLessonOverride } from "./devPreload";
+import { LESSONS, getLesson } from "./lessons/registry";
+import type { LessonInputField } from "./lessons/types";
 
-// m7: Lesson 1 replaces the placeholder program that stood in here through m1–m6. Fixed to
-// the first registry entry for now — picking *which* lesson is loaded is a Mode B/m9 concern
-// (§4), not this milestone's.
-const activeLesson = LESSONS[0]!;
+/** Parses a comma-separated data-input field into a number list. Empty tokens (a trailing or
+ * double comma, or the field cleared entirely) are dropped *before* `Number()` runs — `Number("")`
+ * is `0`, which would otherwise survive `Number.isFinite` and silently inject a spurious 0
+ * instead of being dropped (found by code review). Exported (not inlined in the `onChange`
+ * handler below) so this parsing logic is unit-testable on its own. */
+export function parseNumberList(raw: string): number[] {
+  return raw
+    .split(",")
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0)
+    .map((token) => Number(token))
+    .filter((n) => Number.isFinite(n));
+}
+
+/** One data-input control per Mode B field (§4: "code read-only; the user supplies input
+ * data"). Deliberately simple for m9's three lessons: the displayed text is always re-derived
+ * from the current parsed value, so malformed input (a trailing comma, a non-numeric token) is
+ * silently dropped rather than shown as an error — acceptable for v1's scope, not built out
+ * further (see the checkpoint's Uncertain section). */
+function DataInputPanel({
+  fields,
+  values,
+  onChange,
+}: {
+  fields: LessonInputField[];
+  values: Record<string, number[] | number>;
+  onChange: (name: string, value: number[] | number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-lg bg-slate-900/60 p-3 ring-1 ring-slate-800">
+      {fields.map((field) => (
+        <label
+          key={field.name}
+          className="flex flex-col gap-1 text-sm text-slate-300"
+        >
+          {field.label}
+          <input
+            type="text"
+            className="rounded bg-slate-800 px-2 py-1 text-slate-100 ring-1 ring-slate-700"
+            value={
+              field.kind === "number-list"
+                ? (values[field.name] as number[]).join(", ")
+                : String(values[field.name])
+            }
+            onChange={(event) => {
+              const raw = event.target.value;
+              if (field.kind === "number-list") {
+                onChange(field.name, parseNumberList(raw));
+              } else {
+                const n = Number(raw);
+                onChange(field.name, Number.isFinite(n) ? n : 0);
+              }
+            }}
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function defaultInputValues(
+  lesson: (typeof LESSONS)[number],
+): Record<string, number[] | number> {
+  return Object.fromEntries(
+    (lesson.inputFields ?? []).map((field) => [field.name, field.default]),
+  );
+}
 
 interface RunFeedback {
   diagnostic: EditorDiagnostic | undefined;
@@ -110,9 +174,30 @@ function recordingFrom(result: RunResult | null): Recording | undefined {
  * supersedes both m3's EngineDevHarness and m5's PictureDevHarness, which existed only
  * because this milestone hadn't been built yet. */
 export function Workspace() {
-  const devPreload = useMemo(readDevPreload, []);
+  // m9: dev/test-only — real visitors never have `?lesson=` set, so this always resolves to
+  // LESSONS[0] until §11's real navigation lands at m10 (see devPreload.ts's docstring).
+  const lessonOverride = useMemo(readLessonOverride, []);
+  const activeLesson = useMemo(
+    () => (lessonOverride && getLesson(lessonOverride)) || LESSONS[0]!,
+    [lessonOverride],
+  );
+  // The two dev-only URL overrides are mutually exclusive, not composable: `?fixture=&step=`
+  // preloads a committed Mode A trace that has no relationship to whatever `?lesson=` points
+  // at, so honoring both at once would seed `result`/`lastRunSource` from one lesson's data
+  // while `effectiveSource` (below) is computed from another — a real bug found by code
+  // review, where that mismatch left `isStale` permanently true. `?lesson=` wins; `?fixture=`
+  // is ignored whenever it's present.
+  const devPreload = useMemo(
+    () => (lessonOverride ? null : readDevPreload()),
+    [lessonOverride],
+  );
   const [source, setSource] = useState(
     devPreload?.source ?? activeLesson.starterCode,
+  );
+  // Mode B only — the current value of each data-input field, seeded from the active lesson's
+  // defaults. Unused for Mode A.
+  const [inputValues, setInputValues] = useState(() =>
+    defaultInputValues(activeLesson),
   );
   const [result, setResult] = useState<RunResult | null>(
     devPreload?.result ?? null,
@@ -131,7 +216,16 @@ export function Workspace() {
   // this, that case leaves the Run button stuck on "Running…" forever with no visible error.
   const [crashMessage, setCrashMessage] = useState<string | null>(null);
 
-  const isStale = lastRunSource !== null && source !== lastRunSource;
+  // m9's data-input decision: Mode B's displayed/run source is always regenerated from the
+  // current input values, never threaded through tracer.py's own (deliberately unused) `input`
+  // parameter — Mode A keeps using the freely-typed `source` state directly. Both paths
+  // converge on the single `run(effectiveSource)` call in handleRun below, which is what makes
+  // "both modes invoke the identical run() path" (AC-4, §4 criterion 4) true by construction
+  // rather than something separately wired and tested.
+  const effectiveSource =
+    activeLesson.mode === "B" ? activeLesson.buildSource!(inputValues) : source;
+
+  const isStale = lastRunSource !== null && effectiveSource !== lastRunSource;
   const hasResult = result !== null && !isStale;
   const feedback = useMemo(() => deriveFeedback(result), [result]);
   const recording = useMemo(() => recordingFrom(result), [result]);
@@ -147,20 +241,24 @@ export function Workspace() {
     setRunning(true);
     setCrashMessage(null);
     try {
-      const outcome = await run(source);
+      const outcome = await run(effectiveSource);
       setResult(outcome);
     } catch (error) {
       setResult(null);
       setCrashMessage(error instanceof Error ? error.message : String(error));
     } finally {
-      setLastRunSource(source);
+      setLastRunSource(effectiveSource);
       playback.reset();
       setRunning(false);
     }
   }
 
   function handleResetToExample() {
-    setSource(activeLesson.starterCode);
+    if (activeLesson.mode === "B") {
+      setInputValues(defaultInputValues(activeLesson));
+    } else {
+      setSource(activeLesson.starterCode);
+    }
   }
 
   // §7's keyboard shortcuts, mounted once (empty deps) rather than re-subscribed on every
@@ -257,11 +355,21 @@ export function Workspace() {
           </p>
         </div>
 
+        {activeLesson.mode === "B" && activeLesson.inputFields && (
+          <DataInputPanel
+            fields={activeLesson.inputFields}
+            values={inputValues}
+            onChange={(name, value) =>
+              setInputValues((prev) => ({ ...prev, [name]: value }))
+            }
+          />
+        )}
+
         <MotionRoot>
           <div className="flex gap-4 rounded-xl bg-slate-950 ring-1 ring-slate-800">
             <div className="w-[35%] p-3">
               <CodeEditor
-                value={source}
+                value={effectiveSource}
                 onChange={setSource}
                 readOnly={activeLesson.mode === "B"}
                 activeLine={showPicture ? currentFrame?.line : undefined}

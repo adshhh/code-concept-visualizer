@@ -205,9 +205,27 @@ Three constraints shape every decision:
 > fixed the doc, not the code. §10's AC-10.2/10.3/10.4 hold for all 8 lessons now built; AC-10.5
 > (Mode A complete before Mode B starts) is fully satisfied, clearing D14's gate for m9.
 >
-> **Next: milestone 9** — Mode B lessons 9–11, plus the merge sort stretch if time allows (§10).
-> See the Build milestones table below, and _How the build actually runs_ for the ten-step
-> per-milestone loop.
+> **Milestone 9 is built and checkpointed** (see `checkpoint_report.md`). Lessons 9–11 (binary
+> search, bubble sort, insertion sort) complete Mode B — unlike m7/m8, Mode B's own mechanics had
+> never been built, only stubbed: `tracer.py`'s `input` parameter has carried an explicit "open
+> question" docstring since m3/m4. Resolved with the owner before building: Mode B's custom data is
+> baked directly into generated source text via a per-lesson `buildSource()`, run through the
+> exact same `validate()`/`run()` call Mode A already makes — `input` stays permanently unused, no
+> `src/subset/` change, §1 stays LOCKED. This makes AC-4 (§4 criterion 4, "both modes invoke the
+> identical `run()` path") true by construction rather than something separately wired. A
+> `?lesson=<id>` dev-only override (`devPreload.ts`) was added purely so a Mode B lesson could be
+> seen and screenshotted in a real browser before §11's real navigation exists — `Workspace.tsx`
+> still only ever renders `LESSONS[0]` for real visitors. `viewHints` (declared but unused since
+> m7) turned out not to be needed by any of v1's three Mode B lessons — confirmed by screenshot,
+> not assumed — resolving that open question with "v1 never needed one." §4's AC-2/AC-4 (both
+> re-sequenced to m9 at m7) are now verified, not just scheduled — see the updated v2 note above.
+> §10's AC-10.2/10.3/10.4 hold for all 11 lessons; merge sort (the milestone table's "+ stretch")
+> was deliberately left for a later pass, per AC-10.6's own gate on all 11 being done first.
+>
+> **Next: milestone 10** — landing page, per-lesson navigation, and the shipped-recording
+> playback mechanism (§11), building on the committed trace snapshots every lesson has carried
+> since m7. See the Build milestones table below, and _How the build actually runs_ for the
+> ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -607,9 +625,12 @@ purpose-built ones. The _events_ are identical either way — only the drawing c
    "reset to example" control. **No lesson ever opens as a blank box.**
 4. A test asserts both modes invoke the **identical** `run()` code path — the shared-pipeline claim is
    verified, not assumed.
-   > **v2 re-sequencing (m9):** criteria 2 and 4 both need a real Mode B lesson to exist against, and
+   > **v2 re-sequencing:** criteria 2 and 4 both needed a real Mode B lesson to exist against, and
    > D14 already sequences Mode A lessons (1–8, m7–m8) before Mode B (9–11, m9). m7 (Lesson 1, Mode A)
-   > verifies criteria 1 and 3 only. **Verified at m9**, once the first Mode B lesson lands.
+   > verified criteria 1 and 3 only. **Verified at m9**: criterion 2 by a real-browser screenshot of
+   > `09-binary-search` (`?lesson=`, read-only editor + data-input panel); criterion 4 by a
+   > `Workspace.test.tsx` test asserting the same mocked `run()` is called for both a Mode A and a
+   > Mode B run.
 
 ---
 
@@ -962,6 +983,9 @@ already provides the "now you try it" path.
    > criteria 1–4 below are checked against whichever lessons exist at each milestone, not asserted in
    > full until all 11 do. Criterion 5 is checked at m9 (the first point it's possible to break); 6 at
    > whatever milestone attempts the merge-sort stretch.
+   > **As of m9:** all 11 exist and satisfy the §4 mode rules — "reachable" still means "exists in
+   > `LESSONS`," not "reachable in the running app," since real navigation is §11/m10. Criterion 5
+   > holds (9–11 started only after 1–8 were checkpointed complete).
 2. Every Mode A lesson opens with working starter code that runs successfully on **first press of
    Run** — no lesson opens broken or blank.
 3. Every lesson has a written explanation in beginner language.

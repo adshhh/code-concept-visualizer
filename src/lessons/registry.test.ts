@@ -28,6 +28,20 @@ describe("lesson registry shape (AC-4.1)", () => {
     expect(getLesson(LESSONS[0]!.id)).toBe(LESSONS[0]);
     expect(getLesson("does-not-exist")).toBeUndefined();
   });
+
+  // m9: Mode B's starterCode is a stored snapshot of buildSource(defaults), not derived at
+  // test time — this pins the two together so they can never silently drift apart, same
+  // discipline as the editable/mode invariant above.
+  it("Mode B's starterCode never drifts from buildSource(defaults)", () => {
+    for (const lesson of LESSONS.filter((l) => l.mode === "B")) {
+      expect(lesson.inputFields).toBeDefined();
+      expect(lesson.buildSource).toBeDefined();
+      const defaults = Object.fromEntries(
+        lesson.inputFields!.map((field) => [field.name, field.default]),
+      );
+      expect(lesson.starterCode).toBe(lesson.buildSource!(defaults));
+    }
+  });
 });
 
 let pyodide: PyodideInterface;

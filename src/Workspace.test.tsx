@@ -1,9 +1,35 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Workspace } from "./Workspace";
+import { Workspace, parseNumberList } from "./Workspace";
 import { run } from "./engine/run";
 import type { RunResult } from "./engine/types";
+import { getLesson } from "./lessons/registry";
+
+// Found by code review: Number("") is 0, which survives a naive Number.isFinite filter and
+// silently injects a spurious 0 for every empty token (a trailing/double comma, or the field
+// cleared entirely) instead of dropping it as the DataInputPanel's own docstring claims.
+describe("parseNumberList — the data-input panel's list parser", () => {
+  it("parses a clean comma-separated list", () => {
+    expect(parseNumberList("5, 2, 8")).toEqual([5, 2, 8]);
+  });
+
+  it("drops a trailing comma instead of injecting a spurious 0", () => {
+    expect(parseNumberList("5, 2,")).toEqual([5, 2]);
+  });
+
+  it("drops a double comma instead of injecting a spurious 0", () => {
+    expect(parseNumberList("5,,8")).toEqual([5, 8]);
+  });
+
+  it("returns an empty list for a fully cleared field, not [0]", () => {
+    expect(parseNumberList("")).toEqual([]);
+  });
+
+  it("drops non-numeric tokens", () => {
+    expect(parseNumberList("5, abc, 8")).toEqual([5, 8]);
+  });
+});
 
 // Workspace's job is wiring engine output into the player, not re-verifying the engine
 // itself (that's engine/run.test.ts, engine/tracer.test.ts, etc.) — so run() is mocked here,
@@ -112,6 +138,62 @@ describe("Workspace — feedback shows for every RunResult status, not just reco
         ),
       ).toBeInTheDocument(),
     );
+  });
+});
+
+describe("Workspace — AC-4 (§4), Mode A and Mode B invoke the identical run() path", () => {
+  // The dev-only `?lesson=` override (m9) is what makes a Mode B lesson visible at all before
+  // §11's real navigation lands at m10 — reset the URL after so it can't leak into other tests.
+  afterEach(() => {
+    window.history.pushState({}, "", "/");
+  });
+
+  it("renders a Mode B lesson read-only with a data-input panel, and both modes call the same mocked run()", async () => {
+    // Earlier tests in this file already called the shared `run` mock — clear its call log so
+    // this test's own call-count assertions aren't polluted by them.
+    vi.mocked(run).mockClear();
+    vi.mocked(run).mockResolvedValue(okResult);
+    const user = userEvent.setup();
+
+    const { unmount } = render(<Workspace />);
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    unmount();
+
+    window.history.pushState({}, "", "/?lesson=09-binary-search");
+    render(<Workspace />);
+
+    // AC-2 (§4): source renders, but the only editable thing is the data input.
+    expect(screen.getByText("Sorted list to search")).toBeInTheDocument();
+    expect(screen.getByText("Target value")).toBeInTheDocument();
+    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+
+    // Same mocked `run` reference called both times — the identical run() path, not two
+    // separate code paths that happen to look similar.
+    const binarySearch = getLesson("09-binary-search")!;
+    expect(run).toHaveBeenNthCalledWith(2, binarySearch.starterCode);
+  });
+
+  // Found by code review: `?fixture=&step=` seeds `result`/`lastRunSource` from an unrelated
+  // committed trace, while `effectiveSource` for a Mode B lesson is built from that lesson's
+  // own `buildSource` — the two would almost never match, leaving `isStale` permanently true
+  // and the preloaded picture immediately dimmed. Fixed by making the two dev-only overrides
+  // mutually exclusive: `?lesson=` wins, `?fixture=` is ignored whenever it's present.
+  it("ignores `?fixture=` whenever `?lesson=` is also present, instead of landing in a stuck-stale state", () => {
+    window.history.pushState(
+      {},
+      "",
+      "/?lesson=09-binary-search&fixture=26_bubble_sort&step=3",
+    );
+    render(<Workspace />);
+
+    // The Mode B lesson's own panel renders — not bubble sort's unrelated fixture content —
+    // and nothing is stuck showing a stale/dimmed picture with no way to clear it.
+    expect(screen.getByText("Sorted list to search")).toBeInTheDocument();
+    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
   });
 });
 
