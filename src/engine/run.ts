@@ -58,3 +58,22 @@ export async function run(source: string, input?: string): Promise<RunResult> {
   }
   return outcome.value;
 }
+
+/** m10: lets a lesson page proactively check whether the engine is available at all,
+ * independent of any particular source — used to decide whether to fall back to the
+ * lesson's shipped recording (AC-2.7) instead of showing a "press Run" state that a broken
+ * engine can never satisfy. Reuses the same worker handle/warmUp path run() itself uses, so
+ * a successful check here means the *next* real run() call doesn't pay a second cold-load
+ * cost. `raceWithTimeout` alone only covers a hang (AC-2.7's "taking too long"); a genuine
+ * load failure (network blocked, asset 404) makes `api.warmUp()` reject outright — same gap
+ * `Workspace.tsx`'s own try/catch works around for run() itself (found by code review at
+ * m6) — so this needs its own try/catch too, not just the race. */
+export async function checkEngineAvailable(): Promise<boolean> {
+  try {
+    const { api } = getHandle();
+    const warmedUp = await raceWithTimeout(api.warmUp(), LOAD_TIMEOUT_MS);
+    return warmedUp.ok;
+  } catch {
+    return false;
+  }
+}

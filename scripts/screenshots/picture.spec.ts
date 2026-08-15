@@ -85,8 +85,12 @@ for (const scenario of SCENARIOS) {
     // Milestone 6 replaced the temporary PictureDevHarness with the real Workspace — the
     // same `?fixture=&step=` deep-link still works (Workspace.tsx's readDevPreload), now
     // against a stable `data-testid` instead of a harness-specific label that no longer
-    // exists.
-    await page.goto(`/?fixture=${scenario.fixture}&step=${scenario.step}`);
+    // exists. m10: `/` is the landing page now, not Workspace — any `/lesson/:id` route
+    // works here since `?fixture=` overrides the picture content regardless of which lesson
+    // the route itself names.
+    await page.goto(
+      `/lesson/01-first-loop?fixture=${scenario.fixture}&step=${scenario.step}`,
+    );
     const pane = page.getByTestId("picture-pane");
     await pane.scrollIntoViewIfNeeded();
     // Let the step's enter animations settle before capturing — screenshots are meant to

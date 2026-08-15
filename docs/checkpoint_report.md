@@ -1652,3 +1652,170 @@ git push
 
 Milestone 10 — landing page, per-lesson navigation, and the shipped-recording playback mechanism
 (§11), building on the committed trace snapshots every lesson has carried since m7.
+
+# Milestone 10 Completed
+
+**The app has a real front door now.** `/` is a landing page that animates within a second of
+load, real code left and a real (looping) picture right, running bubble sort from shipped static
+data — zero Python involved. Every lesson is one click away via a real route (`/lesson/:id`,
+React Router), replacing the dev-only `?lesson=` override entirely. AC-2.2 (first paint never
+waits on Pyodide) and AC-2.7 (the site degrades gracefully if the engine fails to load) are both
+verified for the first time this milestone, per their own v2 re-sequencing notes.
+
+## Why
+
+- **Real routing retired the m9 `?lesson=` override outright, not just superseded it.**
+  `Workspace` now reads its lesson from `useParams()`. `readLessonOverride` and the
+  `?fixture=`/`?lesson=` reconciliation fix (added in m9's own code review) are both deleted —
+  there's only one "which lesson" mechanism now, so that whole bug class can't recur.
+  `readDevPreload`/`?fixture=&step=` is untouched, still used by `picture.spec.ts`.
+- **The landing route and the lesson route ship in genuinely separate bundle chunks, verified by
+  reading the build output, not assumed from "nothing on `/` calls run()".** `Workspace` is
+  `React.lazy()`-loaded behind the `/lesson/:id` route. `vite build`'s own output confirms the
+  split: the eager chunk (433 kB) has zero occurrences of "codemirror," "comlink," or "pyodide";
+  the lazy `Workspace` chunk (593 kB) has them. First paint on `/` structurally cannot wait on any
+  of them.
+- **`public/_redirects` (`/* /index.html 200`) — without it, a direct link to
+  `/lesson/09-binary-search` would 404 on Netlify in production**, even though it works fine
+  locally (Vite's dev server already does SPA fallback) — exactly the failure mode that would
+  have silently defeated routing's own stated reason for existing ("a preview link can point at
+  one specific lesson"). No such config existed before this milestone; Netlify had been
+  configured entirely through its dashboard at m1, with no client-side routing to redirect for at
+  the time.
+- **AC-2.7's engine-failure fallback reuses the exact committed trace `registry.test.ts` already
+  validates against the real engine (D23) — a new `checkEngineAvailable()` (`engine/run.ts`) plus
+  a new `src/lessons/recordings.ts` (glob over `tests/fixtures/traces/lessons/*.json`, the same
+  pattern `devPreload.ts` already used, but framed as real product code this time, not
+  dev-only).** On mount, a lesson page checks whether the engine is actually available; if not,
+  it shows that lesson's shipped recording — full playback controls, Run disabled, a clear
+  message — instead of an empty "press Run" state. Verified in a real browser by blocking every
+  `/pyodide/*` request and confirming the fallback renders correctly (screenshot in this
+  checkpoint's evidence). The check is skipped entirely when `?fixture=` is active, so it never
+  slows down `picture.spec.ts`'s deterministic screenshots with an unwanted real Pyodide load.
+- **§14's "lessons always animate immediately on open" (AC-14.5) stayed out of scope, confirmed
+  against the milestone table rather than assumed either way.** Row 15 owns `docs/PORTING.md` and
+  §14's full mobile-resilience verification; only AC-2.7's narrower failure-mode fallback was
+  m10's to build.
+- **AC-11.5 (the 10-second test) needs 3 real people and was not run** — flagged here plainly,
+  not marked done. This is the one acceptance criterion in this milestone that only the owner can
+  close out.
+
+## Files Created/Modified
+
+- `public/_redirects` (new): the Netlify SPA fallback rule.
+- `src/lessons/recordings.ts` (new): `getLessonRecording(id)`, plus `recordings.test.ts`.
+- `src/engine/run.ts` (modified): `checkEngineAvailable()`.
+- `src/routes/Landing.tsx` (new, top-level `src/routes/` — page composition, not `player/`
+  library code): the hero animation plus the 11-card lesson grid, plus `Landing.test.tsx`.
+- `App.tsx` (rewritten): `BrowserRouter`/`Routes` — `/` → `Landing` (eager), `/lesson/:id` →
+  lazily-loaded `Workspace` in `Suspense`.
+- `Workspace.tsx` (modified): `useParams()` replaces the `?lesson=` override; the
+  `checkEngineAvailable`/fallback-recording logic (`engineUnavailable`, `fallbackRecording`,
+  `displayRecording`) threaded through the existing picture/staleness/`PlaybackControls` logic
+  without changing Mode A/B behavior when the engine is actually available.
+- `devPreload.ts` (modified): `readLessonOverride` deleted.
+- `Workspace.test.tsx` (modified): every render call now goes through a `MemoryRouter`/`Routes`
+  helper; the retired `?fixture=`/`?lesson=` test is gone (the bug it pinned can't recur); a new
+  test covers the AC-2.7 fallback.
+- `scripts/screenshots/smokes.spec.ts` (modified): the 5 numbered smokes and the Mode B/Tab
+  regression tests now hit `/lesson/01-first-loop` or `/lesson/09-binary-search` instead of `/`;
+  three new scenarios cover the landing page itself (motion with zero clicks, a network-trace
+  assertion with no Pyodide request, one-click lesson access).
+- `scripts/screenshots/picture.spec.ts` (modified): re-pointed at `/lesson/01-first-loop?fixture=…`.
+
+## Uncertain / worth double-checking
+
+1. **AC-11.5's 10-second test needs the owner** — 3 real people, unfamiliar with the project,
+   watching the landing page for 10 seconds. Not something I can run.
+2. **AC-11.1's "within 1 second" is verified structurally (bundle split, zero Pyodide/CodeMirror
+   in the eager chunk) and behaviorally (Playwright confirms motion with no click, confirms it's
+   still animating a moment later), but not measured with a real timer/Lighthouse-style trace** —
+   worth a real measurement pass if the owner wants the literal number, not just the structural
+   guarantee.
+3. **The engine-failure fallback has no retry** — once a lesson page decides the engine is
+   unavailable (checked once, on mount), it stays that way for the page's lifetime; a user who
+   fixes their connection mid-visit would need to reload. Appropriately scoped as "a failure-mode
+   fallback, not a full reconnection UX," but worth flagging as a real, deliberate limit.
+4. **Lesson-card "static preview" is a one-line code snippet, not a rendered thumbnail** —
+   decided independently as a small visual detail; §11/D16 only says "a small static preview,"
+   not what kind.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  27 passed (27)
+                    Tests       334 passed (334)        (330 → 334: recordings.test.ts + Landing.test.tsx)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~320ms — index chunk 433 kB, Workspace chunk 593 kB (lazy)
+=== playwright ===  21 passed (19.3s) — 17 unchanged/rewritten + 3 new landing scenarios + 1 already-counted Mode B
+```
+
+Bundle-split verified by grepping the build output directly: `codemirror`/`comlink`/`pyodide`
+appear zero times in the eager chunk, once each in the lazy `Workspace` chunk. Three real
+screenshots via `vite preview`: the landing page (real animation mid-run, the 11-card grid below
+it), a direct link to `/lesson/09-binary-search` loading correctly (confirming `_redirects`
+actually works, not just the client-side nav path), and the engine-failure fallback with every
+`/pyodide/*` request blocked (`page.route(...).abort()`) — Run disabled, the shipped recording
+animating, a clear red banner message.
+
+## Github Commands for this milestone
+
+```bash
+git add public/_redirects src/lessons/ src/engine/run.ts src/recording/ src/routes/ src/App.tsx src/Workspace.tsx src/Workspace.test.tsx src/devPreload.ts scripts/screenshots/ docs/
+git commit -m "Milestone 10: landing page, real navigation, and code-review fixes"
+git push
+```
+
+## Milestone 10 — code-review fixes (step 9, run before commit)
+
+Seven findings, all fixed:
+
+1. **`Landing.tsx` pulled all 11 lessons' full trace data into the landing route's own eager
+   bundle chunk**, via `lessons/recordings.ts`'s glob-over-every-lesson — not just the one hero
+   recording it shows. Directly undercut AC-2.1. Fixed by having `Landing.tsx` import
+   `10-bubble-sort.json` directly (a single-file import) instead of going through the shared
+   glob; `recordings.ts` is now reachable only from `Workspace`'s own lazy chunk. Verified by
+   grepping the rebuilt eager chunk for another lesson's actual `print()` output (`"Alice is 30"`)
+   — absent, confirming no other lesson's frame data leaked in; the small amount of lesson
+   *source text* still present (needed for the card grid's code-snippet previews) is expected and
+   far lighter than full per-step frame arrays.
+2. **`checkEngineAvailable()` ran unconditionally on every lesson-page mount**, silently starting
+   a real, multi-MB Pyodide download for a visitor who only came to read the explanation and
+   never clicked Run — a real regression from m9's lazy-only-on-Run behavior. Fixed by moving the
+   check into `handleRun` itself: it now only fires on the *first* Run attempt, still satisfying
+   AC-2.7 ("never a silent failure") since nothing has actually failed for a visitor who never
+   tried to run anything.
+3. **No catch-all route** — an unmatched path (a stale bookmark, a typo) rendered a blank page
+   with no way to recover, since `public/_redirects` hands every path to `index.html` but React
+   Router itself had nothing to match it against. Fixed with a `path="*"` route redirecting home.
+4. **AC-2.7's fallback had no real-browser test**, only a jsdom-mocked one that only checks
+   Workspace's *reaction* to a hand-set boolean, never that `checkEngineAvailable()` itself
+   correctly detects a blocked engine. Added a Playwright test blocking every `/pyodide/*`
+   request and confirming the fallback renders, is steppable, and disables Run — the same
+   technique already used for this checkpoint's manual screenshot, now pinned as automated.
+5. **`recordings.ts` and `devPreload.ts` had near-identical glob-and-transform logic**,
+   hand-copied. Extracted the shared path-strip-and-destructure step into
+   `src/recording/fromGlob.ts`; the `import.meta.glob` call itself stays in each file (Vite needs
+   the pattern as a static literal there, and the two glob different directories).
+6. **`Workspace` didn't reset its state on a lesson-id param change** — React Router reuses one
+   mounted `/lesson/:id` element across navigations rather than remounting it by default, so an
+   in-app link from one lesson straight to another (none exists yet, but nothing should have to
+   assume that stays true) would have shown stale code/picture under the new lesson's title.
+   Fixed with a `key={id}` on `Workspace` via a small `LessonRoute` wrapper, forcing a clean
+   remount per lesson instead of hand-resetting a dozen pieces of state.
+7. **A lesson missing its committed trace fixture, combined with the engine being down, produced
+   a dead-end page** — Run disabled, no picture, a generic message with no detail. Currently
+   unreachable (`registry.test.ts`'s `describe.each` guards every entry), but a runtime message
+   shouldn't silently assume a build-time guard always holds. Added a distinct message for that
+   specific (currently impossible, defensively covered) case.
+
+All fixed, re-verified: typecheck clean, 334/334 tests, format clean, build clean, 22/22
+Playwright (21 + the new AC-2.7 real-browser test). Bundle sizes after the fix: eager chunk 397 kB
+(down from 433 kB), lazy `Workspace` chunk unchanged at ~629 kB.
+
+## Next
+
+Milestone 11 — Tier 2 instrumentation (§3 T2): comparisons resolve on screen, the cell being read
+lights up, swaps render as an arc. Per D4/D38, only after a complete T1 product exists — which m10
+just finished.

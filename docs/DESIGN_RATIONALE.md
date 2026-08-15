@@ -1114,6 +1114,47 @@ untouched, specifically because the harder option (extending it) was the one not
 
 ---
 
+## 31. Milestone 10: two features that turned out to be one mechanism, and a scoping line that mattered
+
+Milestone 10 built real navigation and the landing page — the first milestone where "does this
+actually ship in a separate bundle" and "does this actually work when the engine is down" became
+things to prove, not just claim.
+
+**The landing animation and the engine-failure fallback both needed the exact same thing: a
+lesson's committed trace, loaded as static data.** These read as two separate features going in —
+§11 wants a self-playing hero on `/`; AC-2.7 wants a lesson page to survive Pyodide not loading.
+Both turn out to be "render a `Recording` that came from a file, not from `run()`." One module
+(`src/lessons/recordings.ts`, a glob over `tests/fixtures/traces/lessons/*.json`) serves both,
+which is really D23 paying off a second time: the milestone-7 decision to make the committed
+snapshot *be* the shipped recording, not a separate copy, meant that by m10 there was already a
+correct, tested, per-lesson `Recording` sitting on disk for every lesson — nothing to generate,
+only to load. Worth naming because it's easy to build the same "load some static playback data"
+logic twice under two different feature names and not notice the duplication until later.
+
+**Bundle-splitting was verified by grepping the actual build output, not inferred from "nothing on
+`/` calls run()."** That inference is true but insufficient — `Workspace.tsx` statically imports
+CodeMirror and the engine's worker-lifecycle code regardless of whether anything on the page
+*calls* it, so without `React.lazy()`, the landing page's own JS would still have to download and
+parse all of that before painting. After adding the split, `grep -c "codemirror" dist/assets/index-*.js`
+returning 0 (and 1 in the lazy `Workspace` chunk) is what actually closes the loop — the kind of
+check worth doing by reading real output rather than trusting the shape of the code.
+
+**A scoping line that mattered: §14's "lessons always animate immediately on open" (AC-14.5) is
+milestone 15's, not milestone 10's — checked against the milestone table before either building
+it or claiming it as done.** The two criteria read almost identically at a glance: AC-2.7 says a
+lesson falls back to its recording *when the engine fails*; AC-14.5 says a lesson animates from
+its recording *by default, always*, engine status aside. Building the second when only the first
+was asked for would have been real, uncredited scope creep — quietly doing milestone 15's job
+early and then having nothing left to check off at m15. The fix wasn't cleverness, just reading
+the milestone table's own row for §14 before assuming the two criteria were the same ask.
+
+**Why none of this reopens anything LOCKED.** §2's AC-2.2/AC-2.7 and §11's ACs are verified here,
+not altered — the v2 notes on both record what "verified" turned out to mean. Nothing in
+`src/engine/` or `src/subset/` changed; the fallback mechanism reads existing committed data, it
+doesn't add a new way to produce it.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

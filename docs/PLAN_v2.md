@@ -222,10 +222,26 @@ Three constraints shape every decision:
 > §10's AC-10.2/10.3/10.4 hold for all 11 lessons; merge sort (the milestone table's "+ stretch")
 > was deliberately left for a later pass, per AC-10.6's own gate on all 11 being done first.
 >
-> **Next: milestone 10** — landing page, per-lesson navigation, and the shipped-recording
-> playback mechanism (§11), building on the committed trace snapshots every lesson has carried
-> since m7. See the Build milestones table below, and _How the build actually runs_ for the
-> ten-step per-milestone loop.
+> **Milestone 10 is built and checkpointed** (see `checkpoint_report.md`). `/` is now a real
+> landing page (§11) — real code, a real looping animation from bubble sort's shipped recording,
+> zero Python involved — and every lesson has a real route (`/lesson/:id`, React Router),
+> replacing the m9 `?lesson=` dev override entirely (deleted, along with the reconciliation fix
+> it needed). `Workspace` is `React.lazy()`-loaded behind the lesson route so the landing page's
+> own bundle chunk never includes CodeMirror/Comlink/Pyodide — confirmed by grepping the actual
+> build output, not assumed. `public/_redirects` was added so a direct link to `/lesson/:id`
+> doesn't 404 on Netlify (no such config existed before; Netlify was set up entirely through its
+> dashboard at m1). AC-2.2 and AC-2.7 are both verified for the first time, per their own v2
+> notes in §2 — AC-2.7 via a new `checkEngineAvailable()` plus `src/lessons/recordings.ts`, which
+> falls a lesson page back to its own shipped recording (Run disabled, a clear message) when the
+> engine can't load, confirmed in a real browser with every Pyodide request blocked. §11's
+> AC-1–4 hold; **AC-11.5 (the 10-second test) needs 3 real people and was not run — owner-only,
+> flagged plainly rather than marked done.** §14's fuller "every lesson always animates
+> immediately" stays m15's, confirmed against the milestone table before assuming otherwise.
+>
+> **Next: milestone 11** — Tier 2 instrumentation (§3 T2): comparisons resolve on screen, the
+> cell being read lights up, swaps render as an arc. Per D4/D38, only after a complete,
+> demoable T1 product exists — which m10 completes. See the Build milestones table below, and
+> _How the build actually runs_ for the ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -514,6 +530,14 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > behind an explicit call, never blocking synchronously at import time — proved by a structural
    > test (`worker.test.ts`). The full first-contentful-paint measurement moves to **m10**,
    > alongside AC-2.7 — same landing page, same note.
+   > **Verified at m10:** `Workspace` (CodeMirror, Comlink, the engine) is `React.lazy()`-loaded
+   > behind the `/lesson/:id` route — confirmed structurally by grepping the built output
+   > (`codemirror`/`comlink`/`pyodide` appear zero times in the landing route's own chunk).
+   > "Only the editor panel shows a loading state" is read as a negative constraint (nothing
+   > *else* blocks on Pyodide) rather than a mandate for a new loading spinner inside
+   > `CodeEditor` specifically, since nothing in the app has ever blocked render on engine state.
+   > A real Lighthouse-style timed measurement of first paint is not done — see the m10
+   > checkpoint's Uncertain section.
 3. Cold and warm start times measured and recorded in the README. Warm start **under 1 second**.
    _(v2: the README stub is created in m1 so this has somewhere to land.)_
 4. **Headline test:** pasting `while True: pass` and pressing Run terminates within 3 seconds, shows
@@ -527,6 +551,13 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > **v2 re-sequencing:** this criterion sits in §2 but **cannot be checked at m3** — it requires
    > lessons and their shipped recordings, which don't exist until m7–m9. **Verified at m10**
    > (landing page and navigation, where recordings are first played), final check at m15.
+   > **Verified at m10:** a new `checkEngineAvailable()` (`engine/run.ts`) checked once per lesson
+   > page; if it resolves false, the lesson's own committed trace (`src/lessons/recordings.ts`,
+   > the same file `registry.test.ts` already validates against the real engine, per D23) renders
+   > in place of the empty "press Run" state — full playback, Run disabled, a clear message.
+   > Confirmed in a real browser by blocking every `/pyodide/*` request. §14's fuller
+   > "every lesson always animates immediately on open" (AC-14.5) is **not** this criterion and
+   > stays m15's, per the milestone table.
 
 ---
 
@@ -1025,13 +1056,22 @@ thing you built. Cards show name, a small static preview, and a Mode A / Mode B 
 
 1. **Visible motion within 1 second of page load**, measured on a cold cache with Python not yet
    loaded. The single most important criterion in this section.
+   > **m10:** verified structurally (bundle split confirmed by grepping the build output) and
+   > behaviorally (Playwright confirms motion with zero clicks, and confirms it's still advancing
+   > moments later) — not measured with a real timer/Lighthouse trace. See the m10 checkpoint.
 2. The landing animation runs from shipped static data; a network trace confirms no Python execution
    is required for it to play.
+   > **m10:** verified — a Playwright test asserts zero requests containing "pyodide" while on `/`.
 3. The engine finishes loading in the background; any lesson is interactive on arrival.
+   > **m10:** unchanged from m3/m4's existing `run()` path — a lesson page's Run button works
+   > exactly as before once the engine warms up in the background.
 4. Every lesson is reachable in **one click**. No locking, no ordering, no prerequisites.
+   > **m10:** verified — `Landing.test.tsx` + a Playwright test confirm every registry lesson has
+   > a card linking to its own `/lesson/:id`.
 5. **The 10-second test:** a person unfamiliar with the project watches the landing page for 10
    seconds with no explanation and can state what the tool does. Tested on **at least 3 real people**
    before v1 is called done.
+   > **Owner-only — not run at m10.** Needs 3 real people; not something the agent can do.
 
 ---
 

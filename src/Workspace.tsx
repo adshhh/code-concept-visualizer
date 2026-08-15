@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { run } from "./engine/run";
+import { useParams } from "react-router-dom";
+import { run, checkEngineAvailable } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import type { Recording } from "./recording/types";
 import { resolveScope } from "./player/scope";
@@ -9,8 +10,9 @@ import { CodeEditor, type EditorDiagnostic } from "./player/CodeEditor";
 import { PlaybackControls } from "./player/PlaybackControls";
 import { usePlayback, type Playback } from "./player/usePlayback";
 import { MotionRoot } from "./player/motion/MotionRoot";
-import { readDevPreload, readLessonOverride } from "./devPreload";
+import { readDevPreload } from "./devPreload";
 import { LESSONS, getLesson } from "./lessons/registry";
+import { getLessonRecording } from "./lessons/recordings";
 import type { LessonInputField } from "./lessons/types";
 
 /** Parses a comma-separated data-input field into a number list. Empty tokens (a trailing or
@@ -174,23 +176,16 @@ function recordingFrom(result: RunResult | null): Recording | undefined {
  * supersedes both m3's EngineDevHarness and m5's PictureDevHarness, which existed only
  * because this milestone hadn't been built yet. */
 export function Workspace() {
-  // m9: dev/test-only — real visitors never have `?lesson=` set, so this always resolves to
-  // LESSONS[0] until §11's real navigation lands at m10 (see devPreload.ts's docstring).
-  const lessonOverride = useMemo(readLessonOverride, []);
+  // m10: real routing — `/lesson/:id` replaces the m9 `?lesson=` dev override entirely (that
+  // override, and the `?fixture=`/`?lesson=` reconciliation it needed, are both gone: there's
+  // only one "which lesson" mechanism now). Falls back to LESSONS[0] for an unknown/missing
+  // id, same as the override did.
+  const { id } = useParams<{ id: string }>();
   const activeLesson = useMemo(
-    () => (lessonOverride && getLesson(lessonOverride)) || LESSONS[0]!,
-    [lessonOverride],
+    () => (id && getLesson(id)) || LESSONS[0]!,
+    [id],
   );
-  // The two dev-only URL overrides are mutually exclusive, not composable: `?fixture=&step=`
-  // preloads a committed Mode A trace that has no relationship to whatever `?lesson=` points
-  // at, so honoring both at once would seed `result`/`lastRunSource` from one lesson's data
-  // while `effectiveSource` (below) is computed from another — a real bug found by code
-  // review, where that mismatch left `isStale` permanently true. `?lesson=` wins; `?fixture=`
-  // is ignored whenever it's present.
-  const devPreload = useMemo(
-    () => (lessonOverride ? null : readDevPreload()),
-    [lessonOverride],
-  );
+  const devPreload = useMemo(readDevPreload, []);
   const [source, setSource] = useState(
     devPreload?.source ?? activeLesson.starterCode,
   );
@@ -215,6 +210,15 @@ export function Workspace() {
   // worker/Comlink rejection propagates out of run() as an unhandled rejection) — without
   // this, that case leaves the Run button stuck on "Running…" forever with no visible error.
   const [crashMessage, setCrashMessage] = useState<string | null>(null);
+  // AC-2.7: null until checked, then whether the engine actually came up. Checked lazily, on
+  // the first Run attempt (inside handleRun below) rather than eagerly on mount — found by
+  // code review: an eager mount-time check meant every lesson-page visit silently started a
+  // real, multi-MB Pyodide download even for a visitor who only ever reads the explanation and
+  // never clicks Run. Checking reactively means that cost is only ever paid by someone who
+  // actually expressed intent to run something, while still satisfying AC-2.7 ("never a silent
+  // failure") — a first Run that hits a dead engine gets the fallback instead of a raw error.
+  const [engineAvailable, setEngineAvailable] = useState<boolean | null>(null);
+  const engineUnavailable = engineAvailable === false;
 
   // m9's data-input decision: Mode B's displayed/run source is always regenerated from the
   // current input values, never threaded through tracer.py's own (deliberately unused) `input`
@@ -229,18 +233,42 @@ export function Workspace() {
   const hasResult = result !== null && !isStale;
   const feedback = useMemo(() => deriveFeedback(result), [result]);
   const recording = useMemo(() => recordingFrom(result), [result]);
-  const frameCount = recording?.frames.length ?? 0;
+  // AC-2.7: once the engine is confirmed unavailable, Run can never produce a real `recording`
+  // (it's disabled below) — the lesson's own shipped recording (the exact same committed trace
+  // `registry.test.ts` already checks against the real engine, per D23) stands in for it, so
+  // the page still animates, steps, and scrubs instead of just showing an error and nothing
+  // else.
+  const fallbackRecording = engineUnavailable
+    ? getLessonRecording(activeLesson.id)
+    : undefined;
+  const displayRecording = recording ?? fallbackRecording;
+  const frameCount = displayRecording?.frames.length ?? 0;
   const playback = usePlayback(frameCount, devPreload?.step ?? 0);
 
-  const showPicture = hasResult && recording !== undefined;
-  const currentFrame =
-    hasResult && recording ? recording.frames[playback.step] : undefined;
-  const isFailingStep = showPicture && playback.step === frameCount - 1;
+  const showPicture =
+    (hasResult && recording !== undefined) || !!fallbackRecording;
+  const currentFrame = showPicture
+    ? displayRecording?.frames[playback.step]
+    : undefined;
+  // Error highlighting only ever applies to a real result — the fallback recording is a demo,
+  // not an error state, so it never rings anything red regardless of playback position.
+  const isFailingStep =
+    hasResult && recording !== undefined && playback.step === frameCount - 1;
 
   async function handleRun() {
     setRunning(true);
     setCrashMessage(null);
     try {
+      // AC-2.7, checked lazily right here rather than eagerly on mount (see engineAvailable's
+      // own docstring) — skipped once we already know the answer, and always skipped for a
+      // `?fixture=` preload (that path exists so Playwright never needs a real Pyodide load).
+      if (engineAvailable === null && !devPreload) {
+        const available = await checkEngineAvailable();
+        setEngineAvailable(available);
+        if (!available) return;
+      } else if (engineUnavailable) {
+        return;
+      }
       const outcome = await run(effectiveSource);
       setResult(outcome);
     } catch (error) {
@@ -314,11 +342,20 @@ export function Workspace() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const bannerText = crashMessage
-    ? `Something went wrong running this program — try again. (${crashMessage})`
-    : hasResult
-      ? feedback.bannerText
-      : undefined;
+  // Found by code review: a lesson registered without a committed trace fixture (should never
+  // happen — registry.test.ts's describe.each guards every entry — but a runtime message
+  // shouldn't silently assume a build-time guard always held) would otherwise fall through to
+  // the generic engineUnavailable message while the picture pane quietly shows nothing, with no
+  // hint why. Named explicitly instead.
+  const bannerText = engineUnavailable
+    ? fallbackRecording
+      ? "Running your own code isn't available right now — showing this lesson's example instead."
+      : "Running your own code isn't available right now, and this lesson doesn't have a preview to fall back on either — please try again later."
+    : crashMessage
+      ? `Something went wrong running this program — try again. (${crashMessage})`
+      : hasResult
+        ? feedback.bannerText
+        : undefined;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -338,7 +375,7 @@ export function Workspace() {
             <button
               type="button"
               onClick={() => void handleRun()}
-              disabled={running}
+              disabled={running || engineUnavailable}
               className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
             >
               {running ? "Running…" : "Run"}
@@ -377,12 +414,16 @@ export function Workspace() {
               />
             </div>
             <div className="relative w-[65%]" data-testid="picture-pane">
-              {recording && (
+              {displayRecording && (
                 <div
-                  className={isStale ? "pointer-events-none opacity-40" : ""}
+                  className={
+                    isStale && recording !== undefined
+                      ? "pointer-events-none opacity-40"
+                      : ""
+                  }
                 >
                   <Picture
-                    recording={recording}
+                    recording={displayRecording}
                     step={playback.step}
                     errorCell={
                       isFailingStep ? feedback.errorHighlight : undefined
@@ -390,7 +431,7 @@ export function Workspace() {
                   />
                 </div>
               )}
-              {(isStale || !recording) && (
+              {((isStale && recording !== undefined) || !displayRecording) && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <p className="rounded-lg bg-slate-900/90 px-4 py-2 text-sm text-slate-400 ring-1 ring-slate-800">
                     press Run to see this
