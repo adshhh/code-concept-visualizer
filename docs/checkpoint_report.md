@@ -1441,3 +1441,92 @@ git push
 
 Milestone 8 — Mode A lessons 2–8 (§10). Homogeneous work, batched to avoid seven near-identical
 checkpoints.
+
+# Milestone 8 Completed
+
+**Lessons 2–8 exist**, completing the Mode A set (D14 requires all of 1–8 before Mode B starts at
+m9). Each is a real `.py` file plus one `registry.ts` entry, built by hand-applying `/new-lesson`'s
+own steps seven times in one session rather than invoking it seven separate times — the milestone
+table calls this batch homogeneous work, and one checkpoint covers all seven. `registry.test.ts`,
+`types.ts`, and `Workspace.tsx` were **not** touched — the whole point of m7's `describe.each`
+pattern was that adding a lesson never requires touching them, and this milestone is the first real
+test of that claim at more than one-lesson scale.
+
+## Why
+
+- **Dictionaries (lesson 8) can iterate with a plain `for name in ages:`, even though
+  `docs/SUBSET.md`'s "In scope" bullet only named `range()`, a list, or a string.** Read
+  `src/subset/parser.ts`'s `parseFor` directly instead of trusting the doc's prose: the iterable
+  is parsed as a generic expression with no type restriction, since the validator can't know at
+  parse time what a name will hold at runtime — so a dict works exactly like real Python does
+  (iterating its keys). What's genuinely out of scope is unpacking (`for name, age in
+  ages.items():` — `parseFor` explicitly rejects a comma after the loop variable as a tuple
+  target), so the lesson looks up values with `ages[name]` instead. `SUBSET.md` gained one clause
+  for accuracy; nothing in `src/subset/` changed, and §1 stays LOCKED.
+- **"While loops, including why this one can run forever" and "recursion... fibonacci and why it's
+  slow" describe what each lesson's explanation teaches, not a license to ship starter code that
+  hangs or guardrail-trips.** AC-10.2 ("no lesson opens broken") is unconditional — lesson 5's
+  starter code is an ordinary, correctly-terminating `while` loop, and its explanation invites
+  deleting the increment rather than shipping that as the default. Lesson 7's starter code is
+  `factorial(5)` (recursion depth 5, far under the 25-deep cap); fibonacci's exponential call count
+  is explained in prose rather than shipped as code that would trip the 2,000-step guardrail on
+  first Run. One registry entry for lesson 7, not two — §10 lists it as a single numbered lesson
+  covering both ideas.
+- **No `Workspace.tsx`/UI changes this milestone, confirmed by re-reading §11 before assuming
+  it.** Real lesson navigation (routing, a lesson grid) is §11/m10's own job per its existing v2
+  note ("one URL per lesson," React Router) — `Workspace` keeps hardcoding `LESSONS[0]` until then,
+  already flagged as expected (not a bug) in `/new-lesson`'s own instructions. m8 only grows the
+  registry array; nothing renders the new lessons yet.
+
+## Files Created/Modified
+
+- `src/lessons/02-looping-over-a-list.py` through `08-dictionaries.py` (new): seven real starter
+  programs, each checked by hand against `docs/SUBSET.md` and the guardrail table before being
+  written, then re-checked by the real engine via `registry.test.ts`'s existing `describe.each`.
+- `src/lessons/registry.ts` (modified): seven new `?raw` imports and seven new `LESSONS` entries,
+  appended in §10's order, following Lesson 1's exact shape.
+- `docs/SUBSET.md` (modified): one clause added to the `for`-loop scope bullet, documenting that a
+  dict is a valid iterable (see the dictionaries finding above) — a doc-accuracy fix, not a scope
+  change.
+
+## Uncertain / worth double-checking
+
+1. **Lesson 5 and lesson 7's explanations describe a failure mode (an infinite loop; fibonacci's
+   slowness) without the starter code ever demonstrating it live.** This was a deliberate reading
+   of AC-10.2 over §10's parenthetical, not something §10 states explicitly either way — worth a
+   second look if the "why" is supposed to be something the learner can actually trigger and watch
+   guardrail-trip, rather than just read about.
+2. **Lesson 8's explanation doesn't mention that dict *unpacking* (`.items()` with two loop
+   variables) is out of scope** — someone who already knows Python might try it and get a rejection
+   message instead of the pattern shown. Left out to keep the explanation focused on what the
+   lesson actually teaches, not a tour of the subset's edges.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  25 passed (25)
+                    Tests       313 passed (313)        (292 → 313: 7 lessons × 3 tests each)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~500ms
+=== playwright ===  17 passed (14.3s) — unchanged from m7, confirms no regression
+```
+
+No new screenshots — `Workspace` still only ever renders Lesson 1 (§11's lesson navigation is m10),
+so there is nothing new to look at visually yet. Verified instead by reading all seven committed
+trace snapshots directly: each has `status: "ok"` and stdout matching what the starter code should
+print (e.g. `08-dictionaries.json`: `"Alice is 30 years old\nBob is 25 years old\nCharlie is 35
+years old\n"`).
+
+## Github Commands for this milestone
+
+```bash
+git add src/lessons/ docs/
+git commit -m "Milestone 8: Mode A lessons 2-8, completing the Mode A set"
+git push
+```
+
+## Next
+
+Milestone 9 — Mode B lessons 9–11, plus the merge sort stretch if time allows (§10). Per D14, this
+is the first milestone allowed to start now that lessons 1–8 are complete.
