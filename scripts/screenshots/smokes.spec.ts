@@ -105,3 +105,28 @@ test("regression: Tab indents in the code editor instead of moving focus", async
   await page.keyboard.type("print(1)");
   await expect(page.getByText("    print(1)")).toBeVisible();
 });
+
+// m9: the dev-only `?lesson=` override is what makes a Mode B lesson visible at all before
+// §11's real navigation lands at m10 (see devPreload.ts / Workspace.tsx). Checks AC-2 (§4) in a
+// real browser, not just via Workspace.test.tsx's mocked-run version of the same claim: source
+// renders but is genuinely read-only, and the only editable thing is the data-input panel.
+test("Mode B lesson (m9): renders read-only with a data-input panel, and Run works", async ({
+  page,
+}) => {
+  await page.goto("/?lesson=09-binary-search");
+
+  await expect(
+    page.getByText("def binary_search(nums, target):"),
+  ).toBeVisible();
+  await expect(page.getByText("Sorted list to search")).toBeVisible();
+  await expect(page.getByText("Target value")).toBeVisible();
+  await expect(page.locator(".cm-content")).toHaveAttribute(
+    "contenteditable",
+    "false",
+  );
+
+  await page.getByRole("button", { name: "Run" }).click();
+  await expect(page.getByText(/^step 1 of \d+$/)).toBeVisible({
+    timeout: 15_000,
+  });
+});

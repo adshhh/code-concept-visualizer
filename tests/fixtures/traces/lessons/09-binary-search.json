@@ -1,0 +1,1020 @@
+{
+  "status": "ok",
+  "stdout": "5\n",
+  "source": "def binary_search(nums, target):\n    low = 0\n    high = len(nums) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if nums[mid] == target:\n            return mid\n        elif nums[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nnums = [2, 5, 8, 12, 16, 23, 38, 45, 56, 72]\ntarget = 23\nprint(binary_search(nums, target))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def binary_search(nums, target):"
+    },
+    {
+      "step": 2,
+      "line": 14,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 14: nums = [2, 5, 8, 12, 16, 23, 38, 45, 56, 72]"
+    },
+    {
+      "step": 3,
+      "line": 15,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 15: target = 23"
+    },
+    {
+      "step": 4,
+      "line": 2,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: low = 0"
+    },
+    {
+      "step": 5,
+      "line": 3,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0,
+            "high": 9
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: high = len(nums) - 1"
+    },
+    {
+      "step": 6,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0,
+            "high": 9
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: while low <= high:"
+    },
+    {
+      "step": 7,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0,
+            "high": 9,
+            "mid": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: mid = (low + high) // 2"
+    },
+    {
+      "step": 8,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0,
+            "high": 9,
+            "mid": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: if nums[mid] == target:"
+    },
+    {
+      "step": 9,
+      "line": 8,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 0,
+            "high": 9,
+            "mid": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: elif nums[mid] < target:"
+    },
+    {
+      "step": 10,
+      "line": 9,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 9,
+            "mid": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 9: low = mid + 1"
+    },
+    {
+      "step": 11,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 9,
+            "mid": 4
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: while low <= high:"
+    },
+    {
+      "step": 12,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 9,
+            "mid": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: mid = (low + high) // 2"
+    },
+    {
+      "step": 13,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 9,
+            "mid": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: if nums[mid] == target:"
+    },
+    {
+      "step": 14,
+      "line": 8,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 9,
+            "mid": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 8: elif nums[mid] < target:"
+    },
+    {
+      "step": 15,
+      "line": 11,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 6,
+            "mid": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 11: high = mid - 1"
+    },
+    {
+      "step": 16,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 6,
+            "mid": 7
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: while low <= high:"
+    },
+    {
+      "step": 17,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 6,
+            "mid": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: mid = (low + high) // 2"
+    },
+    {
+      "step": 18,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 6,
+            "mid": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: if nums[mid] == target:"
+    },
+    {
+      "step": 19,
+      "line": 7,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [
+        {
+          "name": "binary_search",
+          "args": [
+            [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            23
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              8,
+              12,
+              16,
+              23,
+              38,
+              45,
+              56,
+              72
+            ],
+            "target": 23,
+            "low": 5,
+            "high": 6,
+            "mid": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: return mid"
+    },
+    {
+      "step": 20,
+      "line": 16,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          8,
+          12,
+          16,
+          23,
+          38,
+          45,
+          56,
+          72
+        ],
+        "target": 23
+      },
+      "callStack": [],
+      "stdout": "5\n",
+      "narration": "line 16: print(binary_search(nums, target))"
+    }
+  ]
+}

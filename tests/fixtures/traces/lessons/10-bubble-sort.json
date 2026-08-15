@@ -1,0 +1,1684 @@
+{
+  "status": "ok",
+  "stdout": "[1, 2, 3, 4, 5]\n",
+  "source": "def bubble_sort(nums):\n    n = len(nums)\n    for i in range(n):\n        for j in range(n - i - 1):\n            if nums[j] > nums[j + 1]:\n                nums[j], nums[j + 1] = nums[j + 1], nums[j]\n    return nums\n\nnums = [5, 2, 4, 1, 3]\nprint(bubble_sort(nums))\n",
+  "frames": [
+    {
+      "step": 1,
+      "line": 1,
+      "variables": {},
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 1: def bubble_sort(nums):"
+    },
+    {
+      "step": 2,
+      "line": 9,
+      "variables": {
+        "nums": [
+          5,
+          2,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [],
+      "stdout": "",
+      "narration": "line 9: nums = [5, 2, 4, 1, 3]"
+    },
+    {
+      "step": 3,
+      "line": 2,
+      "variables": {
+        "nums": [
+          5,
+          2,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              5,
+              2,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              5,
+              2,
+              4,
+              1,
+              3
+            ],
+            "n": 5
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 2: n = len(nums)"
+    },
+    {
+      "step": 4,
+      "line": 3,
+      "variables": {
+        "nums": [
+          5,
+          2,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              5,
+              2,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              5,
+              2,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 5,
+      "line": 4,
+      "variables": {
+        "nums": [
+          5,
+          2,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              5,
+              2,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              5,
+              2,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 6,
+      "line": 5,
+      "variables": {
+        "nums": [
+          5,
+          2,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              5,
+              2,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              5,
+              2,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 7,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              5,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 8,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              5,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 9,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          5,
+          4,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              5,
+              4,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              5,
+              4,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 10,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          5,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              5,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              5,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 11,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          5,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              5,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              5,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 12,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          5,
+          1,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              5,
+              1,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              5,
+              1,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 13,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          5,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              5,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              5,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 14,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          5,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              5,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              5,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 15,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          5,
+          3
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              5,
+              3
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              5,
+              3
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 16,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 17,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 0,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 18,
+      "line": 3,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 3
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 19,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 20,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 21,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 22,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              4,
+              1,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              4,
+              1,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 23,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          4,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              4,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              4,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 24,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          4,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              4,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              4,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 25,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          4,
+          3,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              4,
+              3,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              4,
+              3,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 26,
+      "line": 6,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 27,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 1,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 28,
+      "line": 3,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 2
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 29,
+      "line": 4,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 30,
+      "line": 5,
+      "variables": {
+        "nums": [
+          2,
+          1,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              2,
+              1,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              2,
+              1,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 31,
+      "line": 6,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 6: nums[j], nums[j + 1] = nums[j + 1], nums[j]"
+    },
+    {
+      "step": 32,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 33,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 34,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 2,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 35,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 3,
+            "j": 1
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 36,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 37,
+      "line": 5,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 5: if nums[j] > nums[j + 1]:"
+    },
+    {
+      "step": 38,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 3,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 39,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 40,
+      "line": 4,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 4: for j in range(n - i - 1):"
+    },
+    {
+      "step": 41,
+      "line": 3,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 3: for i in range(n):"
+    },
+    {
+      "step": 42,
+      "line": 7,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [
+        {
+          "name": "bubble_sort",
+          "args": [
+            [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          ],
+          "locals": {
+            "nums": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "n": 5,
+            "i": 4,
+            "j": 0
+          }
+        }
+      ],
+      "stdout": "",
+      "narration": "line 7: return nums"
+    },
+    {
+      "step": 43,
+      "line": 10,
+      "variables": {
+        "nums": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "callStack": [],
+      "stdout": "[1, 2, 3, 4, 5]\n",
+      "narration": "line 10: print(bubble_sort(nums))"
+    }
+  ]
+}
