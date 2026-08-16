@@ -9,6 +9,7 @@ import {
 
 interface WorkerApi {
   runInWorker(source: string, input?: string): Promise<RunResult>;
+  runDetailedInWorker(source: string, input?: string): Promise<RunResult>;
   warmUp(): Promise<void>;
 }
 
@@ -45,6 +46,53 @@ export async function run(source: string, input?: string): Promise<RunResult> {
 
   const outcome = await raceWithTimeout<RunResult>(
     api.runInWorker(source, input),
+    EXECUTION_TIMEOUT_MS,
+  );
+  if (!outcome.ok) {
+    worker.terminate();
+    replace();
+    return {
+      status: "timeout",
+      message:
+        "This program ran too long — it may contain a loop that never ends.",
+    };
+  }
+  return outcome.value;
+}
+
+/** m11b's entry point for a Detailed (Tier 2, D38) recording — the same validate-first gate
+ * and two-phase timeout split as run() (see its own docstring), calling
+ * `runDetailedInWorker`/`record_detailed_trace` instead. A sibling to run(), not a `detail`
+ * parameter on it: both call the same worker handle (one worker, two exposed entry points —
+ * see worker.ts), so there is nothing to parameterize beyond which method to call, and
+ * keeping run()'s own signature untouched means every existing caller/test of it needs no
+ * change. */
+export async function runDetailed(
+  source: string,
+  input?: string,
+): Promise<RunResult> {
+  const validation = validate(source);
+  if (!validation.ok) {
+    return {
+      status: "rejected",
+      line: validation.line,
+      message: validation.message,
+    };
+  }
+
+  const { worker, api } = getHandle();
+
+  const warmedUp = await raceWithTimeout(api.warmUp(), LOAD_TIMEOUT_MS);
+  if (!warmedUp.ok) {
+    return {
+      status: "timeout",
+      message:
+        "The Python engine is taking too long to load — check your connection and try again.",
+    };
+  }
+
+  const outcome = await raceWithTimeout<RunResult>(
+    api.runDetailedInWorker(source, input),
     EXECUTION_TIMEOUT_MS,
   );
   if (!outcome.ok) {

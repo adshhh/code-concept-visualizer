@@ -4,6 +4,8 @@ import {
   tokensForLine,
 } from "./lineAnalysis";
 import type { Token } from "../subset/types";
+import type { Frame } from "../recording/types";
+import { resolveScope } from "./scope";
 
 /** One `listVar[indexVar]`-shaped (or `listVar[indexVar±N]`) reference found in the source.
  * `offset` is 0 for a bare `nums[i]`, or the signed literal for `nums[i+1]`/`nums[i-1]`.
@@ -61,4 +63,59 @@ export function detectIndexArrows(source: string): IndexArrowSpec[] {
   }
 
   return specs;
+}
+
+export interface ResolvedArrow {
+  index: number;
+  labels: string[];
+}
+
+/** Resolves which of `arrows` (every occurrence anywhere in the source) actually point at a
+ * real cell *this step* — only specs on the current line, whose index variable currently
+ * holds a number, targeting an in-range position of an array actually named `listVar` in
+ * scope. Everything else fails closed (no arrow) — the same scope decision the rest of this
+ * module makes: guessing at an unresolvable target is worse than not drawing one.
+ *
+ * Shared by two consumers that must never disagree about which cell a `nums[j]` on the
+ * current line actually points at: Picture.tsx (drawing the arrow itself, since m5) and
+ * spotlight.ts's `computeEmphasis` (m11b — marking that exact cell primary, not just the
+ * whole container; see its own comment for the bug this fixed). One resolution, not two. */
+export function resolveArrowsForStep(
+  arrows: IndexArrowSpec[],
+  frame: Frame,
+): Map<string, ResolvedArrow[]> {
+  const scope = resolveScope(frame);
+  const byList = new Map<string, ResolvedArrow[]>();
+
+  for (const spec of arrows) {
+    if (spec.line !== frame.line) continue;
+    const indexValue = scope[spec.indexVar];
+    if (typeof indexValue !== "number") continue;
+    const list = scope[spec.listVar];
+    const targetIndex = indexValue + spec.offset;
+    const length = Array.isArray(list)
+      ? list.length
+      : typeof list === "string"
+        ? list.length
+        : -1;
+    if (length < 0 || targetIndex < 0 || targetIndex >= length) continue;
+
+    // Label with the full expression ("j" vs "j+1"), not the bare index variable name — two
+    // arrows both showing "j" would be indistinguishable even though they point at different
+    // cells for different reasons (found via a real screenshot at m5, not a test).
+    const label =
+      spec.offset === 0
+        ? spec.indexVar
+        : `${spec.indexVar}${spec.offset > 0 ? "+" : ""}${spec.offset}`;
+    const existing = byList.get(spec.listVar) ?? [];
+    const atIndex = existing.find((a) => a.index === targetIndex);
+    if (atIndex) {
+      atIndex.labels.push(label);
+    } else {
+      existing.push({ index: targetIndex, labels: [label] });
+    }
+    byList.set(spec.listVar, existing);
+  }
+
+  return byList;
 }

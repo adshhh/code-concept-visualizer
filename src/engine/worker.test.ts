@@ -39,3 +39,22 @@ describe("worker.ts — AC-2.2, Pyodide loads lazily rather than blocking at imp
     }
   });
 });
+
+// m11b: instrument.py (Tier 2, m11a) is wired into the same worker — mirrors the existing
+// structural style here (worker.ts can't be imported under jsdom, so source shape is what's
+// checkable) rather than adding a new test strategy.
+describe("worker.ts — m11b, instrument.py is loaded and exposed", () => {
+  it("loads instrument.py strictly after guardrails.py and tracer.py", () => {
+    const guardrailsAt = codeOnly.indexOf("runPython(guardrailsSource)");
+    const tracerAt = codeOnly.indexOf("runPython(tracerSource)");
+    const instrumentAt = codeOnly.indexOf("runPython(instrumentSource)");
+    expect(guardrailsAt).toBeGreaterThan(-1);
+    expect(tracerAt).toBeGreaterThan(guardrailsAt);
+    expect(instrumentAt).toBeGreaterThan(tracerAt);
+  });
+
+  it("exposes runDetailedInWorker alongside runInWorker", () => {
+    expect(codeOnly).toMatch(/Comlink\.expose\(\{[^)]*runInWorker/);
+    expect(codeOnly).toMatch(/Comlink\.expose\(\{[^)]*runDetailedInWorker/);
+  });
+});

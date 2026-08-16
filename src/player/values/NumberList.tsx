@@ -3,16 +3,19 @@ import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
+  GLOW_TRANSITION,
+  glowBoxShadowKeyframes,
   liftOffset,
   listItemVariants,
   swapArcKeyframes,
 } from "../motion/variants";
 import { ListFrame } from "./ListFrame";
 
-export interface ResolvedArrow {
-  index: number;
-  labels: string[];
-}
+// Canonical definition moved to indexVars.ts at m11b, where the resolution function that
+// produces these now also lives (shared with spotlight.ts) — re-exported here so
+// StringList.tsx/ListFrame.tsx's existing `from "./NumberList"` imports don't need to change.
+import type { ResolvedArrow } from "../indexVars";
+export type { ResolvedArrow };
 
 /** "Row of equal-size boxes, shaded from the bottom in proportion to value, digit always
  * printed inside" (§5) — with the flat-box fallback per `shadingDisabled` (D8/AC-5.3: the
@@ -33,6 +36,8 @@ export function NumberList({
   arrows,
   lifted = [],
   swapPair = null,
+  glowed = [],
+  compareResult = null,
   error = false,
 }: {
   name: string;
@@ -42,11 +47,25 @@ export function NumberList({
   arrows: ResolvedArrow[];
   lifted?: boolean[];
   swapPair?: [number, number] | null;
+  /** read (m11b, §3 T2's `index_read`): "box glows, no movement" — see Picture.tsx's
+   * `glowedCellFor`. Additive; every existing caller passes nothing and renders unchanged. */
+  glowed?: boolean[];
+  /** compare's ✓/✗ resolution (m11b) — only ever non-null on the exact frame carrying the
+   * `compare` event; see Picture.tsx's `compareResultFor` and `ListFrame`'s own comment.
+   * Rendered at the connector (two lifted cells) or directly on the one lifted cell. */
+  compareResult?: boolean | null;
   error?: boolean;
 }) {
   const max = items.length > 0 ? Math.max(...items.map((v) => Math.abs(v))) : 0;
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
   const liftedIndices = items.map((_, i) => i).filter((i) => lifted[i]);
+  // Single-cell badge case (e.g. binary search's `nums[mid] == target`): exactly one lifted
+  // cell and no connector to attach a badge to (ListFrame's connectorRange needs 2+) — see
+  // the m11b plan's compare-badge rule.
+  const singleBadgeIndex =
+    compareResult !== null && liftedIndices.length === 1
+      ? liftedIndices[0]!
+      : null;
 
   return (
     <ListFrame
@@ -60,6 +79,7 @@ export function NumberList({
           ? [Math.min(...liftedIndices), Math.max(...liftedIndices)]
           : undefined
       }
+      connectorBadge={liftedIndices.length >= 2 ? compareResult : null}
     >
       {items.map((value, i) => {
         const heightPct =
@@ -75,11 +95,14 @@ export function NumberList({
             : swapPair![0]
           : null;
 
-        const animateTarget = lifted[i]
-          ? { ...emphasisVariants[emphasis], ...liftOffset, x: 0 }
-          : isSwapping
-            ? { ...emphasisVariants[emphasis], x: 0, y: swapArcKeyframes.y }
-            : { ...emphasisVariants[emphasis], x: 0 };
+        const animateTarget = {
+          ...(lifted[i]
+            ? { ...emphasisVariants[emphasis], ...liftOffset, x: 0 }
+            : isSwapping
+              ? { ...emphasisVariants[emphasis], x: 0, y: swapArcKeyframes.y }
+              : { ...emphasisVariants[emphasis], x: 0 }),
+          ...(glowed[i] ? { boxShadow: glowBoxShadowKeyframes } : {}),
+        };
 
         return (
           <motion.div
@@ -95,7 +118,14 @@ export function NumberList({
             }
             animate={animateTarget}
             exit="exit"
-            transition={GESTURE_TRANSITION}
+            transition={{
+              ...GESTURE_TRANSITION,
+              boxShadow: GLOW_TRANSITION,
+            }}
+            // The glow gesture itself is a purely animated boxShadow (Framer Motion
+            // interpolates it asynchronously, not assertable as a static DOM value) — this
+            // attribute is a stable, synchronous marker of the same fact, for tests.
+            data-glowed={glowed[i] || undefined}
             className="relative flex h-16 items-end overflow-hidden rounded bg-slate-800 ring-1 ring-slate-700"
           >
             {!shadingDisabled && (
@@ -108,6 +138,14 @@ export function NumberList({
             <span className="relative z-10 w-full pb-1 text-center font-mono text-sm text-slate-100">
               {Number.isNaN(value) ? "NaN" : value}
             </span>
+            {singleBadgeIndex === i && (
+              <span
+                className={`absolute -top-3 left-1/2 z-20 -translate-x-1/2 text-sm font-bold ${compareResult ? "text-emerald-400" : "text-red-400"}`}
+                aria-hidden="true"
+              >
+                {compareResult ? "✓" : "✗"}
+              </span>
+            )}
           </motion.div>
         );
       })}

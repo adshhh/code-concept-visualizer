@@ -27,8 +27,24 @@ export type DetailedEvent =
       right: unknown;
       result: boolean;
     }
-  | { kind: "index_read"; container: string; index: number; value: unknown }
-  | { kind: "index_write"; container: string; index: number; value: unknown }
+  // `index` is `number | string`, not just `number` — a dict key read/write (`ages["bo"]`)
+  // reports its string key here exactly like a list's integer position does; `.append()`
+  // is list-only, so its own index is always a number. Found by running
+  // `record_detailed_trace` against a dict fixture during m11b's plan review: 11a's own test
+  // suite never exercised a dict event shape, only the equivalence test's stdout/variables
+  // comparison, which doesn't touch this field's type at all.
+  | {
+      kind: "index_read";
+      container: string;
+      index: number | string;
+      value: unknown;
+    }
+  | {
+      kind: "index_write";
+      container: string;
+      index: number | string;
+      value: unknown;
+    }
   | { kind: "append"; container: string; index: number; value: unknown }
   | { kind: "return"; name: string; value: unknown };
 

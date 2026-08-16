@@ -12,7 +12,7 @@ import {
   pathKey,
   type Emphasis,
 } from "./spotlight";
-import { detectIndexArrows, type IndexArrowSpec } from "./indexVars";
+import { detectIndexArrows, resolveArrowsForStep } from "./indexVars";
 import { hasComparisonOperator } from "./lineAnalysis";
 import { currentScopeDescriptor, resolveScope } from "./scope";
 import { CallStackCards } from "./CallStackCards";
@@ -32,52 +32,6 @@ type EmphasisMap = Map<string, Emphasis>;
 const EMPTY_DIFF: StepDiff = { changes: [], callStackDelta: "same" };
 const EMPTY_EMPHASIS: EmphasisMap = new Map();
 const EMPTY_ARROWS: Map<string, ResolvedArrow[]> = new Map();
-
-/** Resolves which of `arrows` (every occurrence anywhere in the source) actually point at a
- * real cell *this step* — only specs on the current line, whose index variable currently
- * holds a number, targeting an in-range position of an array actually named `listVar` in
- * scope. Everything else fails closed (no arrow), per §5's own scope decision: guessing at
- * an unresolvable target is worse than not drawing one. */
-function resolveArrowsForStep(
-  arrows: IndexArrowSpec[],
-  frame: Frame,
-): Map<string, ResolvedArrow[]> {
-  const scope = resolveScope(frame);
-  const byList = new Map<string, ResolvedArrow[]>();
-
-  for (const spec of arrows) {
-    if (spec.line !== frame.line) continue;
-    const indexValue = scope[spec.indexVar];
-    if (typeof indexValue !== "number") continue;
-    const list = scope[spec.listVar];
-    const targetIndex = indexValue + spec.offset;
-    const length = Array.isArray(list)
-      ? list.length
-      : typeof list === "string"
-        ? list.length
-        : -1;
-    if (length < 0 || targetIndex < 0 || targetIndex >= length) continue;
-
-    // Label with the full expression ("j" vs "j+1"), not the bare index variable name —
-    // two arrows both showing "j" (found via a real screenshot, not a test: nothing
-    // asserted the *label text* itself) would be indistinguishable even though they point
-    // at different cells for different reasons.
-    const label =
-      spec.offset === 0
-        ? spec.indexVar
-        : `${spec.indexVar}${spec.offset > 0 ? "+" : ""}${spec.offset}`;
-    const existing = byList.get(spec.listVar) ?? [];
-    const atIndex = existing.find((a) => a.index === targetIndex);
-    if (atIndex) {
-      atIndex.labels.push(label);
-    } else {
-      existing.push({ index: targetIndex, labels: [label] });
-    }
-    byList.set(spec.listVar, existing);
-  }
-
-  return byList;
-}
 
 function cellEmphasisArray(
   emphasisMap: EmphasisMap,
@@ -157,6 +111,49 @@ function swapPairFor(
   return null;
 }
 
+/** Per-index boolean array for a single glowed cell (or none) — the same array shape
+ * `cellEmphasis`/`lifted` already use, so NumberList/StringList/StringChip can look a cell's
+ * own status up by position without recomputation. */
+function glowedIndicesArray(
+  glowedIndex: number | string | null,
+  length: number,
+): boolean[] {
+  return Array.from({ length }, (_, i) => i === glowedIndex);
+}
+
+/** The read gesture (m11b, §3 T2's `index_read` event; §5: "the cell being *read* lights
+ * up"). Exact, from the event itself — unlike compare, no correlation is needed: an
+ * `index_read` event already names its own container and index. Only ever non-null for a
+ * Detailed frame (`frame.event` doesn't exist at all on an Overview/Tier 1 frame), and only
+ * on the exact frame the read happened — a one-shot gesture, like append's slide-in, not a
+ * lingering state. */
+function glowedCellFor(frame: Frame, name: string): number | string | null {
+  return frame.event?.kind === "index_read" && frame.event.container === name
+    ? frame.event.index
+    : null;
+}
+
+/** The compare gesture's ✓/✗ resolution (m11b — §5's long-deferred "resolves ✔/✘"; see the
+ * v2 note on §5 and variants.ts's own comment on why m5 stopped at the lift). Only knowable
+ * once a frame carries ground truth (a Detailed `compare` event) — always null for an
+ * Overview frame, which has no same-step resolution, so this can never fire without
+ * `frame.event` and AC-T2-3 holds. Deliberately *not* a new correlation mechanism: which
+ * cell(s) to badge is already decided by spotlight.ts's arrow-resolved lift (the fix this
+ * milestone made there) — this only decides *whether* to show a badge and what it says, and
+ * the caller attaches it wherever `lifted`/`connectorRange` already point. Frame-level, not
+ * per-list — passing the same value to every list this step is safe, since a list with no
+ * lifted cells simply has nothing to attach it to. */
+function compareResultFor(frame: Frame): boolean | null {
+  return frame.event?.kind === "compare" ? frame.event.result : null;
+}
+
+/** The return gesture's flight value (m11b, §5: "answer flies to the caller"). See
+ * CallStackCards' own comment for why the returning call's card is still the topmost one on
+ * this exact frame — this is what gives that transient value somewhere real to fly from. */
+function returnValueFor(frame: Frame): unknown {
+  return frame.event?.kind === "return" ? frame.event.value : undefined;
+}
+
 function stringifyForTable(value: unknown): string {
   return stringifyShape(classifyValue(value));
 }
@@ -226,9 +223,9 @@ export function Picture({
   const emphasisMap = useMemo(
     () =>
       frame
-        ? computeEmphasis(frame, prevFrame, diff, recording.source)
+        ? computeEmphasis(frame, prevFrame, diff, recording.source, allArrows)
         : EMPTY_EMPHASIS,
-    [frame, prevFrame, diff, recording.source],
+    [frame, prevFrame, diff, recording.source, allArrows],
   );
   const arrowsByList = useMemo(
     () => (frame ? resolveArrowsForStep(allArrows, frame) : EMPTY_ARROWS),
@@ -250,6 +247,13 @@ export function Picture({
     shape.kind === "number" ||
     shape.kind === "boolean" ||
     shape.kind === "none";
+
+  // m11b: frame-level, computed once — see each helper's own comment. Both are always null
+  // for an Overview frame (no `frame.event`), so every existing render branch below is
+  // unaffected unless it explicitly reads one of these.
+  const compareResult = compareResultFor(frame);
+  const returnValue = returnValueFor(frame);
+  const hasReturnEvent = frame.event?.kind === "return";
 
   return (
     <div className="flex h-full w-full gap-4 p-4">
@@ -300,6 +304,7 @@ export function Picture({
               const emphasis = emphasisOf(emphasisMap, scope, name);
               const arrows = arrowsByList.get(name) ?? [];
               const isError = errorCell?.name === name;
+              const glowedIndex = glowedCellFor(frame, name);
 
               switch (shape.kind) {
                 case "string":
@@ -310,6 +315,10 @@ export function Picture({
                       value={shape.value}
                       emphasis={emphasis}
                       expanded={arrows.length > 0}
+                      glowed={glowedIndicesArray(
+                        glowedIndex,
+                        shape.value.length,
+                      )}
                       error={isError}
                     />
                   );
@@ -347,6 +356,11 @@ export function Picture({
                         isComparisonLine,
                       )}
                       swapPair={swapPairFor(diff, scope, name)}
+                      glowed={glowedIndicesArray(
+                        glowedIndex,
+                        shape.items.length,
+                      )}
+                      compareResult={compareResult}
                       error={isError}
                     />
                   );
@@ -363,6 +377,19 @@ export function Picture({
                         shape.items.length,
                       )}
                       arrows={arrows}
+                      lifted={liftedIndicesFor(
+                        emphasisMap,
+                        diff,
+                        scope,
+                        name,
+                        shape.items.length,
+                        isComparisonLine,
+                      )}
+                      glowed={glowedIndicesArray(
+                        glowedIndex,
+                        shape.items.length,
+                      )}
+                      compareResult={compareResult}
                       error={isError}
                     />
                   );
@@ -379,6 +406,19 @@ export function Picture({
                         shape.items.length,
                       )}
                       arrows={arrows}
+                      lifted={liftedIndicesFor(
+                        emphasisMap,
+                        diff,
+                        scope,
+                        name,
+                        shape.items.length,
+                        isComparisonLine,
+                      )}
+                      glowed={glowedIndicesArray(
+                        glowedIndex,
+                        shape.items.length,
+                      )}
+                      compareResult={compareResult}
                       error={isError}
                     />
                   );
@@ -431,6 +471,9 @@ export function Picture({
                           emphasisOf(emphasisMap, scope, name, e.key),
                         ]),
                       )}
+                      glowedKey={
+                        typeof glowedIndex === "string" ? glowedIndex : null
+                      }
                       error={isError}
                     />
                   );
@@ -452,7 +495,11 @@ export function Picture({
         )}
       </div>
 
-      <CallStackCards callStack={frame.callStack} emphasisMap={emphasisMap} />
+      <CallStackCards
+        callStack={frame.callStack}
+        emphasisMap={emphasisMap}
+        returnFlight={hasReturnEvent ? { value: returnValue } : undefined}
+      />
     </div>
   );
 }

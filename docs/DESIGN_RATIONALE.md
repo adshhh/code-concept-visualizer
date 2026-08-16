@@ -1232,6 +1232,79 @@ depends on it yet, so there is nothing it could have broken by existing.
 
 ---
 
+## 32. Milestone 11b: a gesture that had never rendered, hiding behind a green screenshot
+
+11a's own entry above ends on a hopeful note — the highest-risk defect (the swap idiom) was caught
+*before* shipping, by testing a design document's claim instead of trusting it. 11b's own review
+pass found something worse in spirit, if smaller in blast radius: a bug that *had* shipped, three
+milestones earlier, and had survived a screenshot-based visual review the whole time.
+
+**What was claimed.** §5: "compare → two boxes lift, connector appears, resolves ✓/✗." The lift
+and connector half was supposedly built at m5, deferred only the ✓/✗ resolution (Tier 1 has no
+same-step data for it). `docs/images/compare-lift-and-arrows.png` is captioned exactly that: "the
+compare gesture (lift + connector, no ✔/✘) plus nums[j]/nums[j+1] arrows." The m5 checkpoint's own
+visual self-review looked at this image and passed it.
+
+**What was true.** Running `computeEmphasis`/`liftedIndicesFor` — the real functions, not a
+description of them — against the real committed `26_bubble_sort` trace: on every one of its 10
+comparison steps, zero cells were ever marked `primary`. The lift requires `primary && !changed`;
+the only thing that ever marked a comparison's operands `primary` was a source-line text scan that
+marked the *whole variable*, never a specific index. A second pass (marking every *other* cell of
+a primary container `secondary`) then caught the comparison's own cells along with everything
+else, since none of them had an index-level entry yet. Net effect: on a comparison line, no cell
+was ever lifted — not once, in three milestones of shipped behavior. Looking at the screenshot
+again, knowing what to look for, makes it obvious: five cells, uniformly bright, no lift, no
+connector. The `j`/`j+1` arrows underneath — a completely separate, correctly-implemented
+mechanism — were the only thing anyone was checking.
+
+**Why a test suite of hundreds didn't catch it.** Nothing ever asserted "a lifted cell exists."
+`spotlight.test.ts`'s own "compare heuristic" test used `if x > 0:` — a *scalar* comparison, where
+the whole-variable-only marking happens to be sufficient (a scalar has no per-index key to lose).
+No test in this codebase's history exercised an *indexed* comparison, the one shape §5's own
+compare gesture is actually about. A green suite proved the heuristic worked for the case nobody
+needed it to prove anything about.
+
+**Why it was found now, not later.** This milestone's own compare-badge design was about to be
+built directly on top of the broken function — reusing `liftedIndicesFor`'s output to decide where
+the ✓/✗ badge goes. Running the real trace through the real code, the way 11a's second pass had
+just demonstrated was worth doing, was the only reason this surfaced before the badge shipped on
+top of it.
+
+**The fix, and a design simplification found by trying the fix.** The plan's first draft, written
+before this bug was found, proposed a "look-back" mechanism for the compare badge specifically:
+walk backward from a `compare` event over the immediately preceding `index_read` frames to
+identify which cells fed the comparison. Once the actual spotlight bug was understood, a simpler
+route became obvious: `indexVars.ts` already resolves exactly which cells a `nums[j]`/`nums[j+1]`-
+shaped expression points at, for the *current line and scope* — the same mechanism that draws the
+arrows, already proven correct. Marking those resolved cells `primary` fixes the lift for both
+tiers in one change, and the compare badge then needs no separate correlation logic at all — it
+just asks "is this frame's event a compare, and are there 1 or 2 lifted cells here?" The look-back
+design was never built; trying the direct fix first made it unnecessary.
+
+**The owner's call, not an autonomous one.** Fixing the m5 bug meant Overview's own rendered
+output would change — outside this milestone's stated scope (D38's Overview/Detailed toggle, not
+a Tier-1 bug hunt). Asked directly rather than assumed either way; the owner chose to fix it now
+rather than ship Detailed's badge on a broken foundation and log the bug for later.
+
+**A smaller instance of the same lesson, caught by the same discipline.** The return gesture's
+first-draft animation (a value chip "flying" from the topmost call-stack card) faded to
+`opacity: 0` within 0.4 seconds — correct-looking mid-animation, silently empty the moment anyone
+actually paused on that frame rather than watching it play. Every other one-shot gesture already
+in this codebase (append's slide-in, the new compare badge) settles into a stable, visible end
+state; this one didn't, and nothing caught it until the screenshot itself was read after every
+automated test had already passed. Fixed to match the established pattern.
+
+**Why this belongs here, next to 11a's own entry.** Both are the same finding at different scales:
+a claim ("this renders correctly," "this evaluates once," "this stays visible") is not verified by
+being written down clearly, reviewed carefully, or even covered by a large test suite that never
+happened to assert the specific thing that was wrong. It's verified by running the real thing and
+looking at the real result. 11a caught its defects before shipping. This entry is the reminder that
+"before shipping" isn't the only place this discipline pays for itself — the same look, applied
+later, at an existing screenshot, found a bug that had already shipped through the full checkpoint
+process three times.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

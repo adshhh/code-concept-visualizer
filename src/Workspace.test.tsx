@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { Workspace, parseNumberList } from "./Workspace";
-import { run, checkEngineAvailable } from "./engine/run";
+import { run, runDetailed, checkEngineAvailable } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import { getLesson } from "./lessons/registry";
 
@@ -39,6 +39,7 @@ describe("parseNumberList — the data-input panel's list parser", () => {
 // overrides it for the one scenario that needs it false.
 vi.mock("./engine/run", () => ({
   run: vi.fn(),
+  runDetailed: vi.fn(),
   checkEngineAvailable: vi.fn().mockResolvedValue(true),
 }));
 
@@ -206,6 +207,70 @@ describe("Workspace — a run() rejection is caught, not left to wedge the Run b
       ).toBeInTheDocument(),
     );
     expect(screen.getByRole("button", { name: "Run" })).toBeEnabled();
+  });
+});
+
+describe("Workspace — D38/m11b, the Overview/Detailed toggle", () => {
+  const detailedResult: RunResult = {
+    status: "ok",
+    stdout: "0\n",
+    source: "for i in range(5):\n    print(i * i)\n",
+    frames: [
+      {
+        step: 1,
+        line: 1,
+        variables: { i: 0 },
+        callStack: [],
+        stdout: "",
+        narration: "line 1",
+      },
+    ],
+  };
+
+  it("defaults to Overview and calls run(), not runDetailed()", async () => {
+    vi.mocked(run).mockClear();
+    vi.mocked(runDetailed).mockClear();
+    vi.mocked(run).mockResolvedValue(okResult);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    expect(runDetailed).not.toHaveBeenCalled();
+  });
+
+  it("clicking Detailed then Run calls runDetailed(), not run()", async () => {
+    vi.mocked(run).mockClear();
+    vi.mocked(runDetailed).mockClear();
+    vi.mocked(runDetailed).mockResolvedValue(detailedResult);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "detailed" }));
+    await user.click(screen.getByRole("button", { name: "Run" }));
+
+    await waitFor(() => expect(runDetailed).toHaveBeenCalledTimes(1));
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("toggling the detail level after a run marks the result stale, with no source edit", async () => {
+    vi.mocked(run).mockClear();
+    vi.mocked(runDetailed).mockClear();
+    vi.mocked(run).mockResolvedValue(okResult);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(screen.getByText("step 1 of 2")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
+
+    // §7's existing rule: "editing invalidates the trace" — toggling the setting is the same
+    // shape of staleness as editing the source, reusing the same dimmed "press Run" state
+    // rather than a second concept (see the m11b plan's own decision on this).
+    await user.click(screen.getByRole("button", { name: "detailed" }));
+    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
   });
 });
 

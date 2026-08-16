@@ -68,3 +68,49 @@ export const liftOffset = { y: -10 };
  * Picture.tsx) plus this keyframed vertical bump layered on top, so a straight layout
  * cross-fade reads as an arc instead of a slide-through. */
 export const swapArcKeyframes = { y: [0, -18, 0] };
+
+/** read — "box glows, no movement" (m11b, §3 T2's `index_read` event). A one-shot
+ * `boxShadow` keyframe, merged into a cell's existing `animate` target alongside whatever
+ * `emphasisVariants` tier it already has — deliberately not a scale/position change (that's
+ * what `lift`/`emphasisVariants` already do), and a **different hue** from both the amber
+ * lift connector and the emerald write/primary tone, so a read reads as its own distinct
+ * signal rather than a duplicate of either. Framer Motion holds at a keyframe array's last
+ * value once its transition finishes — the last stop here is fully transparent, so this
+ * self-resets to invisible without needing a remount/key trick (the same reason
+ * `flashVariants` above was originally shaped as a keyframe array, though nothing currently
+ * renders that one). */
+export const glowBoxShadowKeyframes = [
+  "0 0 0 0 rgba(56, 189, 248, 0)",
+  "0 0 0 4px rgba(56, 189, 248, 0.6)",
+  "0 0 0 0 rgba(56, 189, 248, 0)",
+];
+export const GLOW_TRANSITION: Transition = { duration: 0.6, ease: "easeOut" };
+
+/** return — the "answer flies to the caller" half of §5's call/return gesture. The
+ * "card slides away" half already existed (`callStackCardVariants.exit`); this is the new
+ * piece m11b adds: a transient value chip on the still-present topmost card (see
+ * CallStackCards' own comment on why that card is still there on the return frame) — the
+ * honest, bounded version of "flies to the caller" this codebase can build without
+ * cross-component DOM measurement (see the m11b plan).
+ *
+ * **Settles at full opacity, not zero — found by looking at the screenshot, not by reading
+ * this code.** A first draft animated `opacity` to 0 (a true "fades away"), which reads fine
+ * mid-animation but is wrong the moment anyone actually *pauses* on this exact frame: nothing
+ * else on screen shows a just-returned value at all (unlike `glow`, whose cell stays lit by
+ * the separate, persistent `primary` emphasis tier even after its own pulse fades — see
+ * `glowBoxShadowKeyframes`'s own comment), so a fully-faded chip means the information is
+ * simply gone while the step is current. Every other one-shot gesture in this codebase
+ * (append's slide-in, the compare badge) settles into a stable *visible* end state for
+ * exactly this reason; this now matches them. Also found by the same screenshot: an initial
+ * `y: -20` translate (meant to read as "flying up") pushed the chip almost entirely above the
+ * card's own visible bounds — a small settle-in drop (`y: 8 → 0`) instead, small enough to
+ * read as motion without leaving the card. */
+export const returnFlightVariants: Variants = {
+  initial: { y: 8, opacity: 0, scale: 0.85 },
+  animate: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};

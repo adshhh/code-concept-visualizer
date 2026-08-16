@@ -108,6 +108,38 @@ describe("instrument.py — per-event shapes", () => {
     });
   });
 
+  // m11b plan-review finding: DetailedEvent.index was declared `number` only (11a), but a
+  // dict key read/write reports its string key here exactly like a list reports an integer
+  // position — 11a's own suite never exercised a dict event shape at all (its equivalence
+  // test only compares stdout/variables, not event field types). Pins both directions.
+  it("a dict index_read/index_write carries a *string* index, not a number", () => {
+    const readResult = detailedTrace(
+      'ages = {"amy": 30, "bo": 25}\nx = ages["amy"]\nprint(x)\n',
+    );
+    const readEvent = eventsOf(readResult).find((e) => e.kind === "index_read");
+    expect(readEvent).toEqual({
+      kind: "index_read",
+      container: "ages",
+      index: "amy",
+      value: 30,
+    });
+    expect(typeof readEvent!.index).toBe("string");
+
+    const writeResult = detailedTrace(
+      'ages = {"amy": 30}\nages["bo"] = 25\nprint(ages)\n',
+    );
+    const writeEvent = eventsOf(writeResult).find(
+      (e) => e.kind === "index_write",
+    );
+    expect(writeEvent).toEqual({
+      kind: "index_write",
+      container: "ages",
+      index: "bo",
+      value: 25,
+    });
+    expect(typeof writeEvent!.index).toBe("string");
+  });
+
   it("append carries container/index/value, and the append actually happened", () => {
     const result = detailedTrace(
       "nums = [1, 2]\nnums.append(3)\nprint(nums)\n",
@@ -302,6 +334,23 @@ describe("instrument.py — guardrail sharing (findings #3 and #6)", () => {
     expect(overview.status).toBe("ok"); // well under 2000 line-steps
     expect(detailed.status).toBe("guardrail"); // same source, same cap, hit sooner
     expect(detailed.guardrail).toBe("max_steps");
+  });
+
+  // m11b, D39: "too long to show in Detailed — switch to Overview," not the generic
+  // record_trace/_check_step message — the one Detailed-specific text substitution
+  // record_detailed_trace's own except block makes.
+  it("Detailed's max_steps message names Detailed and points at Overview; Overview's own is unchanged", () => {
+    const source = "x = 0\nwhile True:\n    x = x + 1\n";
+    const detailedResult = detailedTrace(source);
+    expect(detailedResult.message).toMatch(/Detailed mode/);
+    expect(detailedResult.message).toMatch(/Switch to Overview/);
+
+    const overviewResult = overviewTrace(source) as TraceResult;
+    expect(overviewResult.status).toBe("guardrail");
+    expect(overviewResult.message).not.toMatch(/Detailed/);
+    expect(overviewResult.message).toMatch(
+      /this program ran more than 2000 steps/,
+    );
   });
 });
 

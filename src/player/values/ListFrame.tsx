@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { IndexArrow } from "./IndexArrow";
 import type { ResolvedArrow } from "./NumberList";
 import { ringClass } from "./errorRing";
+import { GESTURE_TRANSITION } from "../motion/variants";
 
 /** The wrapper, connector row, and arrow row shared by NumberList and StringList — factored
  * out after both had drifted into near-identical hand-copies of this shell (found by
@@ -16,6 +17,7 @@ export function ListFrame({
   itemCount,
   arrows,
   connectorRange,
+  connectorBadge = null,
   children,
   error = false,
 }: {
@@ -26,6 +28,11 @@ export function ListFrame({
   /** Set when the compare gesture's connector bar should span from one lifted index to
    * another (§5: "connector appears") — see Picture.tsx's liftedIndicesFor. */
   connectorRange?: [number, number];
+  /** m11b, §5's long-deferred "resolves ✔/✘" — only ever non-null on the exact Detailed
+   * frame carrying the `compare` event this connector belongs to (Picture.tsx's
+   * `compareResultFor`); `null`/omitted renders the connector exactly as it always has,
+   * so Overview (no same-step resolution — AC-T2-3) is unaffected. */
+  connectorBadge?: boolean | null;
   children: ReactNode;
   /** AC-8.3: the whole container rings red when a runtime error was traced to this list
    * (e.g. an out-of-range index) but not to one specific cell — Tier 1 has no data for
@@ -38,18 +45,36 @@ export function ListFrame({
 
       {connectorRange && (
         <div
-          className="grid gap-1 pb-1"
+          className="grid gap-1 pb-4"
           style={{ gridTemplateColumns: columns }}
         >
           <motion.div
             layout
-            className="h-0.5 rounded bg-amber-400/70"
+            className="h-0.5 self-center rounded bg-amber-400/70"
             style={{
               gridColumnStart: connectorRange[0] + 1,
               gridColumnEnd: connectorRange[1] + 2,
+              gridRow: 1,
             }}
             aria-hidden="true"
           />
+          {connectorBadge !== null && (
+            <motion.span
+              key={connectorBadge ? "yes" : "no"}
+              initial={{ opacity: 0, scale: 0.4, y: 4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={GESTURE_TRANSITION}
+              style={{
+                gridColumnStart: connectorRange[0] + 1,
+                gridColumnEnd: connectorRange[1] + 2,
+                gridRow: 1,
+                justifySelf: "center",
+              }}
+              className={`-mt-4 text-sm font-bold ${connectorBadge ? "text-emerald-400" : "text-red-400"}`}
+            >
+              {connectorBadge ? "✓" : "✗"}
+            </motion.span>
+          )}
         </div>
       )}
 
