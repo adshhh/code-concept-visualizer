@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { run, checkEngineAvailable } from "./engine/run";
-import type { RunResult } from "./engine/types";
+import { run, runDetailed, checkEngineAvailable } from "./engine/run";
+import type { DetailLevel, RunResult } from "./engine/types";
 import type { Recording } from "./recording/types";
 import { resolveScope } from "./player/scope";
 import { translateRuntimeError } from "./player/errorMessages";
@@ -204,6 +204,19 @@ export function Workspace() {
   const [lastRunSource, setLastRunSource] = useState<string | null>(
     devPreload?.source ?? null,
   );
+  // D38/m11b: Overview (Tier 1, one step per line) or Detailed (Tier 2, one step per
+  // operation) — a real user-facing setting now, not just a build phase. Local state, not
+  // persisted (see the m11b plan's own decision on this) — defaults to "overview", so a
+  // visitor who never touches the toggle sees exactly today's behavior (AC-T2-3).
+  const [detailLevel, setDetailLevel] = useState<DetailLevel>("overview");
+  // Mirrors lastRunSource exactly, for the same reason: `isStale` needs to know not just
+  // whether the *source* changed since the last run, but whether the *detail level* did too
+  // — toggling the setting with no source edit is still "what would run now differs from
+  // what's on screen," and §7's existing rule ("editing invalidates the trace") already
+  // covers exactly that shape of staleness, so toggling reuses it rather than inventing a
+  // second "please re-run" concept.
+  const [lastRunDetailLevel, setLastRunDetailLevel] =
+    useState<DetailLevel | null>(devPreload ? "overview" : null);
   const [running, setRunning] = useState(false);
   // Defends the seam where run()'s own "every branch is a result, nothing throws" contract
   // might have a gap (found by code review: raceWithTimeout has no .catch, so a genuine
@@ -229,7 +242,9 @@ export function Workspace() {
   const effectiveSource =
     activeLesson.mode === "B" ? activeLesson.buildSource!(inputValues) : source;
 
-  const isStale = lastRunSource !== null && effectiveSource !== lastRunSource;
+  const isStale =
+    lastRunSource !== null &&
+    (effectiveSource !== lastRunSource || detailLevel !== lastRunDetailLevel);
   const hasResult = result !== null && !isStale;
   const feedback = useMemo(() => deriveFeedback(result), [result]);
   const recording = useMemo(() => recordingFrom(result), [result]);
@@ -269,13 +284,20 @@ export function Workspace() {
       } else if (engineUnavailable) {
         return;
       }
-      const outcome = await run(effectiveSource);
+      // D38/m11b: the only branch point between the two tiers — everything else (validation,
+      // warm-up, timeout handling, the RunResult shape itself) is identical, per run.ts's own
+      // runDetailed() docstring.
+      const outcome =
+        detailLevel === "detailed"
+          ? await runDetailed(effectiveSource)
+          : await run(effectiveSource);
       setResult(outcome);
     } catch (error) {
       setResult(null);
       setCrashMessage(error instanceof Error ? error.message : String(error));
     } finally {
       setLastRunSource(effectiveSource);
+      setLastRunDetailLevel(detailLevel);
       playback.reset();
       setRunning(false);
     }
@@ -365,6 +387,31 @@ export function Workspace() {
             Code Concept Visualizer
           </h1>
           <div className="flex items-center gap-2">
+            {/* D38/m11b: the real Overview/Detailed toggle — a plain segmented control, not
+             * persisted (see the plan's own decision). Toggling alone (no source edit) marks
+             * the current result stale via the `isStale` change above, reusing §7's existing
+             * "editing invalidates the trace" rule rather than a second concept. */}
+            <div
+              role="group"
+              aria-label="detail level"
+              className="flex overflow-hidden rounded-lg ring-1 ring-slate-700"
+            >
+              {(["overview", "detailed"] as const).map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setDetailLevel(level)}
+                  aria-pressed={detailLevel === level}
+                  className={`px-3 py-2 text-sm capitalize ${
+                    detailLevel === level
+                      ? "bg-slate-700 text-slate-100"
+                      : "bg-slate-800 text-slate-400"
+                  }`}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={handleResetToExample}

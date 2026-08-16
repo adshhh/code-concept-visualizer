@@ -10,6 +10,11 @@ const SCENARIOS: {
   step: number;
   label: string;
   proves: string;
+  /** m11b: resolves against the separate Detailed (Tier 2) trace set
+   * (tests/fixtures/traces/detailed/, devPreload.ts's own `&detail=` param) instead of the
+   * default Overview one. Omitted for every pre-existing scenario, which keeps targeting
+   * Overview exactly as before. */
+  detail?: "detailed";
 }[] = [
   {
     fixture: "29_negative_values",
@@ -78,6 +83,49 @@ const SCENARIOS: {
     label: "index-arrow-i-j",
     proves: "AC-5.4 — nums[i] and nums[j], two simultaneous index arrows",
   },
+  // m11b — Detailed (Tier 2) gestures. Fixture/step pairs found by inspecting the real
+  // committed tests/fixtures/traces/detailed/*.json data (engine/detailedTraces.test.ts), not
+  // guessed — same discipline as every scenario above.
+  {
+    fixture: "27_binary_search",
+    step: 7,
+    label: "detailed-read-glow",
+    detail: "detailed",
+    proves:
+      "the read gesture (§3 T2 index_read) — nums[mid] glows, alone, before any compare has happened",
+  },
+  {
+    fixture: "26_bubble_sort",
+    step: 6,
+    label: "detailed-compare-resolved",
+    detail: "detailed",
+    proves:
+      "the compare gesture's ✔ resolution (§5, long-deferred since m5) — nums[j]/nums[j+1] lift, connector, ✔ badge, all on the exact compare frame",
+  },
+  {
+    fixture: "27_binary_search",
+    step: 8,
+    label: "detailed-compare-single-cell",
+    detail: "detailed",
+    proves:
+      "the compare badge's single-cell case — nums[mid] vs the scalar target, one lifted cell, one badge",
+  },
+  {
+    fixture: "26_bubble_sort",
+    step: 10,
+    label: "detailed-sequential-writes",
+    detail: "detailed",
+    proves:
+      "the swap idiom as two sequential single-cell writes in Detailed (not Overview's arc) — the momentarily duplicated value is real CPython state between the two stores, not a glitch",
+  },
+  {
+    fixture: "11_recursion_factorial",
+    step: 12,
+    label: "detailed-return-flight",
+    detail: "detailed",
+    proves:
+      "the return gesture's new half (§5: 'answer flies to the caller') — a transient value chip on the still-present topmost card",
+  },
 ];
 
 for (const scenario of SCENARIOS) {
@@ -87,9 +135,11 @@ for (const scenario of SCENARIOS) {
     // against a stable `data-testid` instead of a harness-specific label that no longer
     // exists. m10: `/` is the landing page now, not Workspace — any `/lesson/:id` route
     // works here since `?fixture=` overrides the picture content regardless of which lesson
-    // the route itself names.
+    // the route itself names. m11b: an optional `&detail=detailed` resolves against the
+    // separate Detailed trace set instead (devPreload.ts).
+    const detailParam = scenario.detail ? `&detail=${scenario.detail}` : "";
     await page.goto(
-      `/lesson/01-first-loop?fixture=${scenario.fixture}&step=${scenario.step}`,
+      `/lesson/01-first-loop?fixture=${scenario.fixture}&step=${scenario.step}${detailParam}`,
     );
     const pane = page.getByTestId("picture-pane");
     await pane.scrollIntoViewIfNeeded();

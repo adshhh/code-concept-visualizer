@@ -2,6 +2,7 @@ import type { Frame } from "../recording/types";
 import type { StepDiff, VarPath } from "./diff";
 import { namesReferencedOnLine } from "./lineAnalysis";
 import { currentScopeDescriptor, resolveScope } from "./scope";
+import { resolveArrowsForStep, type IndexArrowSpec } from "./indexVars";
 
 /** §5's spotlight rule, three tiers: `primary` (this step touches it — changed, or
  * mentioned on the current line), `secondary` (its container is primary but this specific
@@ -39,6 +40,11 @@ export function computeEmphasis(
   prevFrame: Frame | undefined,
   diff: StepDiff,
   source: string,
+  // m11b, additive and defaulted (existing callers/tests need no change): every index-arrow
+  // occurrence in the source (`detectIndexArrows(source)`, memoized once per recording by the
+  // caller — see Picture.tsx). Passed in rather than recomputed here so this function doesn't
+  // re-tokenize the whole source on every single step.
+  arrows: IndexArrowSpec[] = [],
 ): Map<string, Emphasis> {
   const emphasis = new Map<string, Emphasis>();
   if (!prevFrame) return emphasis;
@@ -71,11 +77,35 @@ export function computeEmphasis(
     }
   }
 
-  // The compare-gesture heuristic and general "read" emphasis: any name textually mentioned
-  // on the current line, resolved against the frame's current scope only (module names
-  // aren't visible from inside a call either — see scope.ts).
   const scopeDescriptor = currentScopeDescriptor(frame);
   const scopeValues = resolveScope(frame);
+
+  // The compare/read gesture's real cell(s) — every index-arrow that resolves against this
+  // exact line and scope, e.g. `nums[j]`/`nums[j+1]` on a `nums[j] > nums[j+1]` line. Reuses
+  // indexVars.ts's own resolution (already proven correct — it's what draws the arrow itself)
+  // rather than a second, cruder mechanism.
+  //
+  // **Bug fix, found by running this against the real committed 26_bubble_sort trace during
+  // m11b's plan review, not by reading the code:** before this loop existed, the only
+  // "read/compare" signal was the namesReferencedOnLine loop below, which marks the *whole
+  // variable* primary (no index) — so an indexed cell's *own* key never got set, and the
+  // secondary-tier loop further down (which only fires when a cell has no primary entry yet)
+  // caught every single cell of the list, including the one actually being compared. Net
+  // effect: on every one of bubble sort's 10 comparison steps, `liftedIndicesFor`
+  // (Picture.tsx) — which requires a cell to be primary *and* unchanged — saw zero primary
+  // cells and returned no lift at all. `docs/images/compare-lift-and-arrows.png`, captioned as
+  // proving this gesture, shows exactly that: correct arrows, no lift, no connector. This loop
+  // marks the resolved cell itself, so the existing lift/connector logic downstream now has
+  // something real to find — in both Overview (one frame per line) and Detailed (m11a/11b,
+  // several frames sharing one `line`, all resolving the same cell for that line's duration).
+  for (const [listName, resolved] of resolveArrowsForStep(arrows, frame)) {
+    for (const { index } of resolved) {
+      markPrimary(scopeDescriptor, listName, index);
+    }
+  }
+
+  // General "mentioned on this line" emphasis for names not caught above (a scalar operand
+  // like `target` in `nums[mid] == target`, or any bare-name reference with no `[...]`).
   for (const name of namesReferencedOnLine(source, frame.line)) {
     if (name in scopeValues) markPrimary(scopeDescriptor, name);
   }

@@ -460,11 +460,24 @@ def record_detailed_trace(source, input=None):
         with contextlib.redirect_stdout(output_buffer):
             exec(code, dict(reporters))
     except GuardrailExceeded as exc:  # noqa: F821 - from guardrails.py
+        # D39: Detailed shares Overview's exact step budget (MAX_STEPS, from guardrails.py) but
+        # burns through it faster, so a program that overflows here needs its own message
+        # pointing at the fix ("switch to Overview") rather than guardrails.py's generic
+        # max_steps text, which is correct for Overview but not actionable here. Substituted
+        # locally, only for this one guardrail, only in this one function — `_check_step`
+        # itself (shared with execute_guarded and record_trace) and Overview's own message stay
+        # untouched, so the shared-budget guarantee AC-T2-5 depends on isn't at risk.
+        message = (
+            f"this program is too long to show in Detailed mode — it ran more than "
+            f"{MAX_STEPS} steps. Switch to Overview to see the whole run."  # noqa: F821
+            if exc.guardrail == "max_steps"
+            else str(exc)
+        )
         return json.dumps(
             {
                 "status": "guardrail",
                 "guardrail": exc.guardrail,
-                "message": str(exc),
+                "message": message,
                 "source": source,
                 "frames": frames,
             }

@@ -1945,3 +1945,196 @@ git push
 
 Milestone 11b — wire the Detailed tracing engine into Workspace as the real Overview/Detailed
 toggle (D38), with the new compare ✓/✗ resolution and read-glow gestures §5 describes.
+
+---
+
+# Milestone 11b Completed — Detailed tracing wired into Workspace (Tier 2, UI)
+
+## What
+
+The Detailed tracing engine (11a) is now reachable from the running app, and §5's three
+long-unbuilt gestures are real:
+
+- **Engine wiring**: `worker.ts` loads `instrument.py` after `guardrails.py`/`tracer.py` and
+  exposes `runDetailedInWorker`; `run.ts` gains a sibling `runDetailed()` (identical
+  validate → warm-up → race-with-timeout shape to `run()`, same worker handle — one worker, two
+  entry points, not two lifecycles); `engine/types.ts` gains `DetailLevel`.
+- **The real toggle**: `Workspace.tsx` has an Overview/Detailed segmented control next to Run.
+  Local state, not persisted (D38 asks for a user-facing setting, not a remembered one).
+  Toggling alone — no source edit — marks the current result stale via the same `isStale`
+  mechanism a source edit already triggers, reusing §7's "editing invalidates the trace" rule
+  rather than inventing a second concept.
+- **Three new gestures**, closing **AC-T2-2** (deferred from 11a's own Verification table):
+  - **Read** (`index_read`) — a cell glows (a distinct cyan `boxShadow` pulse, never the same
+    hue as the amber lift connector or emerald write/primary tone), exact and unambiguous since
+    the event names its own container/index directly. Applies to `NumberList`, `StringList`,
+    `StringChip` (per-character, for a string index read), and `DictTable` (by string key).
+  - **Compare** — the ✓/✗ resolution §5 asked for since m5 and deferred every milestone since.
+    Two lifted cells in the same list get a badge at the connector midpoint; one lifted cell
+    (e.g. binary search's `nums[mid] == target`, where the other operand is a bare scalar) gets
+    a badge directly on that cell; anything else (no indexed operand at all) shows no badge,
+    failing closed like every other heuristic in this codebase.
+  - **Return** — a transient value chip on the call stack's topmost card, on the exact frame
+    `event.kind === "return"`. Bounded deliberately: `tracer.py`'s own `_snapshot` means the
+    returning call's card is still the topmost one on that one frame (its own pop is one frame
+    later, already-existing behavior via `callStackCardVariants.exit`) — a real chip on a real,
+    still-present card, not a fabricated flight path to the caller's exact on-screen position
+    (which would need cross-component DOM measurement this codebase has no precedent for).
+  - **Write/append needed zero new code** — in Detailed mode the mutation already happened
+    before the reporter's frame is captured, so `diff.ts`'s existing write/append detection
+    fires correctly on that event-frame for free. The swap idiom's two `index_write` events
+    render as two sequential single-cell writes, not Overview's arc — a deliberate, documented
+    departure (AC-T2-2 forbids one event producing two treatments), and the momentarily
+    duplicated value visible mid-sequence is real CPython state, not a rendering glitch.
+- **D39's message**: `record_detailed_trace`'s own `except GuardrailExceeded` block substitutes
+  the max-steps text with a Detailed-specific one ("...switch to Overview to see the whole
+  run.") — the only Detailed-specific site touched; `_check_step` and Overview's own message are
+  untouched, so AC-T2-5's shared-budget guarantee is unaffected.
+
+## Why (including what was decided independently)
+
+**A second review pass — at the owner's explicit request, on the same terms as 11a's — found a
+real, shipped bug before any of the above was designed around it.** Rather than re-reading the
+plan, it ran the real player functions (`computeEmphasis`, `liftedIndicesFor`) against the real
+committed `26_bubble_sort` trace. Result: on every one of bubble sort's 10 comparison steps,
+zero cells were marked `primary`, so the compare gesture's lift and connector had never
+rendered — not in Detailed (not built yet), and **not in Overview either, since m5**. The cause:
+`computeEmphasis`'s only signal for "this line reads/compares a value" (a source-line text scan)
+marked the *whole variable* primary, never a specific index — so an indexed cell's own emphasis
+key was never set, and a second loop (marking every *other* cell of a primary container
+"secondary") caught every cell of the list, comparison target included.
+`docs/images/compare-lift-and-arrows.png`, the m5 screenshot captioned as proving this exact
+gesture, confirms it on inspection: correct `j`/`j+1` arrows, no lift, no connector, every cell
+uniformly bright. The m5 review passed because the arrows — the only thing anyone was looking
+for — were right.
+
+This mattered immediately: the plan's original design for the compare ✓/✗ badge was going to sit
+on top of this exact broken function. **Asked the owner directly** whether to fix Overview's own
+rendering as part of this milestone (real scope creep — Detailed's own plan never touched
+Overview's code) or scope the fix to Detailed only and log the bug for later. The owner chose to
+fix both. The fix itself is one additive change in `spotlight.ts`: reuse
+`indexVars.ts`'s own arrow-resolution (already proven correct — it's what draws the arrow) to
+mark the *exact* cell(s) an indexed line's arrows point at as primary, for both tiers uniformly
+— Overview via the line's one frame, Detailed via every sub-frame sharing that line. This
+replaced a more complicated original design (a frame-array "look-back" over preceding
+`index_read` events to identify a compare's operand cells) that turned out to be unnecessary
+once the arrow-resolution route was tried directly — a simpler, more robust design *found by
+prototyping the simpler idea first*, not planned in advance. Pinned by a new `spotlight.test.ts`
+case run against the real trace, and visually confirmed by re-shooting
+`compare-lift-and-arrows.png` (now shows the lift and connector) and `index-arrow-mid.png` (the
+same fix also correctly elevates a plain `nums[mid]` read that isn't part of any comparison at
+all — a broader, correct side effect, not scope creep, since it's the identical bug).
+
+**Three more real findings from the same pass, before any UI code was written:**
+
+- `spotlight.ts` needed to change after all — the 11a-era plan draft claimed it wouldn't.
+  Measured on a real Detailed trace: every cell on an `index_read`/`compare` frame was
+  `secondary`, never `primary`, which is the same underlying gap the fix above closes.
+- A type bug shipped in 11a: `DetailedEvent.index` was declared `number` only, but a dict key
+  read/write (`ages["bo"] = 25`) reports its string key in that same field — measured directly
+  against real Pyodide. 11a's own 59-test suite never exercised a dict event shape; its
+  equivalence test only compared stdout/variables, not event field types. Fixed additively
+  (`number | string`), with two new pinning tests in `instrument.test.ts`.
+- A missed renderer: string index reads (`s[1]`) emit `index_read` events exactly like list
+  reads do — the plan's first draft only listed `NumberList`/`StringList`/`DictTable` for the
+  glow surface. `StringChip` gained per-character glow too.
+
+**One more finding, caught only by looking at a screenshot after every test already passed:**
+the return-flight chip's first-draft animation faded `opacity` to 0 within its own 0.4s. That
+reads fine mid-animation, but is wrong the moment anyone actually *pauses* on that exact
+frame — after the fade completes, nothing on screen indicates a value was just returned at all
+(unlike `glow`, whose cell stays lit by the separate, persistent `primary` emphasis tier even
+after its own pulse fades). Every other one-shot gesture already in this codebase (append's
+slide-in, the new compare badge) settles into a stable *visible* end state for exactly this
+reason. Fixed to match: the chip now animates in and holds, rather than flying away and
+vanishing. A second issue on the same screenshot — the chip's translate distance pushed it
+almost entirely outside the card's visible bounds — was fixed at the same time.
+
+## Files
+
+- `src/engine/types.ts`, `src/engine/worker.ts`, `src/engine/run.ts`, `src/engine/instrument.py`
+  — engine wiring and the D39 message.
+- `src/recording/types.ts` — `DetailedEvent.index: number | string`.
+- `src/player/spotlight.ts` — the compare-lift fix (both tiers).
+- `src/player/indexVars.ts` — `resolveArrowsForStep`/`ResolvedArrow` moved here from a private
+  function in `Picture.tsx`, now shared by `Picture.tsx` and `spotlight.ts` (one resolution, not
+  two that could disagree). `src/player/values/NumberList.tsx` re-exports `ResolvedArrow` so
+  `StringList.tsx`/`ListFrame.tsx`'s existing imports needed no change.
+- `src/player/motion/variants.ts` — `glowBoxShadowKeyframes`/`GLOW_TRANSITION`,
+  `returnFlightVariants`.
+- `src/player/Picture.tsx` — `glowedCellFor`, `compareResultFor`, `returnValueFor`,
+  `glowedIndicesArray`; new props threaded into every shape branch.
+- `src/player/values/{NumberList,StringList,DictTable,StringChip,ListFrame}.tsx`,
+  `src/player/CallStackCards.tsx` — the new optional props and their rendering, including
+  `data-glowed` markers (a stable, synchronous test hook for what's otherwise a purely animated
+  `boxShadow` value).
+- `src/Workspace.tsx` — `detailLevel`/`lastRunDetailLevel` state, extended `isStale`, the
+  toggle, `handleRun` branching.
+- `src/engine/detailedTraces.test.ts` (new) — generates the 3 committed Detailed traces in
+  `tests/fixtures/traces/detailed/`, its own subdirectory per D23/m7's own precedent.
+- `src/devPreload.ts` — an additive `&detail=detailed` param resolving against the new trace set.
+- `scripts/screenshots/picture.spec.ts` — 5 new Detailed scenarios, plus the existing
+  `compare-lift-and-arrows`/`index-arrow-mid` scenarios re-shot (unchanged code, corrected
+  output).
+- Test files: `run.test.ts`, `worker.test.ts`, `instrument.test.ts`, `spotlight.test.ts`,
+  `Picture.test.tsx`, `Workspace.test.tsx` — new coverage for every finding above, not just the
+  new features.
+- `docs/PLAN_v2.md` — Resume-here box, AC-T2-2 closed, AC-T2-3's one honest exception recorded,
+  D39's "~3–4×" corrected to the measured 2.40× (bubble sort) where it's stated.
+
+## Uncertain
+
+1. **Performance at scale, still not measured** (carried over from 11a's own Uncertain list) —
+   now genuinely reachable from the UI, so a real concern rather than a hypothetical one. Worth
+   a real-browser check before this ships broadly.
+2. **The compare badge's "exactly one or two lifted cells" rule** covers bubble/insertion sort
+   and binary search — every Mode B lesson that exists — but hasn't been checked against a
+   hypothetical three-operand or cross-list comparison. Fails closed (no badge) for anything it
+   doesn't recognize, matching this codebase's established policy, so the failure mode is "no
+   badge," never a wrong one.
+3. **AC-9.22 mastery ring / the challenge-view toggle (D26)** — genuinely milestone 12+'s scope,
+   noted only so "Overview/Detailed" isn't confused with "plain/challenge," a different toggle
+   this milestone doesn't touch.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  29 passed (29)
+                    Tests       413 passed (413)        (393 → 413: +20 for this milestone)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built — landing chunk still has zero pyodide/codemirror/comlink/
+                    record_detailed_trace references (grepped, not assumed); Workspace's own
+                    lazy chunk correctly carries the new Detailed fixture data (~123KB of JSON)
+=== playwright ===  27 passed (25.6s) — 22 → 27: +5 new Detailed scenarios
+```
+
+New/changed screenshots, all read directly before this checkpoint:
+
+- `detailed-read-glow.png` — `nums[mid]` glows alone, before any compare has happened.
+- `detailed-compare-resolved.png` — `nums[j]`/`nums[j+1]` lift, connector, ✓ badge.
+- `detailed-compare-single-cell.png` — the one-cell badge case (binary search).
+- `detailed-sequential-writes.png` — the swap idiom's two writes, mid-sequence, with the real
+  momentarily-duplicated value visible.
+- `detailed-return-flight.png` — the flying-value chip, now settled and visible on
+  `factorial(1)`'s card.
+- `compare-lift-and-arrows.png` (re-shot) — the shipped bug, fixed: lift + connector now
+  actually render.
+- `index-arrow-mid.png` (re-shot) — the same fix's correct broader effect on a plain read.
+
+## Github Commands for this milestone
+
+```bash
+git add src/engine/types.ts src/engine/worker.ts src/engine/run.ts src/engine/instrument.py \
+  src/engine/worker.test.ts src/engine/run.test.ts src/engine/instrument.test.ts \
+  src/engine/detailedTraces.test.ts src/recording/types.ts src/devPreload.ts \
+  src/player/ src/Workspace.tsx src/Workspace.test.tsx scripts/screenshots/picture.spec.ts \
+  tests/fixtures/traces/detailed/ docs/
+git commit -m "Milestone 11b: wire Detailed tracing into Workspace (Tier 2, UI)"
+git push
+```
+
+## Next
+
+Milestone 12 — Game layer: Explore (§9), per the Build milestones table. Needs the event
+vocabulary finalised in m11 — now complete across both tiers.

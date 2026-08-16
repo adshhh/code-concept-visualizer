@@ -2,6 +2,7 @@ import * as Comlink from "comlink";
 import { loadPyodide, type PyodideInterface } from "pyodide";
 import guardrailsSource from "./guardrails.py?raw";
 import tracerSource from "./tracer.py?raw";
+import instrumentSource from "./instrument.py?raw";
 import type { ExecutionResult, RunResult } from "./types";
 
 // Self-hosted, not CDN — copied into the build by vite-plugin-static-copy (see
@@ -27,9 +28,12 @@ function getPyodide(): Promise<PyodideInterface> {
         );
         // tracer.py's top-level code references guardrails.py's names (GuardrailExceeded,
         // MAX_STEPS, ...) as plain globals rather than importing them — this load order is
-        // what makes that resolve; see tracer.py's own module docstring.
+        // what makes that resolve; see tracer.py's own module docstring. instrument.py (m11a)
+        // is the same pattern one level further: it references both guardrails.py's and
+        // tracer.py's names as plain globals, so it has to load last.
         pyodide.runPython(guardrailsSource);
         pyodide.runPython(tracerSource);
+        pyodide.runPython(instrumentSource);
         return pyodide;
       })
       .catch((error: unknown) => {
@@ -69,6 +73,24 @@ async function runInWorker(source: string, input?: string): Promise<RunResult> {
   return JSON.parse(resultJson) as RunResult;
 }
 
+/** m11b's entry point for Detailed (Tier 2) recordings — same shape as runInWorker, calling
+ * `record_detailed_trace` (instrument.py) instead of `record_trace`. A sibling function, not
+ * a parameterized runInWorker, matching this file's own existing precedent (executeInWorker/
+ * runInWorker are already two separate functions on one Pyodide instance, not one function
+ * branching on a mode flag). */
+async function runDetailedInWorker(
+  source: string,
+  input?: string,
+): Promise<RunResult> {
+  const pyodide = await getPyodide();
+  const recordDetailedTrace = pyodide.globals.get("record_detailed_trace") as (
+    src: string,
+    inputValue?: string,
+  ) => string;
+  const resultJson: string = recordDetailedTrace(source, input);
+  return JSON.parse(resultJson) as RunResult;
+}
+
 /** Fire-and-forget from the main thread right after a fresh worker is spun up to replace
  * one that was just terminated — starts the ≈1.8s cold Pyodide load in the background so
  * it's likely already warm by the time the owner reads a timeout message and re-runs,
@@ -77,4 +99,4 @@ async function warmUp(): Promise<void> {
   await getPyodide();
 }
 
-Comlink.expose({ executeInWorker, runInWorker, warmUp });
+Comlink.expose({ executeInWorker, runInWorker, runDetailedInWorker, warmUp });

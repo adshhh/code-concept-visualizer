@@ -258,10 +258,42 @@ Three constraints shape every decision:
 > are documented in `DESIGN_RATIONALE.md` as the reason this milestone trusts running code over
 > reading it.
 >
-> **Next: milestone 11b** — wire the Detailed tracing engine into `Workspace` as the real
-> Overview/Detailed toggle (D38), with the new compare ✓/✗ resolution and read-glow gestures §5
-> describes. See the Build milestones table below, and _How the build actually runs_ for the
-> ten-step per-milestone loop.
+> **Milestone 11b is built and checkpointed** (see `checkpoint_report.md`). The Detailed tracing
+> engine is real in the running app: `worker.ts` loads `instrument.py` and exposes
+> `runDetailedInWorker`, `run.ts` gains a sibling `runDetailed()`, and `Workspace.tsx` has the
+> real Overview/Detailed segmented toggle D38 asked for (local state, not persisted — toggling
+> alone marks the trace stale, reusing §7's own "editing invalidates the trace" rule rather than
+> a second concept). All three new gestures §5 names are built: the compare gesture's ✓/✗
+> resolution, the read gesture's glow, and the return gesture's "answer flies to the caller" —
+> closing **AC-T2-2**, deferred from 11a's own Verification table.
+>
+> **This milestone's own review pass — running the real player functions against the real
+> committed 26_bubble_sort trace, not re-reading the plan — found that §5's compare gesture had
+> never actually rendered, in *either* mode, since m5.** `Picture.tsx`'s `liftedIndicesFor`
+> requires a cell to be `primary` *and* unchanged, but the only mechanism that ever marked a cell
+> primary for a read/compare (`computeEmphasis`'s line-text scan) only ever marked the *whole
+> variable*, never a specific index — so on every one of bubble sort's 10 comparison steps, zero
+> cells were primary and the lift/connector never appeared. `docs/images/compare-lift-and-arrows.png`,
+> the m5 screenshot captioned as proving this gesture, confirms it: correct `j`/`j+1` arrows, no
+> lift, no connector, all cells uniformly bright. The m5 review passed because the arrows were
+> right. **Fixed with the owner's explicit sign-off** (asked directly, since it changes Overview's
+> own rendered output, not just Detailed's): `spotlight.ts` now marks the exact cell(s)
+> `indexVars.ts`'s own arrow-resolution points at as primary, reusing already-proven machinery
+> rather than a second mechanism — one fix serving both tiers, pinned by a test against the real
+> trace and re-shot in the screenshot itself. Three more real findings from the same pass: a
+> shipped 11a type bug (`DetailedEvent.index` was `number`-only; a dict key read/write reports a
+> string), a missed renderer (`StringChip` needed the glow surface too — string index reads emit
+> events the same as list ones), and — found only by looking at the return-flight screenshot
+> itself, after the code already passed every test — a first-draft animation that faded the
+> returned-value chip to fully invisible within its own 0.4s, meaning a user who actually paused
+> on that frame (not just a Playwright wait) would see nothing at all; fixed to settle at a
+> stable, visible resting state instead, matching every other one-shot gesture in this codebase.
+> Full trail in `checkpoint_report.md` and `DESIGN_RATIONALE.md`.
+>
+> D39's "~3–4× the steps" estimate is now a measured one: bubble sort ran **2.40×** more frames
+> in Detailed than Overview (101 vs 42) — corrected where D39 is stated, not silently changed.
+>
+> **Next: milestone 12 (Game layer — Explore)**, per the Build milestones table below.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -332,7 +364,7 @@ re-locked before building resumes.
 | D36 | **Cut from v1:** stacks & queues (a data-structure topic, least connected to the set) and linear search _as a lesson_. Linear search still ships as **code** — compare-the-algorithms pairs it against binary search. 11 lessons, not 13.                                                                                                         |
 | D37 | **One mode per lesson.** No lesson offers both A and B; reverse mode already provides the "now you try" path.                                                                                                                                                                                                                                     |
 | D38 | **Tier 1 and Tier 2 become a user-facing setting, not just build phases:** _Overview_ (one step per line) ⇄ _Detailed_ (one step per operation). Tier 1 therefore ships permanently as Overview rather than being replaced. Tier 2 is still built second (D4).                                                                                    |
-| D39 | The 2,000-step cap applies **per detail level**. Detailed produces ~3–4× the steps, so a program that fits in Overview may not fit in Detailed — in which case the message must say _"too long to show in Detailed — switch to Overview"_, not merely fail.                                                                                       |
+| D39 | The 2,000-step cap applies **per detail level**. Detailed produces ~3–4× the steps _(v2/m11b: measured at 2.40× for bubble sort — see the Resume-here box)_, so a program that fits in Overview may not fit in Detailed — in which case the message must say _"too long to show in Detailed — switch to Overview"_, not merely fail.                                                                                       |
 | D35 | Flowchart _scope_ (one loop iteration vs. the whole algorithm) is a small per-concept setting, not extra authoring. A branch inside the scope renders as a diamond with both arms, rather than as two separate flowcharts.                                                                                                                        |
 | D29 | Prediction moments are chosen by **surprisingness**, not spacing — plus an _"what will this be N steps from now"_ question type.                                                                                                                                                                                                                  |
 | D30 | Compare-the-algorithms reports **steps, comparisons and swaps — never milliseconds**, which would measure animation speed rather than the algorithm and teach something false. Big-O explanations reference the counts just observed.                                                                                                             |
@@ -620,7 +652,8 @@ swap (exactly two positions traded values → animate the arc), and the next lin
 way a branch went (→ "will these two swap?" still works as a quiz question at Overview). What Overview
 genuinely cannot show is the _inside_ of a line unfolding — the comparison resolving on screen.
 
-**Step cap interaction (D39):** Detailed produces ~3–4× the steps for the same program. A program that
+**Step cap interaction (D39):** Detailed produces ~3–4× the steps for the same program _(v2/m11b:
+measured at 2.40× for bubble sort, not asserted — see the Resume-here box)_. A program that
 fits under 2,000 in Overview may exceed it in Detailed; the message must then say _"too long to show
 in Detailed — switch to Overview"_ rather than simply failing.
 
@@ -654,14 +687,21 @@ mapping is what keeps arbitrary code animating coherently.
 >    `return`: value).
 > 2. Each event maps to exactly one canonical animation gesture (§5) — no event type produces two
 >    different visual treatments depending on context (the "one-to-one mapping" claim above).
+>    **Closed at m11b**: compare → lift + connector + ✓/✗ resolution, index_read → glow,
+>    index_write/append → the existing write/append gestures (needed no new code — see
+>    `checkpoint_report.md`), return → the flying value chip.
 > 3. Detailed is additive: Overview's behavior (all of Tier 1, already shipped) is provably
->    unchanged by Detailed mode's existence.
+>    unchanged by Detailed mode's existence. **m11b found one exception worth recording
+>    honestly**: fixing this milestone's own shipped compare-lift bug (see the Resume-here box)
+>    did change Overview's rendered output — a bug fix, not something Detailed's existence
+>    caused, and made with the owner's explicit sign-off, but not literally "unchanged."
 > 4. Instrumented code computes exactly what the original computed — same result, same evaluation
 >    order, every sub-expression evaluated exactly as many times as the original would, even when
 >    it has a side effect.
 > 5. Detailed mode consumes the same step budget (`MAX_STEPS`) Overview uses, naturally exhausted
->    faster (D39: ~3-4x more steps for the same program) — never a separate, silently larger cap.
->    A program that no longer fits says so with a Detailed-specific message, not a generic failure.
+>    faster (D39: ~3-4x more steps for the same program, measured at 2.40x for bubble sort — see
+>    the Resume-here box) — never a separate, silently larger cap. A program that no longer fits
+>    says so with a Detailed-specific message, not a generic failure.
 > 6. Determinism holds for Detailed mode the same way AC-3.7 holds for Tier 1: the same source
 >    produces a byte-identical frame array across runs.
 
