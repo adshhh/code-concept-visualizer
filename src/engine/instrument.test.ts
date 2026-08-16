@@ -277,6 +277,42 @@ describe("instrument.py — evaluation semantics (finding #4)", () => {
   });
 });
 
+// m11b code review: visit_AugAssign was missing entirely — `nums[i] += 1` computed the right
+// value (real Python's own bytecode runs unmodified either way) but silently emitted zero
+// index_read/index_write events, contradicting this module's own docstring ("wrap every read,
+// index, comparison, and append"). Not caught by the equivalence suite below, since that suite
+// only compares stdout/variables, never event counts. Pinned here, mirroring the existing
+// evaluation-semantics tests' own shape.
+describe("instrument.py — augmented assignment to a subscript target (code-review finding)", () => {
+  it("nums[i] += n emits a real index_read then index_write, and computes correctly", () => {
+    const result = detailedTrace(
+      "nums = [5, 10]\ni = 0\nnums[i] += 3\nprint(nums)\n",
+    );
+    expect(result.status).toBe("ok");
+    expect(result.stdout).toBe("[8, 10]\n");
+    const events = eventsOf(result);
+    expect(events).toEqual([
+      { kind: "index_read", container: "nums", index: 0, value: 5 },
+      { kind: "index_write", container: "nums", index: 0, value: 8 },
+    ]);
+  });
+
+  it("does not double-evaluate a side-effecting index expression", () => {
+    const source =
+      "count = 0\ndef bump():\n    global count\n    count = count + 1\n    return count - 1\nnums = [1, 2, 3]\nnums[bump()] += 100\nprint(nums, count)\n";
+    const result = detailedTrace(source);
+    expect(result.status).toBe("ok");
+    expect(result.stdout).toBe("[101, 2, 3] 1\n");
+  });
+
+  it("a plain-name aug-assign (no subscript target) is left untouched, with no events", () => {
+    const result = detailedTrace("x = 5\nx += 1\nprint(x)\n");
+    expect(result.status).toBe("ok");
+    expect(result.stdout).toBe("6\n");
+    expect(eventsOf(result)).toEqual([]);
+  });
+});
+
 describe("instrument.py — line fidelity (finding #6)", () => {
   it("every event's line matches the original source, including a multi-line expression", () => {
     const source =

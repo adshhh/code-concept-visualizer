@@ -2122,6 +2122,56 @@ New/changed screenshots, all read directly before this checkpoint:
   actually render.
 - `index-arrow-mid.png` (re-shot) — the same fix's correct broader effect on a plain read.
 
+## `/code-review` found and fixed 5 real issues before commit
+
+1. **`nums[i] += 1` was never instrumented at all — a real gap, not a rendering nuance.**
+   `_DetailedTransformer` had no `visit_AugAssign`, so an augmented assignment to a subscript
+   target (explicitly allowed by `parser.ts`'s own `parseAssignmentTargetTokens`, used for
+   every `AUG_OPS` case) was left completely untouched — correct output, since real Python's
+   own bytecode runs unmodified either way, but silently zero `index_read`/`index_write`
+   events or gestures for that line, contradicting `instrument.py`'s own docstring ("wrap
+   every read, index, comparison, and append"). Not caught by the 31-fixture equivalence
+   suite, which only ever compared stdout/variables, never event counts. Fixed with a new
+   `_rewrite_aug_assign`, mirroring `_rewrite_assign_targets`'s own single-evaluation
+   discipline (the index is evaluated once, reused for both the read and the store) and
+   reusing the *existing* `index_read`/`index_write` reporters rather than adding new ones.
+   Verified empirically before writing the formal test (a `bump()` side-effect counter,
+   matching this milestone's own established discipline): the index still evaluates exactly
+   once, the computed value is correct, and a plain-name aug-assign (`x += 1`, no subscript)
+   stays completely untouched, zero events. Three new pinning tests in `instrument.test.ts`.
+2. **`run.ts` had ~30 lines of `run()`/`runDetailed()` hand-duplicated**, including both
+   timeout messages — real drift risk (a future fix to one, like m6's own found-by-review
+   try/catch addition, could land on one sibling and not the other). Factored into a shared
+   `runWithWorker()` taking only the one thing that actually differs (which worker method to
+   call); both public functions' signatures and behavior are unchanged.
+3. **The single-cell compare-badge logic was copy-pasted between `NumberList.tsx` and
+   `StringList.tsx`** — the exact "two consumers could silently disagree" risk
+   `indexVars.ts`'s own `resolveArrowsForStep` comment already named, just not applied here
+   the first time. Extracted into `src/player/values/compareBadge.ts`'s
+   `resolveCompareBadge()`, used by both.
+4. **The Overview/Detailed toggle didn't reflect what a `?fixture=...&detail=detailed` deep
+   link actually loaded** — `Workspace.tsx` hardcoded `detailLevel`'s initial state to
+   `"overview"` regardless, so the exact URL shape `picture.spec.ts`'s own screenshot suite
+   uses showed a Detailed picture with "Overview" pressed. `DevPreload` gained a
+   `detailLevel` field; `Workspace.tsx` now seeds both `detailLevel` and
+   `lastRunDetailLevel` from it. Verified in a real browser (a one-off Playwright check
+   against the real toggle's `aria-pressed` state), not just by typechecking.
+5. **The read-glow `boxShadow` could visually stick on a cell that's no longer being read.**
+   Every glow-capable component only included `boxShadow` in its `animate` target while
+   `glowed[i]` was true, on the mistaken assumption that Framer Motion "resets" a value once
+   its own keyframe transition finishes — it doesn't; omitting a key entirely freezes the DOM
+   at whatever was last computed. Real risk if a user steps faster than `GLOW_TRANSITION`'s
+   0.6s (holding a step key, or fast autoplay). Fixed in all four glow-capable components
+   (`NumberList`, `StringList`, `StringChip`, `DictTable`): `boxShadow` is now always present
+   in `animate` — the keyframe array while glowing, a new explicit `GLOW_OFF_BOX_SHADOW`
+   otherwise — so Framer Motion always has a real target to converge to, every render.
+
+Full check suite re-run clean after all five: typecheck, 416/416 tests (413 → 416: +3 for the
+AugAssign fixture), format, build, and all 27 Playwright scenarios (including a fresh
+`compare-lift-and-arrows`/`detailed-*` re-shoot, visually unchanged by these fixes as expected
+since none of them touch rendered pixels except finding #5, which is only observable under
+fast stepping, not a static screenshot).
+
 ## Github Commands for this milestone
 
 ```bash

@@ -207,8 +207,14 @@ export function Workspace() {
   // D38/m11b: Overview (Tier 1, one step per line) or Detailed (Tier 2, one step per
   // operation) — a real user-facing setting now, not just a build phase. Local state, not
   // persisted (see the m11b plan's own decision on this) — defaults to "overview", so a
-  // visitor who never touches the toggle sees exactly today's behavior (AC-T2-3).
-  const [detailLevel, setDetailLevel] = useState<DetailLevel>("overview");
+  // visitor who never touches the toggle sees exactly today's behavior (AC-T2-3). Seeded from
+  // `devPreload.detailLevel` when a `?fixture=...&detail=detailed` deep link is what's
+  // actually on screen (found missing by code review: this used to hardcode "overview"
+  // regardless, leaving the toggle showing the wrong pressed state for exactly the deep-link
+  // shape the Playwright screenshot suite itself uses).
+  const [detailLevel, setDetailLevel] = useState<DetailLevel>(
+    devPreload?.detailLevel ?? "overview",
+  );
   // Mirrors lastRunSource exactly, for the same reason: `isStale` needs to know not just
   // whether the *source* changed since the last run, but whether the *detail level* did too
   // — toggling the setting with no source edit is still "what would run now differs from
@@ -216,7 +222,7 @@ export function Workspace() {
   // covers exactly that shape of staleness, so toggling reuses it rather than inventing a
   // second "please re-run" concept.
   const [lastRunDetailLevel, setLastRunDetailLevel] =
-    useState<DetailLevel | null>(devPreload ? "overview" : null);
+    useState<DetailLevel | null>(devPreload?.detailLevel ?? null);
   const [running, setRunning] = useState(false);
   // Defends the seam where run()'s own "every branch is a result, nothing throws" contract
   // might have a gap (found by code review: raceWithTimeout has no .catch, so a genuine

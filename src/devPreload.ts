@@ -1,6 +1,6 @@
 import type { Recording } from "./recording/types";
 import { recordingsFromGlobModules } from "./recording/fromGlob";
-import type { RunResult } from "./engine/types";
+import type { DetailLevel, RunResult } from "./engine/types";
 
 // Real, committed trace data (m4) loaded eagerly — dev/test-only scaffolding, isolated in its
 // own module (found by code review re-typing the deleted PictureDevHarness's logic almost
@@ -40,6 +40,12 @@ export interface DevPreload {
   source: string;
   result: RunResult;
   step: number;
+  /** Which trace set `result` was actually resolved from — `?detail=detailed` or its absence.
+   * Found missing by code review: without this, Workspace.tsx had no way to initialize its
+   * own Overview/Detailed toggle to match what devPreload actually loaded, so visiting
+   * `?fixture=...&detail=detailed` (exactly picture.spec.ts's own screenshot-suite pattern)
+   * rendered a Detailed picture while the toggle showed "Overview" as pressed. */
+  detailLevel: DetailLevel;
 }
 
 /** Reads `?fixture=&step=` from the current URL and resolves it against the committed traces
@@ -51,10 +57,10 @@ export function readDevPreload(): DevPreload | null {
   const params = new URLSearchParams(window.location.search);
   const fixture = params.get("fixture");
   if (!fixture) return null;
+  const detailLevel: DetailLevel =
+    params.get("detail") === "detailed" ? "detailed" : "overview";
   const traces =
-    params.get("detail") === "detailed"
-      ? RECORDED_DETAILED_TRACES
-      : RECORDED_TRACES;
+    detailLevel === "detailed" ? RECORDED_DETAILED_TRACES : RECORDED_TRACES;
   if (!(fixture in traces)) return null;
   const recording = traces[fixture]!;
   const rawStep = Number(params.get("step") ?? 0);
@@ -70,5 +76,6 @@ export function readDevPreload(): DevPreload | null {
       frames: recording.frames,
     },
     step,
+    detailLevel,
   };
 }
