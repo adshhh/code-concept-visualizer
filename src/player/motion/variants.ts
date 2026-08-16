@@ -74,16 +74,25 @@ export const swapArcKeyframes = { y: [0, -18, 0] };
  * `emphasisVariants` tier it already has — deliberately not a scale/position change (that's
  * what `lift`/`emphasisVariants` already do), and a **different hue** from both the amber
  * lift connector and the emerald write/primary tone, so a read reads as its own distinct
- * signal rather than a duplicate of either. Framer Motion holds at a keyframe array's last
- * value once its transition finishes — the last stop here is fully transparent, so this
- * self-resets to invisible without needing a remount/key trick (the same reason
- * `flashVariants` above was originally shaped as a keyframe array, though nothing currently
- * renders that one). */
+ * signal rather than a duplicate of either.
+ *
+ * **`GLOW_OFF_BOX_SHADOW` must stay present in every render's `animate` target, not be
+ * omitted when a cell isn't glowing — found by code review.** An earlier version only
+ * included `boxShadow` in `animate` while `glowed[i]` was true and left the key out entirely
+ * otherwise, on the assumption that Framer Motion "resets" a value once its keyframe
+ * transition finishes. It doesn't: `animate` only manages a style while that key keeps
+ * appearing in it — dropping the key entirely (rather than driving it to an explicit end
+ * value) freezes the DOM at whatever was last computed, so a cell glowed on one step could
+ * keep visibly glowing on later ones if the user stepped faster than `GLOW_TRANSITION`'s own
+ * 0.6s. Every caller now includes `boxShadow` unconditionally — the keyframe array while
+ * glowing, this explicit transparent value otherwise — so Framer Motion always has a real
+ * target to animate *toward*, on every render, not just the glowing one. */
 export const glowBoxShadowKeyframes = [
   "0 0 0 0 rgba(56, 189, 248, 0)",
   "0 0 0 4px rgba(56, 189, 248, 0.6)",
   "0 0 0 0 rgba(56, 189, 248, 0)",
 ];
+export const GLOW_OFF_BOX_SHADOW = "0 0 0 0 rgba(56, 189, 248, 0)";
 export const GLOW_TRANSITION: Transition = { duration: 0.6, ease: "easeOut" };
 
 /** return — the "answer flies to the caller" half of §5's call/return gesture. The

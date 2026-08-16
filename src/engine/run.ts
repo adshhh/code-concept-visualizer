@@ -17,59 +17,20 @@ interface WorkerApi {
 // why sharing one would be wrong, not just redundant.
 const { getHandle, replace } = createWorkerLifecycle<WorkerApi>();
 
-/** m4's entry point for playback data — same validate-first gate and two-phase timeout
- * split as client.ts's execute() (see its docstring for why load-time and execution-time
- * need separate budgets), but resolves to a full Frame[] recording (§3) instead of a
- * pass/fail result. execute() itself is untouched; this is a separate pipeline, not a
- * replacement, since the m3 dev harness and any future quick-check UI have no use for a
- * frame array. */
-export async function run(source: string, input?: string): Promise<RunResult> {
-  const validation = validate(source);
-  if (!validation.ok) {
-    return {
-      status: "rejected",
-      line: validation.line,
-      message: validation.message,
-    };
-  }
-
-  const { worker, api } = getHandle();
-
-  const warmedUp = await raceWithTimeout(api.warmUp(), LOAD_TIMEOUT_MS);
-  if (!warmedUp.ok) {
-    return {
-      status: "timeout",
-      message:
-        "The Python engine is taking too long to load — check your connection and try again.",
-    };
-  }
-
-  const outcome = await raceWithTimeout<RunResult>(
-    api.runInWorker(source, input),
-    EXECUTION_TIMEOUT_MS,
-  );
-  if (!outcome.ok) {
-    worker.terminate();
-    replace();
-    return {
-      status: "timeout",
-      message:
-        "This program ran too long — it may contain a loop that never ends.",
-    };
-  }
-  return outcome.value;
-}
-
-/** m11b's entry point for a Detailed (Tier 2, D38) recording — the same validate-first gate
- * and two-phase timeout split as run() (see its own docstring), calling
- * `runDetailedInWorker`/`record_detailed_trace` instead. A sibling to run(), not a `detail`
- * parameter on it: both call the same worker handle (one worker, two exposed entry points —
- * see worker.ts), so there is nothing to parameterize beyond which method to call, and
- * keeping run()'s own signature untouched means every existing caller/test of it needs no
- * change. */
-export async function runDetailed(
+/** The validate → warm-up → race-with-timeout shape shared by run() and runDetailed() —
+ * originally hand-duplicated between the two (found by code review at m11b: ~30 identical
+ * lines, including the two timeout messages, risking exactly the drift a future change to
+ * either would invite — e.g. m6's own found-by-review try/catch fix landing on one sibling
+ * and silently not the other). `invoke` is the one thing that actually differs between the
+ * two tiers: which exposed worker method to call. */
+async function runWithWorker(
   source: string,
-  input?: string,
+  input: string | undefined,
+  invoke: (
+    api: WorkerApi,
+    source: string,
+    input?: string,
+  ) => Promise<RunResult>,
 ): Promise<RunResult> {
   const validation = validate(source);
   if (!validation.ok) {
@@ -92,7 +53,7 @@ export async function runDetailed(
   }
 
   const outcome = await raceWithTimeout<RunResult>(
-    api.runDetailedInWorker(source, input),
+    invoke(api, source, input),
     EXECUTION_TIMEOUT_MS,
   );
   if (!outcome.ok) {
@@ -105,6 +66,33 @@ export async function runDetailed(
     };
   }
   return outcome.value;
+}
+
+/** m4's entry point for playback data — same validate-first gate and two-phase timeout
+ * split as client.ts's execute() (see its docstring for why load-time and execution-time
+ * need separate budgets), but resolves to a full Frame[] recording (§3) instead of a
+ * pass/fail result. execute() itself is untouched; this is a separate pipeline, not a
+ * replacement, since the m3 dev harness and any future quick-check UI have no use for a
+ * frame array. */
+export async function run(source: string, input?: string): Promise<RunResult> {
+  return runWithWorker(source, input, (api, src, inp) =>
+    api.runInWorker(src, inp),
+  );
+}
+
+/** m11b's entry point for a Detailed (Tier 2, D38) recording — the same validate-first gate
+ * and two-phase timeout split as run() (see runWithWorker's own docstring), calling
+ * `runDetailedInWorker`/`record_detailed_trace` instead. A sibling to run(), not a `detail`
+ * parameter on it: both call the same worker handle (one worker, two exposed entry points —
+ * see worker.ts), and keeping run()'s own signature untouched means every existing
+ * caller/test of it needs no change. */
+export async function runDetailed(
+  source: string,
+  input?: string,
+): Promise<RunResult> {
+  return runWithWorker(source, input, (api, src, inp) =>
+    api.runDetailedInWorker(src, inp),
+  );
 }
 
 /** m10: lets a lesson page proactively check whether the engine is available at all,

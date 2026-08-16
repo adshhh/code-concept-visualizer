@@ -3,6 +3,7 @@ import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
+  GLOW_OFF_BOX_SHADOW,
   GLOW_TRANSITION,
   glowBoxShadowKeyframes,
   liftOffset,
@@ -10,6 +11,7 @@ import {
   swapArcKeyframes,
 } from "../motion/variants";
 import { ListFrame } from "./ListFrame";
+import { resolveCompareBadge } from "./compareBadge";
 
 // Canonical definition moved to indexVars.ts at m11b, where the resolution function that
 // produces these now also lives (shared with spotlight.ts) — re-exported here so
@@ -58,14 +60,8 @@ export function NumberList({
 }) {
   const max = items.length > 0 ? Math.max(...items.map((v) => Math.abs(v))) : 0;
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
-  const liftedIndices = items.map((_, i) => i).filter((i) => lifted[i]);
-  // Single-cell badge case (e.g. binary search's `nums[mid] == target`): exactly one lifted
-  // cell and no connector to attach a badge to (ListFrame's connectorRange needs 2+) — see
-  // the m11b plan's compare-badge rule.
-  const singleBadgeIndex =
-    compareResult !== null && liftedIndices.length === 1
-      ? liftedIndices[0]!
-      : null;
+  const { connectorRange, connectorBadge, singleBadgeIndex } =
+    resolveCompareBadge(items.length, lifted, compareResult);
 
   return (
     <ListFrame
@@ -74,12 +70,8 @@ export function NumberList({
       error={error}
       itemCount={items.length}
       arrows={arrows}
-      connectorRange={
-        liftedIndices.length >= 2
-          ? [Math.min(...liftedIndices), Math.max(...liftedIndices)]
-          : undefined
-      }
-      connectorBadge={liftedIndices.length >= 2 ? compareResult : null}
+      connectorRange={connectorRange}
+      connectorBadge={connectorBadge}
     >
       {items.map((value, i) => {
         const heightPct =
@@ -101,7 +93,8 @@ export function NumberList({
             : isSwapping
               ? { ...emphasisVariants[emphasis], x: 0, y: swapArcKeyframes.y }
               : { ...emphasisVariants[emphasis], x: 0 }),
-          ...(glowed[i] ? { boxShadow: glowBoxShadowKeyframes } : {}),
+          // Always present, never omitted — see GLOW_OFF_BOX_SHADOW's own comment for why.
+          boxShadow: glowed[i] ? glowBoxShadowKeyframes : GLOW_OFF_BOX_SHADOW,
         };
 
         return (

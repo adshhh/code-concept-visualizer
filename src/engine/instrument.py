@@ -152,6 +152,80 @@ class _DetailedTransformer(ast.NodeTransformer):
         rewritten = _rewrite_assign_targets(node)
         return rewritten if rewritten is not None else node
 
+    def visit_AugAssign(self, node):
+        self.generic_visit(node)
+        rewritten = _rewrite_aug_assign(node)
+        return rewritten if rewritten is not None else node
+
+
+def _rewrite_aug_assign(node):
+    """`nums[i] += 1`-shaped statements (`SUBSET.md` allows augmented assignment to any valid
+    assignment target, subscripts included) were the one construct this module's own docstring
+    promised to wrap ("every read, index, comparison, and append") but didn't — found by code
+    review, not by the equivalence suite, since leaving the node untouched still computes the
+    right *value* (real Python's own AugAssign bytecode runs unmodified), it just silently
+    emits no `index_read`/`index_write` event or gesture for that line. Only a bare-Name
+    subscript target is handled (`target.value` a plain `Name`) — a plain-name aug-assign
+    (`x += 1`) touches no container index and needs nothing here; anything else is left
+    untouched, the same fails-closed policy every other rewrite in this module already uses.
+
+    Mirrors real Python's own evaluation order for `a[i] += v` (measured during m11a's own
+    prototyping pass for the parallel `a[i] = v` case, and unchanged here): the index is
+    evaluated exactly once, reused for both the read and the store — never re-evaluated, so a
+    side-effecting index expression still only runs once. The old value is fetched through the
+    *existing* `index_read` reporter (not a new mechanism) so the read gets a real event too,
+    the way it always would if the same line had been split into `x = nums[i]; nums[i] = x + 1`
+    by hand.
+    """
+    target = node.target
+    if not (isinstance(target, ast.Subscript) and isinstance(target.value, ast.Name)):
+        return None
+    if isinstance(target.slice, ast.Slice):
+        return None  # fails closed: same reasoning as visit_Subscript's own slice guard.
+
+    container_name = target.value.id
+    idx_assign = _assign(node, "__ccv_idx0", target.slice)
+    old_assign = _assign(
+        node,
+        "__ccv_old0",
+        _call(
+            _REPORT_INDEX_READ,
+            [_load(container_name), _load("__ccv_idx0"), _const(container_name)],
+            node,
+        ),
+    )
+    new_value = _copy_loc(
+        ast.BinOp(left=_load("__ccv_old0"), op=node.op, right=node.value), node
+    )
+    new_assign = _assign(node, "__ccv_new0", new_value)
+    store = ast.Assign(
+        targets=[
+            ast.Subscript(
+                value=_load(container_name),
+                slice=_load("__ccv_idx0"),
+                ctx=ast.Store(),
+            )
+        ],
+        value=_load("__ccv_new0"),
+    )
+    store = _copy_loc(store, node)
+    report_write = _copy_loc(
+        ast.Expr(
+            value=_call(
+                _REPORT_INDEX_WRITE,
+                [
+                    _load(container_name),
+                    _load("__ccv_idx0"),
+                    _load("__ccv_new0"),
+                    _const(container_name),
+                ],
+                node,
+            )
+        ),
+        node,
+    )
+    return [idx_assign, old_assign, new_assign, store, report_write]
+
 
 def _rewrite_assign_targets(node):
     """Handles exactly two shapes, both already run through `generic_visit` by the caller so

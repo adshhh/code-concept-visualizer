@@ -3,6 +3,7 @@ import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
+  GLOW_OFF_BOX_SHADOW,
   GLOW_TRANSITION,
   glowBoxShadowKeyframes,
 } from "../motion/variants";
@@ -44,9 +45,11 @@ export function DictTable({
                   x: 0,
                   opacity: 1,
                   ...emphasisVariants[valueEmphasis[key] ?? "dim"],
-                  ...(key === glowedKey
-                    ? { boxShadow: glowBoxShadowKeyframes }
-                    : {}),
+                  // Always present, never omitted — see GLOW_OFF_BOX_SHADOW's own comment.
+                  boxShadow:
+                    key === glowedKey
+                      ? glowBoxShadowKeyframes
+                      : GLOW_OFF_BOX_SHADOW,
                 }}
                 exit={{ x: 20, opacity: 0 }}
                 transition={{

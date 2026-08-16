@@ -4,6 +4,7 @@ import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
+  GLOW_OFF_BOX_SHADOW,
   GLOW_TRANSITION,
   glowBoxShadowKeyframes,
 } from "../motion/variants";
@@ -50,7 +51,10 @@ export function StringChip({
             layout
             animate={{
               ...emphasisVariants[emphasis],
-              ...(glowed[i] ? { boxShadow: glowBoxShadowKeyframes } : {}),
+              // Always present, never omitted — see GLOW_OFF_BOX_SHADOW's own comment.
+              boxShadow: glowed[i]
+                ? glowBoxShadowKeyframes
+                : GLOW_OFF_BOX_SHADOW,
             }}
             transition={{ ...GESTURE_TRANSITION, boxShadow: GLOW_TRANSITION }}
             data-glowed={glowed[i] || undefined}

@@ -3,12 +3,14 @@ import type { Emphasis } from "../spotlight";
 import {
   emphasisVariants,
   GESTURE_TRANSITION,
+  GLOW_OFF_BOX_SHADOW,
   GLOW_TRANSITION,
   glowBoxShadowKeyframes,
   liftOffset,
   listItemVariants,
 } from "../motion/variants";
 import { ListFrame } from "./ListFrame";
+import { resolveCompareBadge } from "./compareBadge";
 import type { ResolvedArrow } from "./NumberList";
 
 /** "Same boxes, text inside, no shading" (§5) — the string/mixed-list sibling of
@@ -37,11 +39,8 @@ export function StringList({
   error?: boolean;
 }) {
   const columns = `repeat(${Math.max(items.length, 1)}, minmax(2.5rem, 1fr))`;
-  const liftedIndices = items.map((_, i) => i).filter((i) => lifted[i]);
-  const singleBadgeIndex =
-    compareResult !== null && liftedIndices.length === 1
-      ? liftedIndices[0]!
-      : null;
+  const { connectorRange, connectorBadge, singleBadgeIndex } =
+    resolveCompareBadge(items.length, lifted, compareResult);
 
   return (
     <ListFrame
@@ -50,12 +49,8 @@ export function StringList({
       itemCount={items.length}
       arrows={arrows}
       error={error}
-      connectorRange={
-        liftedIndices.length >= 2
-          ? [Math.min(...liftedIndices), Math.max(...liftedIndices)]
-          : undefined
-      }
-      connectorBadge={liftedIndices.length >= 2 ? compareResult : null}
+      connectorRange={connectorRange}
+      connectorBadge={connectorBadge}
     >
       {items.map((value, i) => {
         const emphasis = cellEmphasis[i] ?? "dim";
@@ -63,7 +58,8 @@ export function StringList({
           ...(lifted[i]
             ? { ...emphasisVariants[emphasis], ...liftOffset }
             : emphasisVariants[emphasis]),
-          ...(glowed[i] ? { boxShadow: glowBoxShadowKeyframes } : {}),
+          // Always present, never omitted — see GLOW_OFF_BOX_SHADOW's own comment for why.
+          boxShadow: glowed[i] ? glowBoxShadowKeyframes : GLOW_OFF_BOX_SHADOW,
         };
 
         return (
