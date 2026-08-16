@@ -1155,6 +1155,83 @@ doesn't add a new way to produce it.
 
 ---
 
+## 30. Milestone 11a: what a second review pass found by running the code instead of reading it
+
+This is the entry the project's own `/log-decision` documentation used as its illustrative example
+of what belongs here (§5, "The technique behind sub-expression tracing"), written back when this
+milestone was still theoretical. This entry is what actually happened building it.
+
+**The situation.** The owner asked for a second, more skeptical review pass on milestone 11a's
+plan specifically — not a re-read, given how much weight §5 and D4 already put on this being "the
+hardest module in the project." That pass didn't add more prose. It opened a Python shell and
+prototyped the exact AST rewrite the plan described, on real inputs, before a single line of it
+was written into the codebase.
+
+**What it found — three defects and one undocumented property, in code that had not shipped yet:**
+
+1. **A self-contradiction, caught by measurement.** The plan's `index_read` rewrite passed the
+   index expression to the reporter *and* a pre-computed lookup using that same expression —
+   `__report(container, idx_expr, container[idx_expr])` — evaluating `idx_expr` twice, while the
+   same document claimed elsewhere that read events had no double-evaluation risk. A four-line
+   script with a counting side effect settled it: 2 evaluations, not 1. The fix generalized into
+   one rule applied to every rewrite: the reporter receives operands, never a result computed
+   from an expression it doesn't own the only copy of.
+2. **The swap idiom — the near-miss with real consequences.** `nums[j], nums[j+1] = nums[j+1],
+   nums[j]` is the subset's one deliberate tuple exception, and it's not a special case nobody
+   uses — bubble sort and insertion sort are built entirely out of it, and the landing page's own
+   hero animation runs bubble sort. The plan's original rewrite (each target as its own sequential
+   statement) was never tested against this shape at all — it was designed by analogy to the
+   simpler single-target case. Measured directly: `[2, 2, 9]` instead of `[2, 5, 9]`. No exception,
+   no crash, no guardrail trip — a quietly wrong answer, for exactly the two sorting algorithms
+   this project ships. The real fix mirrors what real Python actually does (also measured, not
+   assumed from the language reference): evaluate the entire right-hand side into temporaries
+   first, *then* store into each target using its own once-evaluated index.
+3. **A location bug, caught by constructing the one case that exposes it.** `ast.fix_missing_locations`
+   fills a missing source location from the *parent* node — correct when a child shares its
+   parent's line, silently wrong the moment it doesn't. `total = (5\n + nums[i])` reported line 1
+   for a subscript that's really on line 2. Every constructed node now carries its own
+   `ast.copy_location` from the original; `fix_missing_locations` remains only as a backstop for
+   what that doesn't reach.
+4. **An emergent property worth pinning, not fixing.** Sub-expression events land in the frame
+   array *before* the line-complete frame for the line that produced them — the right narrative
+   order (watch the read happen, then see the line finish), and a natural consequence of how the
+   reporters and the existing line tracer share one list. Documented and tested explicitly so a
+   future change doesn't "simplify" it into the wrong order without anyone noticing why it mattered.
+
+**Two more, found only once the real implementation existed and its own test suite ran against
+it — not by more reading, by more running:**
+
+5. A slice read (`nums[1:3]`) was wrapped by the same rule as a plain index read, and a Python
+   `slice` object doesn't survive `json.dumps`. The semantic-equivalence test — run across all 31
+   accepted fixtures, not a hand-picked subset — crashed on the one fixture that happened to use
+   slicing. Fixed by excluding slices from instrumentation entirely; §3's five events never
+   included one for a slice anyway.
+6. The tracer wrapper (added to capture a function's return value from `arg` on `sys.settrace`'s
+   `'return'` event) returned whatever the wrapped base tracer returned, instead of returning
+   itself. `sys.settrace`'s protocol treats a `'call'` event's return value as the *local* trace
+   function for everything else in that frame — returning the base tracer's own function meant
+   Python silently stopped calling the wrapper after one event per frame, so every return-value
+   capture quietly never fired. Reading the code gave no signal anything was wrong; tracing a
+   factorial call and counting the return events (five expected, zero seen) found it in under a
+   minute.
+
+**Why this belongs here.** Every one of the six was invisible to a careful reading of the plan or
+the code — each needed either a real interpreter evaluating real inputs, or the actual test suite
+running against the actual engine, to surface. That's the same shape as m3's `parseSuite()` gap,
+m5's blank-picture bug, and m10's bundle-bloat finding: this project's repeated, hard-won lesson
+that "I reasoned through it carefully" and "I ran it and checked" are different claims, and only
+the second one is evidence. The difference this time is that the highest-risk one (the swap idiom)
+was caught *before* it shipped, in the plan itself, because the review pass treated a design
+document making a testable claim as something to actually go test — not because anyone read it
+more carefully the second time.
+
+**Why none of this reopens anything LOCKED.** `tracer.py`'s only change is one additive,
+backward-compatible parameter; its own 18-test suite passing unchanged is the proof. `instrument.py`
+is new and, per the milestone's own scope, unreachable from the running app — nothing existing
+depends on it yet, so there is nothing it could have broken by existing.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

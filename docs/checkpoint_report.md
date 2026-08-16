@@ -1819,3 +1819,129 @@ Playwright (21 + the new AC-2.7 real-browser test). Bundle sizes after the fix: 
 Milestone 11 — Tier 2 instrumentation (§3 T2): comparisons resolve on screen, the cell being read
 lights up, swaps render as an arc. Per D4/D38, only after a complete T1 product exists — which m10
 just finished.
+
+# Milestone 11a Completed — Detailed tracing engine (Tier 2, engine only)
+
+**The single hardest module in the project (DESIGN_RATIONALE.md §5's own words) now has a real,
+tested implementation — a syntax-tree rewriter that reports `compare`, `index_read`,
+`index_write`, and `append` sub-expression events, plus a `return`-value enhancement to the
+existing settrace mechanism for `call`/`return`.** Per the owner's decision, milestone 11 is split
+into two checkpoints: this one builds the engine mechanism only, verified against the real engine
+by its own 59-test suite; **11b** (wiring it into Workspace as the Overview/Detailed toggle with
+new gestures) is next. Nothing in this checkpoint is reachable from the running app — no route, no
+UI, `worker.ts` untouched.
+
+**The owner asked for a second, more skeptical review pass on this plan specifically** (given the
+risk), which did not just re-read the design — it prototyped the AST rewrite in real Python before
+any of this was written, and found three genuine defects and one undocumented property the first
+draft had missed entirely. One of them would have silently produced the wrong answer for bubble
+sort, insertion sort, and the landing page's own hero animation. All are described below, and all
+are now pinned by dedicated tests.
+
+## Why
+
+- **§3 never had a numbered "Acceptance criteria (Tier 2)" list** — only prose (D4/D38/D39).
+  Fixed at the source rather than worked around locally: `PLAN_v2.md` §3 now has one, added as a
+  v2 addition before implementation began, so this and all future Tier-2 work check against a
+  durable list instead of a one-off interpretation.
+- **`call`/`return` needed no AST rewrite at all.** `tracer.py`'s settrace callback already
+  receives a function's actual return value as `arg` on its `'return'` event — it just never read
+  it. Only four of the "five events" genuinely needed the syntax-tree rewrite; the fifth was a
+  small, low-risk enhancement to a mechanism Tier 1 had already proven.
+- **The rewriter reuses `tracer.py`'s own `make_tracer`, with one small, backward-compatible
+  change** (`state=None`, defaulting to a fresh dict exactly as before) rather than reimplementing
+  line/call handling — Detailed mode's injected reporters share the *same* step budget the line
+  tracer uses, which is what makes D39's "same cap, hit sooner" claim actually true rather than
+  asserted. `tracer.py`'s own 18-test suite passes completely unchanged, proving it.
+- **⚠ Corrected during the second review pass: the first draft's `index_read` rewrite
+  double-evaluated the index expression** — measured directly (a side-effecting index ran twice,
+  not once) — while the same draft claimed elsewhere that it didn't have this problem. Fixed by a
+  single consistent rule for every rewrite: the reporter receives already-evaluated operands and
+  performs the operation itself, never a pre-computed result alongside the expression that made it.
+- **⚠ Found during the second pass, not present in the first draft at all: the swap idiom
+  (`nums[j], nums[j+1] = nums[j+1], nums[j]`) wasn't covered, and the obvious rewrite silently
+  corrupts it.** Measured on real Python: a naive per-target sequential rewrite produced `[2, 2,
+  9]` instead of the correct `[2, 5, 9]` — no error, just a quietly wrong answer, for the one
+  construct bubble sort and insertion sort both depend on entirely and that also drives the
+  landing page's own hero animation. The real fix evaluates the whole right-hand side into
+  temporaries first, then stores into each target using its own single-evaluated index — exactly
+  mirroring real Python's own measured evaluation order, not assumed from reading the language
+  reference.
+- **⚠ Also found during the second pass: `ast.fix_missing_locations` alone reports the wrong line
+  number for a multi-line expression** (line 1 instead of the real line 2, measured directly).
+  Every node the transformer constructs now goes through `ast.copy_location` from its original,
+  with `fix_missing_locations` only as a final backstop.
+- **A real bug found only by running the equivalence test against every accepted fixture, not by
+  design review:** a slice read (`nums[1:3]`, `14_list_slice_read.py`) was wrapped by the same
+  index-read rule as a plain index, and a Python `slice` object isn't JSON-serializable — crashed
+  outright. Fixed by excluding slice subscripts from instrumentation entirely (fails closed, same
+  policy `indexVars.ts` already uses on the player side) — §3's five events don't include one for
+  a slice read anyway.
+- **A real bug found only by running the code, not by reading it: the tracer wrapper returned the
+  wrong function and silently stopped tracing after one event per frame.** `sys.settrace`'s
+  local-trace-function protocol calls whatever a frame's `'call'` event *returned* for every
+  subsequent event in that frame — the wrapper was returning `base_tracer`'s own return value
+  instead of itself, so Python swapped it out after the very first event per frame, and every
+  `return`-value capture silently never fired. Caught by directly testing recursion (factorial
+  produced zero `return` events instead of five) — fixed by having the wrapper always return
+  itself.
+
+## Files Created/Modified
+
+- `src/engine/instrument.py` (new): the transformer (`_DetailedTransformer`), the four reporter
+  functions, the return-value-capturing tracer wrapper, and `record_detailed_trace` — the module's
+  one entry point, same result-shape contract as `record_trace`.
+- `src/engine/tracer.py` (modified): `make_tracer` gains one optional `state=None` parameter.
+  `record_trace`'s own call site is unaffected; its existing 18-test suite passes unchanged.
+- `src/recording/types.ts` (modified): additive `DetailedEvent` union and `Frame.event?`.
+- `src/engine/instrument.test.ts` (new, 59 tests, Pyodide-in-Node against the real engine):
+  per-event shape checks; the swap idiom (plain, mixed scalar/subscript, and plain-scalar
+  variants, plus bubble sort and insertion sort run exactly as production generates their
+  source); single-evaluation and evaluation-order pins; line-fidelity; event-ordering; guardrail
+  sharing; determinism; and the headline test — semantic equivalence (stdout + final variable
+  state) between Overview and Detailed mode across **all 31 accepted fixtures**, which is what
+  caught the slice-read bug above.
+- `docs/PLAN_v2.md`: §3 gained the numbered Tier 2 acceptance criteria (v2 addition); Resume-here
+  box updated.
+
+## Uncertain / worth double-checking
+
+1. **`in`/`not in` comparisons are deliberately left uninstrumented** — they're `ast.Compare`
+   operators under Python's grammar but a membership test, not a two-value comparison, and don't
+   fit §5's "two boxes lift" gesture. No `compare` event fires for them; worth a second look if
+   11b's design wants some other treatment for membership tests specifically.
+2. **Chained assignment to a subscript (`nums[i] = total = 0`) and nested-list writes
+   (`grid[i][j] = v`) are both left uninstrumented**, matching `indexVars.ts`'s own one-level-deep
+   limit on the player side — these lines still run correctly, they just don't get an
+   `index_write` event or gesture in Detailed mode. No current lesson uses either pattern.
+3. **Performance at scale wasn't measured.** `sys._getframe` and a full `_snapshot` walk per
+   sub-expression event (vs. per line) is meaningfully more work per step; the 59-test suite
+   confirms correctness, not that 2,000 Detailed-mode steps stay comfortably inside whatever
+   latency budget 11b's UI ends up needing.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  28 passed (28)
+                    Tests       393 passed (393)        (334 → 393: +59 for instrument.test.ts)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built in ~320ms — worker.ts untouched, bundle sizes unchanged
+=== playwright ===  22 passed (23.4s) — fully unaffected, as expected (no UI touched)
+```
+
+No screenshots — nothing in this checkpoint is reachable from the running app yet, per the plan's
+own explicit scope boundary. Reviewed as code + test output instead, same as the plan called for.
+
+## Github Commands for this milestone
+
+```bash
+git add src/engine/instrument.py src/engine/instrument.test.ts src/engine/tracer.py src/recording/types.ts docs/
+git commit -m "Milestone 11a: Detailed tracing engine (Tier 2, engine only)"
+git push
+```
+
+## Next
+
+Milestone 11b — wire the Detailed tracing engine into Workspace as the real Overview/Detailed
+toggle (D38), with the new compare ✓/✗ resolution and read-glow gestures §5 describes.

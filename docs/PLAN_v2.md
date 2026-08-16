@@ -238,10 +238,30 @@ Three constraints shape every decision:
 > flagged plainly rather than marked done.** §14's fuller "every lesson always animates
 > immediately" stays m15's, confirmed against the milestone table before assuming otherwise.
 >
-> **Next: milestone 11** — Tier 2 instrumentation (§3 T2): comparisons resolve on screen, the
-> cell being read lights up, swaps render as an arc. Per D4/D38, only after a complete,
-> demoable T1 product exists — which m10 completes. See the Build milestones table below, and
-> _How the build actually runs_ for the ten-step per-milestone loop.
+> **Milestone 11a is built and checkpointed** (see `checkpoint_report.md`). Per the owner's
+> decision, milestone 11 is split into two checkpoints — 11a builds the Detailed tracing engine
+> only (`src/engine/instrument.py`, a real AST rewriter reporting `compare`/`index_read`/
+> `index_write`/`append` events plus a `return`-value enhancement for `call`/`return`), verified
+> by a 59-test suite against the real engine; nothing in it is reachable from the running app yet
+> (no route, no UI, `worker.ts` untouched). §3 gained a numbered Tier 2 acceptance-criteria list
+> (a real gap this milestone found and fixed at the source, not worked around locally). The owner
+> requested a second, more skeptical review pass on the plan itself before building — it
+> prototyped the AST rewrite in real Python first and found three genuine defects plus one
+> undocumented property the first draft missed: a double-evaluated index expression, wrong line
+> numbers on multi-line expressions, and — most seriously — a naive rewrite of the swap idiom
+> (`nums[j], nums[j+1] = nums[j+1], nums[j]`) that silently produced `[2, 2, 9]` instead of
+> `[2, 5, 9]`, which would have corrupted bubble sort, insertion sort, and the landing page's own
+> hero animation with no error raised. All four are fixed and pinned by dedicated tests; a fifth
+> real bug (a JSON-unserializable slice object) was caught only by the semantic-equivalence test
+> run against all 31 accepted fixtures, and a sixth (the tracer wrapper silently losing all
+> `return` events) was caught only by actually running recursion, not by reading the code — both
+> are documented in `DESIGN_RATIONALE.md` as the reason this milestone trusts running code over
+> reading it.
+>
+> **Next: milestone 11b** — wire the Detailed tracing engine into `Workspace` as the real
+> Overview/Detailed toggle (D38), with the new compare ✓/✗ resolution and read-glow gestures §5
+> describes. See the Build milestones table below, and _How the build actually runs_ for the
+> ten-step per-milestone loop.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -622,6 +642,28 @@ mapping is what keeps arbitrary code animating coherently.
 6. `print()` output accumulates correctly per frame — frame 5 shows only what had been printed by
    frame 5.
 7. **Determinism:** the same source and input produce a byte-identical frame array across runs.
+
+> **v2 addition — Acceptance criteria (Tier 2).** Unlike every other milestone, §3 never got a
+> numbered list for T2 — only the D4/D38/D39 prose above. Added here at m11a, before that
+> milestone's implementation began, so Tier 2 work checks against a durable list rather than a
+> one-off interpretation buried in a plan file.
+>
+> 1. A `compare`, `index_read`, `index_write`, `append`, and `call`/`return` event is captured for
+>    each of the five categories named above, each carrying the data its §5 gesture needs
+>    (`compare`: left/op/right/result; `index_read`/`index_write`/`append`: container/index/value;
+>    `return`: value).
+> 2. Each event maps to exactly one canonical animation gesture (§5) — no event type produces two
+>    different visual treatments depending on context (the "one-to-one mapping" claim above).
+> 3. Detailed is additive: Overview's behavior (all of Tier 1, already shipped) is provably
+>    unchanged by Detailed mode's existence.
+> 4. Instrumented code computes exactly what the original computed — same result, same evaluation
+>    order, every sub-expression evaluated exactly as many times as the original would, even when
+>    it has a side effect.
+> 5. Detailed mode consumes the same step budget (`MAX_STEPS`) Overview uses, naturally exhausted
+>    faster (D39: ~3-4x more steps for the same program) — never a separate, silently larger cap.
+>    A program that no longer fits says so with a Detailed-specific message, not a generic failure.
+> 6. Determinism holds for Detailed mode the same way AC-3.7 holds for Tier 1: the same source
+>    produces a byte-identical frame array across runs.
 
 ---
 

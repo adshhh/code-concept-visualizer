@@ -94,9 +94,16 @@ def _snapshot(frame):
     return module_locals, call_stack
 
 
-def make_tracer(source_lines, output_buffer, frames):
+def make_tracer(source_lines, output_buffer, frames, state=None):
     """Returns a fresh settrace-compatible function with its own counters (never shared
-    across calls, same reasoning as guardrails.py's make_guard). `frames` is the caller's
+    across calls, same reasoning as guardrails.py's make_guard) — unless `state` is passed
+    in explicitly, in which case *that* dict is shared instead of a fresh one. `record_trace`
+    below never passes it (defaults to a fresh dict, identical to every prior version of this
+    function — zero behavior change, this file's own existing test suite is the proof).
+    milestone 11a's `instrument.py` is the one real caller of the explicit form: its injected
+    reporter calls need to count against the *same* MAX_STEPS budget this tracer's own line
+    events do, not a second independent counter, or D39's "same cap, hit sooner in Detailed"
+    claim wouldn't actually be true. `frames` is the caller's
     own list, appended to in place — so whatever was captured before a guardrail trip or a
     runtime error is still sitting in it when record_trace reads it back, satisfying
     "playback needs frames up to the failing step" even on a non-ok result.
@@ -112,7 +119,7 @@ def make_tracer(source_lines, output_buffer, frames):
     AC-3.6 (stdout per frame) the right cutoff for free: a print on line N is already in
     the buffer by the time line N's own frame is emitted.
     """
-    state = {"steps": 0, "depth": 0}
+    state = state if state is not None else {"steps": 0, "depth": 0}
     pending = {}  # id(frame) -> line_no, for a line not yet confirmed complete
 
     def _emit(frame, line_no):
