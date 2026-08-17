@@ -31,7 +31,15 @@ export function DictTable({
   error?: boolean;
 }) {
   return (
-    <div className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}>
+    <div
+      // m12a: the connector line's anchor (Connector.tsx) — see Chip.tsx's identical addition.
+      // Not exercised by any moment detector today (moments.ts's accumulator only tracks
+      // numeric writes, and swap only ever touches a list) — added anyway for the same
+      // reason every other renderer got it: a future detector naming a dict shouldn't need a
+      // second wiring pass.
+      data-anchor={name}
+      className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}
+    >
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
       <table className="w-full border-collapse text-sm">
         <tbody>

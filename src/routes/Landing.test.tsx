@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
 import { LESSONS } from "../lessons/registry";
+import { recordAnswer } from "../game/mastery";
 
 function renderLanding() {
   return render(
@@ -30,5 +31,30 @@ describe("Landing — §11, real motion plus one-click access to every lesson", 
       const link = screen.getByRole("link", { name: new RegExp(lesson.title) });
       expect(link).toHaveAttribute("href", `/lesson/${lesson.id}`);
     }
+  });
+});
+
+describe("Landing — D25/AC-9.22, the mastery ring", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("shows every lesson as not-yet-mastered before any predictions are answered", () => {
+    renderLanding();
+    expect(screen.getAllByLabelText("not yet mastered")).toHaveLength(
+      LESSONS.length,
+    );
+    expect(screen.queryByLabelText("mastered")).not.toBeInTheDocument();
+  });
+
+  it("reflects a real mastered lesson without touching any other lesson's ring", () => {
+    const lessonId = LESSONS[0]!.id;
+    for (let i = 0; i < 5; i++) recordAnswer(lessonId, true); // 5/5, well over 80%
+
+    renderLanding();
+    expect(screen.getAllByLabelText("mastered")).toHaveLength(1);
+    expect(screen.getAllByLabelText("not yet mastered")).toHaveLength(
+      LESSONS.length - 1,
+    );
   });
 });

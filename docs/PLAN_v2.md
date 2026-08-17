@@ -293,7 +293,42 @@ Three constraints shape every decision:
 > D39's "~3–4× the steps" estimate is now a measured one: bubble sort ran **2.40×** more frames
 > in Detailed than Overview (101 vs 42) — corrected where D39 is stated, not silently changed.
 >
-> **Next: milestone 12 (Game layer — Explore)**, per the Build milestones table below.
+> **Milestone 12a is built and checkpointed** (see `checkpoint_report.md`). Per the owner's
+> decision, milestone 12 splits on the 11a/11b precedent: 12a is the challenge view inside a
+> lesson (AC-9.1–9.6, 9.10, 9.22), 12b is compare-the-algorithms (AC-9.7–9.9, its own
+> `/compare` route — the owner's decision, recorded so 12b inherits it without re-deciding).
+> A new engine-free `src/game/` directory holds the prompt heuristic (§9's five surprisingness
+> signals plus a sixth, `accumulator`, needed to make AC-9.3's N-steps-ahead question type
+> reachable — none of §9's own five signals produce it), question generation, counters,
+> mastery, and the challenge-view UI — guarded by the same `architecture.test.ts` rule that
+> already protects `src/player/` from importing `src/engine/`.
+>
+> **Real defects, found the same way every recent milestone has found them — running code
+> against real committed traces, not reading it.** An `elif`/`else` blind spot in branch-
+> outcome inference (a false `elif` hands control to `else:`, itself indented *deeper* than the
+> `elif` line, and CPython emits no line event for a bare `else:` — so "next line deeper ⇒
+> taken" read every false `elif` as true); recursion silently under-counted 10× (`factorial(10)`
+> executes one line on ten consecutive frames at ten different call depths, and the first
+> run-grouping, keyed on line alone, collapsed them into one); two prompt-quality bugs (a
+> "first branch" question firing on a program's very first `if`, before anything had happened
+> to make it surprising; a swap question anchored to a loop header with no comparison at all);
+> and — found only by Playwright, not by any unit test — a real click in a real browser
+> intercepted by overflowing picture content once the picture column narrowed for challenge
+> view's third column, traced to flexbox's `min-width: auto` default in two places
+> (`Workspace.tsx`'s own layout and `Picture.tsx`'s internal content area) and fixed with
+> `min-w-0` in both, confirmed not to change anything at the component's original 65% width via
+> the full existing 27-scenario Playwright suite. Full trail in `checkpoint_report.md` and
+> `docs/GAME.md`.
+>
+> **One limitation flagged, not fixed**: recursive streak tracking (`comparisonFlips` in
+> `moments.ts`) is keyed per source line, not per `(line, call instance)`, so two unrelated
+> recursive calls evaluating the same condition can register as one continuous streak. Never
+> produces a wrong question — the one case it affects fails closed and is silently dropped —
+> documented in `docs/GAME.md` and pinned by a test naming it explicitly rather than fixed,
+> since a proper fix (tracking per call identity) is a larger change than this milestone's scope.
+>
+> **Next: milestone 12b (Game layer — compare-the-algorithms)**, per the Build milestones table
+> below and the 12a plan file's own sketch.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -398,7 +433,7 @@ one checkpoint = one branch = one merge.**
 | 10                            | Landing page & navigation · **React Router (one URL per lesson)**                                                                   | §11, §2 (AC-2.7)                   | Needs lesson recordings (#7–9) to exist. **v2:** routing was never specified anywhere — a URL per lesson makes a single lesson shareable as a link and makes the back button work. Also where **AC-2.7** (site survives Python failing to load) first becomes checkable |
 | **Phase D — Depth**           |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
-| 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14    |
+| 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, done, closing AC-9.1–9.6/9.10/9.22 — see checkpoint_report.md; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9, not yet started** |
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12                                                                                                                                                                                                                  |
 | 14                            | Flowcharts                                                                                                                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable                                                                                                                                                                                    |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
@@ -1021,15 +1056,37 @@ whole if time runs short.
 
 **Acceptance criteria**
 
+> **v2, m12a — criteria 1–6, 10, 22 closed** (see `checkpoint_report.md`, `docs/GAME.md`).
+> Criteria 7–9, 11–21, 23 belong to compare-the-algorithms/Practice/flowcharts and are unstarted.
+
 1. `docs/GAME.md` documents the surprisingness heuristic used to rank prediction moments.
+   > **m12a:** done — includes real measured numbers (45 comparisons, 21 raw flips, 4 clearing
+   > the streak threshold, on the 10-item bubble sort fixture added for this criterion), not
+   > the plan-time estimate.
 2. Bubble sort on 10 items produces **≤5 prompts**, each at a moment the documented heuristic scores
    highly — not merely evenly spaced.
+   > **m12a:** done — `tests/fixtures/accepted/32_bubble_sort_ten.py` (new, this criterion's
+   > own input); `moments.test.ts` asserts both the ≤5 cap and that every chosen prompt clears
+   > its threshold independently, so the criterion is met by ranking, not by truncating a
+   > longer list.
 3. At least four question types are implemented, **including the N-steps-ahead type**.
+   > **m12a:** done — all four (`will-they-swap`, `which-branch`, `will-the-loop-run-again`,
+   > `value-in-n-steps`). The N-steps-ahead type needed a sixth detector signal (`accumulator`)
+   > not among §9's original five — see `docs/GAME.md`.
 4. Every prompt is skippable; no wrong-answer copy is punitive; each wrong answer shows what actually
    happened plus one sentence of explanation.
+   > **m12a:** done — `ChallengePanel.test.tsx`; a skip is scored neither right nor wrong
+   > (`correct: null`) and never touches mastery.
 5. Prompts render in the side panel with a connector line to the relevant boxes. A screenshot test
    confirms the picture is never covered, resized, or repositioned by a prompt.
+   > **m12a:** done — `Connector.tsx` (fails closed with no subject/anchor, never an
+   > approximate line); the screenshot test is `scripts/screenshots/challenge.spec.ts`'s
+   > bounding-box assertion, holding the playback step fixed while the panel cycles through
+   > all four phases (an earlier version that compared two different steps was itself a false
+   > positive — see the checkpoint's findings list).
 6. A prompt pauses playback and resumes at the previous speed if it was playing.
+   > **m12a:** done — `useChallenge.test.ts`, using fake timers to drive a genuine autoplay
+   > tick (not `stepForward()`, which pauses by design and can't exercise this).
 7. Compare mode runs both algorithms on identical input and reports steps, comparisons and swaps.
    **No millisecond timing appears anywhere in the UI** — grep-verifiable.
 8. Pick-the-winner is asked before the comparison starts and resolved after.
@@ -1037,6 +1094,9 @@ whole if time runs short.
    that run — linear search, binary search, bubble sort, insertion sort, and merge sort if the
    stretch lesson lands.
 10. Guess-the-cost is asked before play and scored on closeness.
+    > **m12a:** done — `guessCost.ts`'s `scoreGuess`, asked once per run before the first
+    > playback step is taken (a manual step, Play, or scrubbing all close the window
+    > permanently — "before play" as a real constraint, not just a suggestion).
 11. **24 authored programs exist** — 8 concepts × 3 levels (D27). Each runs successfully on first
     press of Run and stays inside the §1 subset.
 12. Program difficulty and hint level are **independently selectable** (D32); choosing hard + easy
@@ -1057,6 +1117,9 @@ whole if time runs short.
     separate flowcharts (D35).
 21. Pre-filled cards scale inversely with hint level.
 22. Mastery ring per D25: fills at ~5 predictions answered with 80%+ accuracy, `localStorage` only.
+    > **m12a:** done — `mastery.ts`, one namespaced key, wrapped against a throwing
+    > `localStorage` (private-mode Safari) so a progress ring can never break a lesson page.
+    > Rendered on the Landing page's lesson cards.
 23. Flowcharts are the last thing built (D28).
 
 **Parked for v2:** craft-the-input · bug hunt · user-set indentation in reverse mode · reverse mode

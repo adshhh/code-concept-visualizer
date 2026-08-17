@@ -14,6 +14,11 @@ import { readDevPreload } from "./devPreload";
 import { LESSONS, getLesson } from "./lessons/registry";
 import { getLessonRecording } from "./lessons/recordings";
 import type { LessonInputField } from "./lessons/types";
+import { useChallenge } from "./game/useChallenge";
+import { ChallengePanel } from "./game/ChallengePanel";
+import { Connector } from "./game/Connector";
+
+type ViewMode = "plain" | "challenge";
 
 /** Parses a comma-separated data-input field into a number list. Empty tokens (a trailing or
  * double comma, or the field cleared entirely) are dropped *before* `Number()` runs — `Number("")`
@@ -223,6 +228,12 @@ export function Workspace() {
   // second "please re-run" concept.
   const [lastRunDetailLevel, setLastRunDetailLevel] =
     useState<DetailLevel | null>(devPreload?.detailLevel ?? null);
+  // D26/m12a: plain visualisation ⇄ challenge, the view toggle inside Explore — orthogonal to
+  // detailLevel above (which trace plays), not entangled with it. Local state, not persisted,
+  // matching detailLevel's own precedent; unlike detailLevel, toggling this does NOT mark the
+  // trace stale — challenge view is a different way of looking at the same recording, not a
+  // different run, so no re-run is ever needed to switch between them.
+  const [viewMode, setViewMode] = useState<ViewMode>("plain");
   const [running, setRunning] = useState(false);
   // Defends the seam where run()'s own "every branch is a result, nothing throws" contract
   // might have a gap (found by code review: raceWithTimeout has no .catch, so a genuine
@@ -265,6 +276,17 @@ export function Workspace() {
   const displayRecording = recording ?? fallbackRecording;
   const frameCount = displayRecording?.frames.length ?? 0;
   const playback = usePlayback(frameCount, devPreload?.step ?? 0);
+  // Always called (hooks can't be conditional) — `enabled` is what actually keeps a plain-view
+  // visit untouched by prompt-pausing; see useChallenge.ts's own docstring on why. Runs against
+  // whichever recording Picture itself is drawing from, fallback included — a visitor seeing
+  // the engine-unavailable demo can still be quizzed on it.
+  const challenge = useChallenge(
+    displayRecording,
+    playback,
+    activeLesson.id,
+    viewMode === "challenge",
+  );
+  const challengeRowRef = useRef<HTMLDivElement | null>(null);
 
   const showPicture =
     (hasResult && recording !== undefined) || !!fallbackRecording;
@@ -418,6 +440,30 @@ export function Workspace() {
                 </button>
               ))}
             </div>
+            {/* D26/m12a: the plain/challenge view toggle — orthogonal to the detail-level
+             * toggle above (which trace plays vs. how it's being watched). Does not touch
+             * `isStale`: switching views never invalidates the current recording. */}
+            <div
+              role="group"
+              aria-label="view mode"
+              className="flex overflow-hidden rounded-lg ring-1 ring-slate-700"
+            >
+              {(["plain", "challenge"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setViewMode(mode)}
+                  aria-pressed={viewMode === mode}
+                  className={`px-3 py-2 text-sm capitalize ${
+                    viewMode === mode
+                      ? "bg-slate-700 text-slate-100"
+                      : "bg-slate-800 text-slate-400"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={handleResetToExample}
@@ -456,8 +502,15 @@ export function Workspace() {
         )}
 
         <MotionRoot>
-          <div className="flex gap-4 rounded-xl bg-slate-950 ring-1 ring-slate-800">
-            <div className="w-[35%] p-3">
+          <div
+            ref={challengeRowRef}
+            className="relative flex gap-4 rounded-xl bg-slate-950 ring-1 ring-slate-800"
+          >
+            <div
+              className={
+                viewMode === "challenge" ? "w-[30%] p-3" : "w-[35%] p-3"
+              }
+            >
               <CodeEditor
                 value={effectiveSource}
                 onChange={setSource}
@@ -466,7 +519,18 @@ export function Workspace() {
                 diagnostic={hasResult ? feedback.diagnostic : undefined}
               />
             </div>
-            <div className="relative w-[65%]" data-testid="picture-pane">
+            <div
+              // `min-w-0` overrides the flex item default of `min-width: auto` — without it,
+              // a step whose picture content is intrinsically wider than this column's own
+              // 45%/65% (a 10-item list, a call-stack card) forces the box itself wider than
+              // its allocation instead of wrapping inside it, visually bleeding into the
+              // challenge panel column and, in a real browser, intercepting clicks meant for
+              // it (found by Playwright, not by reading the CSS: the fixed-percentage columns
+              // never revealed this at 65%, only once the picture column narrowed for
+              // challenge view's third column).
+              className={`relative min-w-0 ${viewMode === "challenge" ? "w-[45%]" : "w-[65%]"}`}
+              data-testid="picture-pane"
+            >
               {displayRecording && (
                 <div
                   className={
@@ -492,6 +556,21 @@ export function Workspace() {
                 </div>
               )}
             </div>
+            {/* AC-9.5: this column's own presence/width is a function of `viewMode` alone,
+             * never of `challenge.phase` — so a prompt appearing or resolving inside it can
+             * never itself resize or reposition the picture pane above. ChallengePanel's own
+             * outer shape is likewise constant across all four phases. */}
+            {viewMode === "challenge" && (
+              <div className="w-[25%] p-3">
+                <ChallengePanel challenge={challenge} />
+              </div>
+            )}
+            {viewMode === "challenge" && (
+              <Connector
+                containerRef={challengeRowRef}
+                activeQuestion={challenge.activeQuestion}
+              />
+            )}
           </div>
         </MotionRoot>
 

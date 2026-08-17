@@ -2188,3 +2188,185 @@ git push
 
 Milestone 12 — Game layer: Explore (§9), per the Build milestones table. Needs the event
 vocabulary finalised in m11 — now complete across both tiers.
+
+# Milestone 12a Completed — Game layer: the challenge view inside a lesson
+
+**Owner decision this session: milestone 12 split, on the 11a/11b precedent.** 12a (this
+checkpoint) is the challenge view inside a lesson — closes AC-9.1–9.6, AC-9.10, AC-9.22.
+12b (compare-the-algorithms, linear search as code, AC-9.7–9.9) is next, on its own branch.
+**Owner decision:** compare-the-algorithms gets its own `/compare` route rather than a third
+view inside Mode B lessons — recorded in the 12a plan so 12b inherits it without re-deciding.
+
+## What
+
+A new, engine-free `src/game/` directory (guarded by the same `architecture.test.ts` rule
+that already protects `src/player/` — proven, not assumed: a real `../engine/run` import was
+planted in `src/game/` and confirmed to fail the guard, by name, before being removed):
+
+- **`lineRuns.ts`/`runInfo.ts`** — the shared primitive every detector and counter builds on:
+  one `RunInfo` per *line the user saw execute*, identical in shape whether the underlying
+  recording is Overview or Detailed. A run boundary is a change of source line **or** call
+  depth — recursion descends through one line many times in a row with nothing in between
+  (`factorial(10)` produces ten consecutive frames on `if n <= 1:` at depths 1–10), and the
+  first version, keyed on line alone, collapsed all ten into one.
+- **`moments.ts`** — §9's five surprisingness signals, plus a sixth (`accumulator`) the plan's
+  own list didn't cover, needed to make AC-9.3's N-steps-ahead question type reachable at all.
+  `selectPrompts` ranks and caps at 5 (D12), spacing prompts apart by source-line-run rather
+  than frame count so Detailed (~2.4× the frames, D39) doesn't bunch its prompts differently
+  than Overview does for the same program.
+- **`questions.ts`** — one `Moment` → one `Question`, all four AC-9.3 types. Distractors are
+  always real recorded values (an accumulator's neighboring-iteration values, a branch's own
+  two landing lines) — never invented arithmetic.
+- **`counters.ts`/`guessCost.ts`** — `countRun()` (steps/comparisons/swaps, D30: never
+  milliseconds) built here because guess-the-cost needs it; 12b will reuse the exact same
+  module for compare-the-algorithms so the two features can never disagree on a count.
+- **`mastery.ts`** — D25/AC-9.22's ring: `answered ≥ 5 && correct/answered ≥ 0.8`, one
+  namespaced `localStorage` key. Every read/write wrapped — a throwing `localStorage`
+  (private-mode Safari) degrades to "nothing recorded," never a page error.
+- **`useChallenge.ts`** — drives `usePlayback` from the outside (that hook is unmodified).
+  Pauses only a genuine autoplay tick reaching a prompt step; "resumes at the previous speed"
+  (AC-9.6) needs no explicit handling, since `usePlayback`'s own `speed` state is never
+  touched by `pause()`/`play()`. An `enabled` flag keeps the plain view completely untouched
+  by prompts (D26: the two views are independent, not just visually).
+- **`ChallengePanel.tsx`/`Connector.tsx`** — the reserved third column (cost → question →
+  result → placeholder, always the same outer shape regardless of phase, so a prompt
+  appearing can never itself resize anything) and the connector line, anchored via a new
+  `data-anchor` attribute (`Chip.tsx`, `ListFrame.tsx`, `DictTable.tsx` — the same additive
+  shape m11b's `data-glowed` took). Fails closed exactly like `indexVars.ts` does for arrows.
+- **`Workspace.tsx`** — a plain/challenge segmented toggle beside the existing
+  Overview/Detailed one. Orthogonal to it and to `isStale`: switching views never marks the
+  trace stale or re-runs anything, since it's a different way of looking at the same
+  recording, not a different run.
+- **`routes/Landing.tsx`** — a mastery ring per lesson card (binary filled/unfilled — D25 only
+  ever asks for a threshold, not a partial-progress fraction).
+- **`docs/GAME.md`** — the heuristic, with real measured numbers (below), and the one known
+  limitation this milestone chose to document rather than fix.
+
+## Findings from running real code against real traces
+
+This milestone's own review pass repeated the discipline the last several checkpoints have
+already established — verify against real committed data, not hand-shaped test fixtures —
+and it found real defects every time it was applied to a new corner:
+
+1. **The `elif`/`else` blind spot in branch-outcome inference.** Overview has no comparison
+   events, so "did this branch execute" was first inferred as "is the next executed line
+   indented deeper than the header." A **false** `elif` hands control to the `else:` block,
+   which is *also* indented deeper — and CPython emits no line event for a bare `else:` — so
+   every false `elif` was read as taken. Found by cross-checking Overview's inference against
+   Detailed's own `compare` events on binary search (bubble sort has no `elif` and agreed by
+   coincidence). Fixed by testing membership in the header's *own* body range, not mere depth;
+   pinned by `runInfo.test.ts`.
+2. **Recursion silently under-counted 10×.** `factorial(10)` executes `if n <= 1:` on ten
+   consecutive frames at depths 1–10 — `lineRunStarts` (keyed on line alone) merged all ten
+   into a single run, so `countRun` reported 1 comparison instead of 10, and the `base-case`
+   signal could never fire. Fixed by adding call depth to the run boundary; pinned in
+   `counters.test.ts`/`runInfo.test.ts`.
+3. **Two prompt-quality bugs.** `first-branch` fired on a program's very first `if`, before
+   anything had happened to make it "first" in any meaningful sense — measured, it put 3 of
+   binary search's 5 prompts inside its first 7 frames. Fixed by requiring the header itself
+   to already be familiar. Separately, `swap-after-quiet` anchored its question to the nearest
+   block header, which for bubble sort's inner loop was `for j in range(n - i - 1):` — a line
+   with no comparison at all. Fixed by requiring the anchor to be a comparison specifically.
+4. **A real `comparisonFlips` mis-detection, caught mid-build of `questions.ts`.** The
+   detector never checked `isComparison`, so it fired on `for`/`while` headers too — a nested
+   loop's exit (control returning to the *outer* loop, textually earlier in the source) can't
+   be found by a forward-only "next line after this body" scan, so it was failing closed
+   (silently dropped) rather than producing a wrong question — but it shouldn't have fired at
+   all. Fixed with one `run.isComparison` gate; both bubble-sort fixtures went from 1 dropped
+   prompt each to 0.
+5. **Two real browser layout bugs, found only by Playwright — not by any unit test.** Once the
+   picture pane narrowed from 65% to 45% for challenge view's third column, a real click on a
+   panel button was intercepted by overflowing picture content instead. Root cause: flex items
+   default to `min-width: auto`, so both `Workspace.tsx`'s own `picture-pane` column *and*
+   `Picture.tsx`'s internal `flex-1` content area refused to shrink below their intrinsic
+   content width (a 10-item list, a wide call-stack card), forcing the box wider than its
+   allocation and bleeding into the neighboring column. Fixed with `min-w-0` in both places —
+   the standard fix for this exact flexbox gotcha. Confirmed via the full existing Playwright
+   suite (27 scenarios) that this doesn't change anything at the component's original 65%
+   width, where there was always enough room to hide the bug.
+
+## Decided independently
+
+- **Guess-the-cost's window is step-0-only, not blocking.** Ignoring it and pressing Play is a
+  legitimate way to decline — no separate skip control needed. Once submitted, the result
+  recaps quietly in the placeholder rather than as its own interruptive card.
+- **A prompt doesn't re-trigger on scrubbing back over an already-resolved step.**
+  `detectMoments`'s own determinism guarantees the *question* would be identical either way;
+  re-interrupting every scrub would be annoying, not more informative.
+- **The mastery ring is binary (filled/unfilled), not a partial-progress arc** — D25's own
+  wording only ever asks for a threshold to be reached.
+- **Column proportions in challenge view: code 30% / picture 45% / panel 25%** — no AC pins an
+  exact split; chosen to keep the picture the visually dominant element.
+
+## Flagged, not fixed
+
+- **Recursive streak tracking crosses call instances** (`comparisonFlips` in `moments.ts`
+  tracks a streak per source line, not per `(line, call instance)`). Never produces a wrong
+  question — the one case it affects fails closed and is dropped — but a proper fix means
+  tracking streaks per call identity, a larger change than this milestone's scope. Documented
+  in `docs/GAME.md` and pinned by a test naming the limitation explicitly.
+- **Minor visual crowding**: on `challenge-question-connector.png`, a long call-stack card
+  signature (`bubble_sort(1,2,3,4,5,6,7,8,9,10)`) sits close to the panel's left edge. Nothing
+  overlaps in the DOM (Playwright's click tests pass), but it's tighter than ideal. Left as
+  polish, not fixed, given the session's scope.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  38 passed (38)
+                    Tests       626 passed (626)        (416 → 626: +210 for this milestone)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built — landing (index) chunk carries mastery.ts (tiny, expected) and
+                    zero pyodide/detailed-trace references (grepped, not assumed)
+=== playwright ===  32 passed (25.1s) — 27 → 32: +5 new challenge-view scenarios
+```
+
+New screenshots, read directly before this checkpoint:
+
+- `challenge-question-connector.png` — a real `will-they-swap` question, connector line from
+  the panel to the two lifted `nums` cells.
+- `challenge-guess-cost.png` — the guess-the-cost card before any step has been taken, actual
+  count genuinely hidden until guessed.
+- `challenge-result-wrong.png` — a deliberately wrong answer, showing the non-punitive
+  framing (AC-9.4): what actually happened, no penalty language.
+
+## Files
+
+- `src/game/{lineRuns,runInfo,counters,moments,questions,guessCost,mastery,useChallenge}.ts`,
+  `src/game/{ChallengePanel,Connector}.tsx` — all new, each with its own `.test.ts(x)`.
+- `tests/fixtures/accepted/32_bubble_sort_ten.py` — AC-9.2's own 10-item input; its trace
+  (`tests/fixtures/traces/32_bubble_sort_ten.json`) generated via the existing snapshot
+  mechanism, not hand-written.
+- `src/architecture.test.ts` — generalised from one guarded directory to a list (`player`,
+  `game`); the "recognises an engine import" self-test extended to cover `src/game/`'s own
+  sideways imports into `src/player/`.
+- `src/player/values/{Chip,ListFrame,DictTable}.tsx` — the additive `data-anchor` attribute.
+- `src/player/Picture.tsx` — the `min-w-0` flexbox fix (finding #5 above).
+- `src/Workspace.tsx` — the plain/challenge toggle, the reserved third column, the connector.
+- `src/routes/Landing.tsx` — the mastery ring.
+- `scripts/screenshots/challenge.spec.ts` (new) — 5 scenarios: 3 screenshots, 2 AC-9.5
+  structural assertions (bounding-box equality across all four challenge phases at a fixed
+  step; a real layout-change assertion for plain→challenge, to pin that the two are distinct).
+- `docs/GAME.md` (new) — the surprisingness heuristic, measured numbers, and the one flagged
+  limitation.
+- `src/Workspace.test.tsx`, `src/routes/Landing.test.tsx` — extended for the new toggle and
+  ring.
+
+## Github Commands for this milestone
+
+```bash
+git add src/game/ src/architecture.test.ts src/player/values/Chip.tsx \
+  src/player/values/ListFrame.tsx src/player/values/DictTable.tsx src/player/Picture.tsx \
+  src/Workspace.tsx src/Workspace.test.tsx src/routes/Landing.tsx src/routes/Landing.test.tsx \
+  tests/fixtures/accepted/32_bubble_sort_ten.py tests/fixtures/traces/32_bubble_sort_ten.json \
+  scripts/screenshots/challenge.spec.ts docs/
+git commit -m "Milestone 12a: Game layer — the challenge view inside a lesson"
+git push
+```
+
+## Next
+
+Milestone 12b — Game layer: compare-the-algorithms (`/compare` route, linear search as code,
+pick-the-winner, Big-O tied to observed counts). Closes AC-9.7–9.9. Sketched at the end of the
+12a plan file; not yet started.

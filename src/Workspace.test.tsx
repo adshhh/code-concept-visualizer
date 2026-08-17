@@ -274,6 +274,49 @@ describe("Workspace — D38/m11b, the Overview/Detailed toggle", () => {
   });
 });
 
+describe("Workspace — D26/m12a, the plain/challenge view toggle", () => {
+  it("defaults to plain, with no challenge panel rendered", () => {
+    renderWorkspace();
+    expect(screen.getByRole("button", { name: "plain" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.queryByTestId("challenge-panel")).not.toBeInTheDocument();
+  });
+
+  it("switching to challenge renders the panel, without re-running or going stale", async () => {
+    vi.mocked(run).mockClear();
+    vi.mocked(run).mockResolvedValue(okResult);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(screen.getByText("step 1 of 2")).toBeInTheDocument(),
+    );
+    expect(run).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "challenge" }));
+
+    expect(screen.getByTestId("challenge-panel")).toBeInTheDocument();
+    // The view toggle is orthogonal to staleness (unlike the detail-level toggle) — the
+    // recording on screen is unchanged, so nothing should look like it needs a re-run.
+    expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("switching back to plain removes the panel again", async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "challenge" }));
+    expect(screen.getByTestId("challenge-panel")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "plain" }));
+    expect(screen.queryByTestId("challenge-panel")).not.toBeInTheDocument();
+  });
+});
+
 describe("Workspace — AC-2.7, the engine failing to load falls back to the shipped recording", () => {
   afterEach(() => {
     vi.mocked(checkEngineAvailable).mockResolvedValue(true);

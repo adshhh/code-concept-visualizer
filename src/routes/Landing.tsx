@@ -11,12 +11,35 @@ import type { Recording } from "../recording/types";
 // chunk, undercutting AC-2.1 ("visible motion within 1 second"). `recordings.ts` stays reachable
 // only from `Workspace.tsx`'s lazy chunk (its own fallback-recording use), never from here.
 import heroTrace from "../../tests/fixtures/traces/lessons/10-bubble-sort.json";
+import { isMastered, readMastery } from "../game/mastery";
 
 /** §11: "the page is already animating within a second of load" — real code left, real
  * animation right, running bubble sort, looping (unlike a lesson, which stops at the end).
  * Zero engine import anywhere in this file, per D22 — the recording is shipped static data,
  * the same committed file `registry.test.ts` already validates against the real engine, so
  * this page's own bundle chunk never needs Pyodide/Comlink to paint. */
+/** D25/AC-9.22: "a mastery ring per lesson card, filled at ~5 predictions answered with 80%+
+ * accuracy. `localStorage` only, no accounts." A binary filled/unfilled ring rather than a
+ * partial-progress arc — D25's own wording only ever asks for a threshold to be reached, not
+ * an incremental fraction to be displayed, so a solid dot once mastered vs. an outline before
+ * is the whole requirement, not a simplification of a bigger one. Read once per mount:
+ * `localStorage` has no reactive subscription, and progress only ever changes on the lesson
+ * page, not here — a fresh read on landing (reached only by navigating, i.e. a fresh mount) is
+ * exactly as current as it needs to be. */
+function MasteryRing({ lessonId }: { lessonId: string }) {
+  const mastered = isMastered(readMastery(lessonId));
+  return (
+    <span
+      role="img"
+      aria-label={mastered ? "mastered" : "not yet mastered"}
+      title={mastered ? "Mastered" : "Not yet mastered"}
+      className={`inline-block h-3 w-3 rounded-full ring-2 ${
+        mastered ? "bg-emerald-400 ring-emerald-400" : "ring-slate-600"
+      }`}
+    />
+  );
+}
+
 export function Landing() {
   const recording: Recording = {
     source: heroTrace.source,
@@ -80,8 +103,11 @@ export function Landing() {
                   <h3 className="text-sm font-semibold text-slate-100">
                     {lesson.title}
                   </h3>
-                  <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
-                    Mode {lesson.mode}
+                  <span className="flex items-center gap-2">
+                    <MasteryRing lessonId={lesson.id} />
+                    <span className="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
+                      Mode {lesson.mode}
+                    </span>
                   </span>
                 </div>
                 <p className="text-xs text-slate-400">{lesson.explanation}</p>
