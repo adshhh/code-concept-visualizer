@@ -105,7 +105,6 @@ function deriveFeedback(result: RunResult | null): RunFeedback {
   }
 }
 
-
 /** The real shell around the picture (§7 playback controls, §8 editor + error UX) —
  * supersedes both m3's EngineDevHarness and m5's PictureDevHarness, which existed only
  * because this milestone hadn't been built yet. */

@@ -73,7 +73,9 @@ describe("ChallengePanel — guess the cost (AC-9.10)", () => {
     // text for the substring is what actually catches it.
     const actualSteps = 12345; // an implausible, unambiguous number to search for
     const { container } = render(
-      <ChallengePanel challenge={fakeChallenge({ phase: "cost", actualSteps })} />,
+      <ChallengePanel
+        challenge={fakeChallenge({ phase: "cost", actualSteps })}
+      />,
     );
     expect(container.textContent).not.toContain(String(actualSteps));
   });

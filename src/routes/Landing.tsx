@@ -32,10 +32,7 @@ import { isMastered, readMastery } from "../game/mastery";
  * read per mount (reached only by navigating, i.e. a fresh mount) is exactly as current as it
  * needs to be. */
 function MasteryRing({ lessonId }: { lessonId: string }) {
-  const mastered = useMemo(
-    () => isMastered(readMastery(lessonId)),
-    [lessonId],
-  );
+  const mastered = useMemo(() => isMastered(readMastery(lessonId)), [lessonId]);
   return (
     <span
       role="img"
