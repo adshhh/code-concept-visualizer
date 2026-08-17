@@ -126,10 +126,7 @@ const FEWER_COMPARISONS_RESULT = fakeResultWithComparisons(
   COMPARISON_SOURCE,
   1,
 );
-const MORE_COMPARISONS_RESULT = fakeResultWithComparisons(
-  COMPARISON_SOURCE,
-  2,
-);
+const MORE_COMPARISONS_RESULT = fakeResultWithComparisons(COMPARISON_SOURCE, 2);
 
 describe("Compare — opens with the search pairing, nothing run yet", () => {
   it("shows the pairing toggle, inputs, and no picture before Run", () => {
@@ -307,12 +304,12 @@ describe("Compare — pick-the-winner (AC-9.8)", () => {
     const firstResolutionText =
       screen.getByTestId("winner-resolution").textContent;
     // A pick was made, so the personalized half must be present the first time.
-    expect(firstResolutionText).toMatch(/Your pick was right|Not what you picked/);
+    expect(firstResolutionText).toMatch(
+      /Your pick was right|Not what you picked/,
+    );
 
     await user.click(screen.getByRole("button", { name: "Run" }));
-    await waitFor(() =>
-      expect(vi.mocked(run)).toHaveBeenCalledTimes(4),
-    );
+    await waitFor(() => expect(vi.mocked(run)).toHaveBeenCalledTimes(4));
     await waitFor(() =>
       expect(screen.getByTestId("winner-resolution")).toBeInTheDocument(),
     );
@@ -323,9 +320,9 @@ describe("Compare — pick-the-winner (AC-9.8)", () => {
     expect(
       screen.getByRole("button", { name: "Linear search" }),
     ).toHaveAttribute("aria-pressed", "false");
-    expect(
-      screen.getByTestId("winner-resolution").textContent,
-    ).not.toMatch(/Your pick was right|Not what you picked/);
+    expect(screen.getByTestId("winner-resolution").textContent).not.toMatch(
+      /Your pick was right|Not what you picked/,
+    );
   });
 });
 

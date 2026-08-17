@@ -19,7 +19,9 @@ function trace(source: string): Recording {
   const recordTrace = pyodide.globals.get("record_trace") as (
     src: string,
   ) => string;
-  const result = JSON.parse(recordTrace(source)) as { status: string } & Recording;
+  const result = JSON.parse(recordTrace(source)) as {
+    status: string;
+  } & Recording;
   if (result.status !== "ok") {
     throw new Error(`expected ok, got ${JSON.stringify(result)}`);
   }
