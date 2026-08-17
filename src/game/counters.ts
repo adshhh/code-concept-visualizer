@@ -1,6 +1,7 @@
 import type { Recording } from "../recording/types";
-import { diffFrames } from "../player/diff";
+import { diffFrames, filterToActiveScope } from "../player/diff";
 import { hasComparisonOperator } from "../player/lineAnalysis";
+import { currentScopeDescriptor } from "../player/scope";
 import { lineRunStarts } from "./lineRuns";
 
 /** §9/D30: what compare-the-algorithms and guess-the-cost are allowed to report. **Never
@@ -14,6 +15,15 @@ export interface RunCounts {
   steps: number;
   comparisons: number;
   swaps: number;
+  /** Every real write into one cell of a list/dict — a swap counts as 2 (it is two cells
+   * changing), a shift/append/insert/pop as 1 each. Added for 12b's compare-the-algorithms:
+   * insertion sort shifts elements rather than swapping pairs, so it reports `swaps: 0` even
+   * though it performs real, comparable data movement (27 moves on a 10-item list, vs bubble
+   * sort's 36) — without this, `swaps: 0` reads as "did nothing" instead of "did the same
+   * kind of work differently." Whole-variable writes (no `index`) aren't counted — those are
+   * a variable being replaced outright (e.g. a fresh assignment), not a container's cell
+   * changing, which is what this counter is about. */
+  moves: number;
 }
 
 /** Counts what a run actually did, from the recording alone.
@@ -53,10 +63,34 @@ export function countRun(recording: Recording): RunCounts {
   // start to run start is what makes diff.ts's existing swap detection fire identically in
   // both tiers.
   let swaps = 0;
+  let moves = 0;
   for (let k = 0; k + 1 < starts.length; k++) {
-    const diff = diffFrames(frames[starts[k]!], frames[starts[k + 1]!]!);
-    swaps += diff.changes.filter((change) => change.kind === "swap").length;
+    const startFrame = frames[starts[k]!]!;
+    const diff = diffFrames(startFrame, frames[starts[k + 1]!]!);
+    // Restricted to the scope actually executing this run — see `filterToActiveScope`'s own
+    // docstring (diff.ts) for why a scope-aliased list (found by code review: 12b's compare
+    // mode generates exactly this shape) would otherwise be counted once per scope it's
+    // visible from, rather than once per real event.
+    const activeScope = currentScopeDescriptor(startFrame);
+    for (const change of filterToActiveScope(diff.changes, activeScope)) {
+      switch (change.kind) {
+        case "swap":
+          swaps++;
+          moves += 2;
+          break;
+        case "write":
+          // A whole-variable write (`index === undefined`) is a fresh assignment, not a
+          // container cell changing — not what `moves` is counting.
+          if (change.path.index !== undefined) moves++;
+          break;
+        case "append":
+        case "insert":
+        case "pop":
+          moves++;
+          break;
+      }
+    }
   }
 
-  return { steps: frames.length, comparisons, swaps };
+  return { steps: frames.length, comparisons, swaps, moves };
 }

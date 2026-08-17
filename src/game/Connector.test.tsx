@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { useRef, type RefObject } from "react";
 import { Connector } from "./Connector";
@@ -166,5 +166,30 @@ describe("Connector — updates when the active question changes", () => {
 
     rerender(<Harness containerRef={containerRef} activeQuestion={null} />);
     expect(container.querySelector("svg")).toBeNull();
+  });
+});
+
+// Found by code review: a raw `window.addEventListener("resize", recompute)` fires the full
+// recompute (three getBoundingClientRect() calls, one React state update) once per resize
+// *event* — dozens of times during an active drag-resize, for a line that only needs to be
+// accurate once per painted frame.
+describe("Connector — throttles resize recomputes to one per animation frame", () => {
+  it("coalesces several resize events fired before a frame renders into a single recompute", () => {
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation(() => 1); // never actually fires — isolates "was it scheduled"
+
+    render(<Rendered activeQuestion={question("nums")} />);
+    const callsAfterMount = rafSpy.mock.calls.length;
+
+    // Several resize events in a row, before any animation frame has had a chance to run.
+    window.dispatchEvent(new Event("resize"));
+    window.dispatchEvent(new Event("resize"));
+    window.dispatchEvent(new Event("resize"));
+
+    // Exactly one new rAF scheduled for all three — not three.
+    expect(rafSpy.mock.calls.length).toBe(callsAfterMount + 1);
+
+    rafSpy.mockRestore();
   });
 });

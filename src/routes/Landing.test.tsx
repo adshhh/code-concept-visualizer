@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
 import { LESSONS } from "../lessons/registry";
@@ -56,5 +56,32 @@ describe("Landing — D25/AC-9.22, the mastery ring", () => {
     expect(screen.getAllByLabelText("not yet mastered")).toHaveLength(
       LESSONS.length - 1,
     );
+  });
+
+  // Found by code review: MasteryRing read localStorage directly in its render body, despite
+  // its own comment already (wrongly) claiming "read once per mount" — the hero recording
+  // autoplays, re-rendering the whole page roughly once a second indefinitely, so every one
+  // of the 11 lesson cards was re-reading and re-parsing the same localStorage blob on every
+  // tick for no reason.
+  it("reads localStorage once per lesson card, not on every autoplay re-render", () => {
+    vi.useFakeTimers();
+    const getItemSpy = vi.spyOn(window.localStorage.__proto__, "getItem");
+    getItemSpy.mockClear();
+
+    renderLanding();
+    const afterMount = getItemSpy.mock.calls.length;
+    expect(afterMount).toBeGreaterThan(0); // sanity: mastery was actually read at all
+
+    // Advance through several autoplay ticks — each one re-renders the whole page (the hero
+    // recording's own playback step changes), which is exactly the scenario that used to
+    // multiply the reads.
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(getItemSpy.mock.calls.length).toBe(afterMount);
+
+    getItemSpy.mockRestore();
+    vi.useRealTimers();
   });
 });

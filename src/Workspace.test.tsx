@@ -2,35 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { Workspace, parseNumberList } from "./Workspace";
+import { Workspace } from "./Workspace";
 import { run, runDetailed, checkEngineAvailable } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import { getLesson } from "./lessons/registry";
 
-// Found by code review: Number("") is 0, which survives a naive Number.isFinite filter and
-// silently injects a spurious 0 for every empty token (a trailing/double comma, or the field
-// cleared entirely) instead of dropping it as the DataInputPanel's own docstring claims.
-describe("parseNumberList — the data-input panel's list parser", () => {
-  it("parses a clean comma-separated list", () => {
-    expect(parseNumberList("5, 2, 8")).toEqual([5, 2, 8]);
-  });
-
-  it("drops a trailing comma instead of injecting a spurious 0", () => {
-    expect(parseNumberList("5, 2,")).toEqual([5, 2]);
-  });
-
-  it("drops a double comma instead of injecting a spurious 0", () => {
-    expect(parseNumberList("5,,8")).toEqual([5, 8]);
-  });
-
-  it("returns an empty list for a fully cleared field, not [0]", () => {
-    expect(parseNumberList("")).toEqual([]);
-  });
-
-  it("drops non-numeric tokens", () => {
-    expect(parseNumberList("5, abc, 8")).toEqual([5, 8]);
-  });
-});
+// parseNumberList's own tests moved to src/player/DataInputPanel.test.ts at 12b, alongside
+// the component/function that now lives in src/player/DataInputPanel.tsx (extracted so
+// Compare.tsx can reuse it, rather than a second hand-copied version).
 
 // Workspace's job is wiring engine output into the player, not re-verifying the engine
 // itself (that's engine/run.test.ts, engine/tracer.test.ts, etc.) — so run() is mocked here,

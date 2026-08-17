@@ -1,5 +1,6 @@
 import type { Frame, Recording } from "../recording/types";
-import { diffFrames, type StepDiff } from "../player/diff";
+import { diffFrames, filterToActiveScope, type StepDiff } from "../player/diff";
+import { currentScopeDescriptor } from "../player/scope";
 import { hasComparisonOperator, tokensForLine } from "../player/lineAnalysis";
 import { lineRunStarts } from "./lineRuns";
 
@@ -28,8 +29,24 @@ export interface RunInfo {
   /** Call-stack depth at the run's first frame. */
   depth: number;
   /** The diff from this run's first frame to the *next* run's first frame — i.e. what this
-   * line did. Empty on the final run, which has no successor to diff against. */
+   * line did. Empty on the final run, which has no successor to diff against. `changes` is
+   * already restricted to the scope actually executing this run (`filterToActiveScope`,
+   * diff.ts) — a scope-aliased list (a mutable object visible from more than one scope at
+   * once, e.g. threaded through a recursive call) would otherwise show the same real change
+   * once per scope it's visible from. Every consumer here gets a clean one-event-per-change
+   * view for free, not just the ones that happen to filter it themselves. */
   effect: StepDiff;
+}
+
+function activeScopeEffect(
+  frames: Frame[],
+  start: number,
+  nextStart: number | undefined,
+): StepDiff {
+  if (nextStart === undefined) return { changes: [], callStackDelta: "same" };
+  const diff = diffFrames(frames[start], frames[nextStart]!);
+  const activeScope = currentScopeDescriptor(frames[start]!);
+  return { ...diff, changes: filterToActiveScope(diff.changes, activeScope) };
 }
 
 function indentOf(text: string): number {
@@ -192,10 +209,7 @@ export function summariseRuns(recording: Recording): RunInfo[] {
           ? null
           : outcomeOf(frames, start, end, nextStart, lines, line),
       depth: frames[start]!.callStack.length,
-      effect:
-        nextStart === undefined
-          ? { changes: [], callStackDelta: "same" }
-          : diffFrames(frames[start], frames[nextStart]!),
+      effect: activeScopeEffect(frames, start, nextStart),
     };
   });
 }
