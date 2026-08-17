@@ -40,7 +40,11 @@ export function ListFrame({
   error?: boolean;
 }) {
   return (
-    <div className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}>
+    <div
+      // m12a: the connector line's anchor (Connector.tsx) — see Chip.tsx's identical addition.
+      data-anchor={name}
+      className={`rounded-lg bg-slate-900 p-3 ${ringClass(error)}`}
+    >
       <p className="mb-2 text-xs font-medium text-slate-500">{name}</p>
 
       {connectorRange && (

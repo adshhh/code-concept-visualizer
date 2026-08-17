@@ -2188,3 +2188,424 @@ git push
 
 Milestone 12 — Game layer: Explore (§9), per the Build milestones table. Needs the event
 vocabulary finalised in m11 — now complete across both tiers.
+
+# Milestone 12a Completed — Game layer: the challenge view inside a lesson
+
+**Owner decision this session: milestone 12 split, on the 11a/11b precedent.** 12a (this
+checkpoint) is the challenge view inside a lesson — closes AC-9.1–9.6, AC-9.10, AC-9.22.
+12b (compare-the-algorithms, linear search as code, AC-9.7–9.9) is next, on its own branch.
+**Owner decision:** compare-the-algorithms gets its own `/compare` route rather than a third
+view inside Mode B lessons — recorded in the 12a plan so 12b inherits it without re-deciding.
+
+## What
+
+A new, engine-free `src/game/` directory (guarded by the same `architecture.test.ts` rule
+that already protects `src/player/` — proven, not assumed: a real `../engine/run` import was
+planted in `src/game/` and confirmed to fail the guard, by name, before being removed):
+
+- **`lineRuns.ts`/`runInfo.ts`** — the shared primitive every detector and counter builds on:
+  one `RunInfo` per *line the user saw execute*, identical in shape whether the underlying
+  recording is Overview or Detailed. A run boundary is a change of source line **or** call
+  depth — recursion descends through one line many times in a row with nothing in between
+  (`factorial(10)` produces ten consecutive frames on `if n <= 1:` at depths 1–10), and the
+  first version, keyed on line alone, collapsed all ten into one.
+- **`moments.ts`** — §9's five surprisingness signals, plus a sixth (`accumulator`) the plan's
+  own list didn't cover, needed to make AC-9.3's N-steps-ahead question type reachable at all.
+  `selectPrompts` ranks and caps at 5 (D12), spacing prompts apart by source-line-run rather
+  than frame count so Detailed (~2.4× the frames, D39) doesn't bunch its prompts differently
+  than Overview does for the same program.
+- **`questions.ts`** — one `Moment` → one `Question`, all four AC-9.3 types. Distractors are
+  always real recorded values (an accumulator's neighboring-iteration values, a branch's own
+  two landing lines) — never invented arithmetic.
+- **`counters.ts`/`guessCost.ts`** — `countRun()` (steps/comparisons/swaps, D30: never
+  milliseconds) built here because guess-the-cost needs it; 12b will reuse the exact same
+  module for compare-the-algorithms so the two features can never disagree on a count.
+- **`mastery.ts`** — D25/AC-9.22's ring: `answered ≥ 5 && correct/answered ≥ 0.8`, one
+  namespaced `localStorage` key. Every read/write wrapped — a throwing `localStorage`
+  (private-mode Safari) degrades to "nothing recorded," never a page error.
+- **`useChallenge.ts`** — drives `usePlayback` from the outside (that hook is unmodified).
+  Pauses only a genuine autoplay tick reaching a prompt step; "resumes at the previous speed"
+  (AC-9.6) needs no explicit handling, since `usePlayback`'s own `speed` state is never
+  touched by `pause()`/`play()`. An `enabled` flag keeps the plain view completely untouched
+  by prompts (D26: the two views are independent, not just visually).
+- **`ChallengePanel.tsx`/`Connector.tsx`** — the reserved third column (cost → question →
+  result → placeholder, always the same outer shape regardless of phase, so a prompt
+  appearing can never itself resize anything) and the connector line, anchored via a new
+  `data-anchor` attribute (`Chip.tsx`, `ListFrame.tsx`, `DictTable.tsx` — the same additive
+  shape m11b's `data-glowed` took). Fails closed exactly like `indexVars.ts` does for arrows.
+- **`Workspace.tsx`** — a plain/challenge segmented toggle beside the existing
+  Overview/Detailed one. Orthogonal to it and to `isStale`: switching views never marks the
+  trace stale or re-runs anything, since it's a different way of looking at the same
+  recording, not a different run.
+- **`routes/Landing.tsx`** — a mastery ring per lesson card (binary filled/unfilled — D25 only
+  ever asks for a threshold, not a partial-progress fraction).
+- **`docs/GAME.md`** — the heuristic, with real measured numbers (below), and the one known
+  limitation this milestone chose to document rather than fix.
+
+## Findings from running real code against real traces
+
+This milestone's own review pass repeated the discipline the last several checkpoints have
+already established — verify against real committed data, not hand-shaped test fixtures —
+and it found real defects every time it was applied to a new corner:
+
+1. **The `elif`/`else` blind spot in branch-outcome inference.** Overview has no comparison
+   events, so "did this branch execute" was first inferred as "is the next executed line
+   indented deeper than the header." A **false** `elif` hands control to the `else:` block,
+   which is *also* indented deeper — and CPython emits no line event for a bare `else:` — so
+   every false `elif` was read as taken. Found by cross-checking Overview's inference against
+   Detailed's own `compare` events on binary search (bubble sort has no `elif` and agreed by
+   coincidence). Fixed by testing membership in the header's *own* body range, not mere depth;
+   pinned by `runInfo.test.ts`.
+2. **Recursion silently under-counted 10×.** `factorial(10)` executes `if n <= 1:` on ten
+   consecutive frames at depths 1–10 — `lineRunStarts` (keyed on line alone) merged all ten
+   into a single run, so `countRun` reported 1 comparison instead of 10, and the `base-case`
+   signal could never fire. Fixed by adding call depth to the run boundary; pinned in
+   `counters.test.ts`/`runInfo.test.ts`.
+3. **Two prompt-quality bugs.** `first-branch` fired on a program's very first `if`, before
+   anything had happened to make it "first" in any meaningful sense — measured, it put 3 of
+   binary search's 5 prompts inside its first 7 frames. Fixed by requiring the header itself
+   to already be familiar. Separately, `swap-after-quiet` anchored its question to the nearest
+   block header, which for bubble sort's inner loop was `for j in range(n - i - 1):` — a line
+   with no comparison at all. Fixed by requiring the anchor to be a comparison specifically.
+4. **A real `comparisonFlips` mis-detection, caught mid-build of `questions.ts`.** The
+   detector never checked `isComparison`, so it fired on `for`/`while` headers too — a nested
+   loop's exit (control returning to the *outer* loop, textually earlier in the source) can't
+   be found by a forward-only "next line after this body" scan, so it was failing closed
+   (silently dropped) rather than producing a wrong question — but it shouldn't have fired at
+   all. Fixed with one `run.isComparison` gate; both bubble-sort fixtures went from 1 dropped
+   prompt each to 0.
+5. **Two real browser layout bugs, found only by Playwright — not by any unit test.** Once the
+   picture pane narrowed from 65% to 45% for challenge view's third column, a real click on a
+   panel button was intercepted by overflowing picture content instead. Root cause: flex items
+   default to `min-width: auto`, so both `Workspace.tsx`'s own `picture-pane` column *and*
+   `Picture.tsx`'s internal `flex-1` content area refused to shrink below their intrinsic
+   content width (a 10-item list, a wide call-stack card), forcing the box wider than its
+   allocation and bleeding into the neighboring column. Fixed with `min-w-0` in both places —
+   the standard fix for this exact flexbox gotcha. Confirmed via the full existing Playwright
+   suite (27 scenarios) that this doesn't change anything at the component's original 65%
+   width, where there was always enough room to hide the bug.
+
+## Decided independently
+
+- **Guess-the-cost's window is step-0-only, not blocking.** Ignoring it and pressing Play is a
+  legitimate way to decline — no separate skip control needed. Once submitted, the result
+  recaps quietly in the placeholder rather than as its own interruptive card.
+- **A prompt doesn't re-trigger on scrubbing back over an already-resolved step.**
+  `detectMoments`'s own determinism guarantees the *question* would be identical either way;
+  re-interrupting every scrub would be annoying, not more informative.
+- **The mastery ring is binary (filled/unfilled), not a partial-progress arc** — D25's own
+  wording only ever asks for a threshold to be reached.
+- **Column proportions in challenge view: code 30% / picture 45% / panel 25%** — no AC pins an
+  exact split; chosen to keep the picture the visually dominant element.
+
+## Flagged, not fixed
+
+- **Recursive streak tracking crosses call instances** (`comparisonFlips` in `moments.ts`
+  tracks a streak per source line, not per `(line, call instance)`). Never produces a wrong
+  question — the one case it affects fails closed and is dropped — but a proper fix means
+  tracking streaks per call identity, a larger change than this milestone's scope. Documented
+  in `docs/GAME.md` and pinned by a test naming the limitation explicitly.
+- **Minor visual crowding**: on `challenge-question-connector.png`, a long call-stack card
+  signature (`bubble_sort(1,2,3,4,5,6,7,8,9,10)`) sits close to the panel's left edge. Nothing
+  overlaps in the DOM (Playwright's click tests pass), but it's tighter than ideal. Left as
+  polish, not fixed, given the session's scope.
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  38 passed (38)
+                    Tests       626 passed (626)        (416 → 626: +210 for this milestone)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built — landing (index) chunk carries mastery.ts (tiny, expected) and
+                    zero pyodide/detailed-trace references (grepped, not assumed)
+=== playwright ===  32 passed (25.1s) — 27 → 32: +5 new challenge-view scenarios
+```
+
+New screenshots, read directly before this checkpoint:
+
+- `challenge-question-connector.png` — a real `will-they-swap` question, connector line from
+  the panel to the two lifted `nums` cells.
+- `challenge-guess-cost.png` — the guess-the-cost card before any step has been taken, actual
+  count genuinely hidden until guessed.
+- `challenge-result-wrong.png` — a deliberately wrong answer, showing the non-punitive
+  framing (AC-9.4): what actually happened, no penalty language.
+
+## Files
+
+- `src/game/{lineRuns,runInfo,counters,moments,questions,guessCost,mastery,useChallenge}.ts`,
+  `src/game/{ChallengePanel,Connector}.tsx` — all new, each with its own `.test.ts(x)`.
+- `tests/fixtures/accepted/32_bubble_sort_ten.py` — AC-9.2's own 10-item input; its trace
+  (`tests/fixtures/traces/32_bubble_sort_ten.json`) generated via the existing snapshot
+  mechanism, not hand-written.
+- `src/architecture.test.ts` — generalised from one guarded directory to a list (`player`,
+  `game`); the "recognises an engine import" self-test extended to cover `src/game/`'s own
+  sideways imports into `src/player/`.
+- `src/player/values/{Chip,ListFrame,DictTable}.tsx` — the additive `data-anchor` attribute.
+- `src/player/Picture.tsx` — the `min-w-0` flexbox fix (finding #5 above).
+- `src/Workspace.tsx` — the plain/challenge toggle, the reserved third column, the connector.
+- `src/routes/Landing.tsx` — the mastery ring.
+- `scripts/screenshots/challenge.spec.ts` (new) — 5 scenarios: 3 screenshots, 2 AC-9.5
+  structural assertions (bounding-box equality across all four challenge phases at a fixed
+  step; a real layout-change assertion for plain→challenge, to pin that the two are distinct).
+- `docs/GAME.md` (new) — the surprisingness heuristic, measured numbers, and the one flagged
+  limitation.
+- `src/Workspace.test.tsx`, `src/routes/Landing.test.tsx` — extended for the new toggle and
+  ring.
+
+## Github Commands for this milestone
+
+```bash
+git add src/game/ src/architecture.test.ts src/player/values/Chip.tsx \
+  src/player/values/ListFrame.tsx src/player/values/DictTable.tsx src/player/Picture.tsx \
+  src/Workspace.tsx src/Workspace.test.tsx src/routes/Landing.tsx src/routes/Landing.test.tsx \
+  tests/fixtures/accepted/32_bubble_sort_ten.py tests/fixtures/traces/32_bubble_sort_ten.json \
+  scripts/screenshots/challenge.spec.ts docs/
+git commit -m "Milestone 12a: Game layer — the challenge view inside a lesson"
+git push
+```
+
+## Next
+
+Milestone 12b — Game layer: compare-the-algorithms (`/compare` route, linear search as code,
+pick-the-winner, Big-O tied to observed counts). Closes AC-9.7–9.9. Sketched at the end of the
+12a plan file; not yet started.
+
+# Milestone 12b Completed — Game layer: compare the algorithms
+
+`/compare` closes §9's Explore half entirely: **AC-9.1–9.10 and AC-9.22 are all now done.**
+
+## What
+
+- **`src/game/algorithms.ts`** — exactly two fixed pairings, not a free choice of any two
+  algorithms (comparing binary search against bubble sort would be meaningless): **search**
+  (linear vs binary, sorted input, D36's linear-search-as-code) and **sort** (bubble vs
+  insertion). Each algorithm carries its own `buildSource` and a `bigO()` template that
+  substitutes the run's own observed counts — §9's own worked-example format ("bubble sort did
+  45 comparisons on 10 items — roughly n²÷2. Try double the size and watch that roughly
+  quadruple"), computed, never authored per run.
+- **`counters.ts` gains a fourth counter, `moves`.** Insertion sort shifts elements into place
+  rather than swapping pairs, so it reports `swaps: 0` — true, but reads as "did nothing" without
+  a second number. `moves` counts every real cell write (a swap = 2, a shift/append/insert/pop =
+  1 each). On the shipped default: bubble sort 18 swaps / 36 moves, insertion sort 0 swaps / 25
+  moves — `swaps: 0` next to `moves: 25` is the informative pairing.
+- **`src/routes/Compare.tsx`** — pairing selector, shared `DataInputPanel` (newly extracted out
+  of `Workspace.tsx` so both screens use the identical control, not a second copy), pick-the-
+  winner (AC-9.8, always skippable, resolved on fewer comparisons), two `Picture`s driven by one
+  shared `usePlayback`, a counts table (steps/comparisons/swaps/moves — never milliseconds,
+  AC-9.7/D30), and a Big-O sentence per algorithm (AC-9.9). Its own lazy route/bundle chunk,
+  same reasoning as `Workspace`'s.
+- **`src/lessons/linear-search.py`** — D36: ships as code with no lesson card and no registry
+  entry (confirmed nothing globs `src/lessons/*.py` beyond the registry's own explicit imports).
+
+## Findings
+
+This milestone's own research and review passes found **five real issues**, none of them
+assumed — each was reproduced against real data (a hand simulation, the real engine, or a real
+browser) before being called a finding, matching every recent milestone's own discipline.
+
+1. **Two problems in the research pass, before any code was written.** Simulating all four
+   algorithms against what `counters.ts` actually counts: insertion sort's `swaps: 0` (above),
+   and binary search losing to linear search at every target position for n=10 — it only wins
+   from around n=12, and never for an early target, since binary pays 3 comparison-lines per
+   iteration (`while`/`if`/`elif`) against linear's 1. Both would have shipped a feature
+   teaching the opposite of the truth, which is exactly what D30 exists to prevent. Owner
+   decisions: add `moves`; default the search pairing to a late target so binary's advantage
+   shows *by default*, with the Big-O text explaining best-vs-worst case for whoever changes it.
+2. **A real double-counting bug in `countRun` itself, latent since 12a.** A mutable list bound
+   at module scope and then passed into a function is the *same* object visible from both
+   scopes (Python's own pass-by-reference) — `diffScope` (`diff.ts`) reports one real mutation
+   twice, once per scope. This is the exact shape `nums = [...]; print(bubble_sort(nums))`
+   produces — the same shape all three shipped Mode B lessons' own starter code already uses —
+   so it was already wrong for the real lessons, just never exercised by 12a's own tests (its
+   fixtures happen to pass list literals directly as call arguments). Confirmed against the
+   real engine before fixing (one real swap, two `swap` `CellChange` entries); fixed by
+   restricting each count to the scope actually executing at that point — safe for the whole
+   supported subset, since `global`/`nonlocal` are outside it (`SUBSET.md`), so a module-scope
+   change while inside a call can only ever be this aliasing, never a second real event.
+3. **A test-methodology bug, caught by re-deriving the wrong number rather than trusting it.**
+   The first hand simulation predicted insertion sort would need 27 moves (18 shifts + 9 key
+   placements); the real engine said 25. Two of the nine placements turn out to be no-ops — the
+   item is already in its correct position, so the write doesn't change the value and
+   `diffFrames` correctly reports nothing. The real number was right; the hand simulation's
+   assumption (every placement is a real write) was wrong.
+4. **An `architecture.test.ts` violation, caught immediately by the guard doing its job.** A
+   real-engine test was first written inside `src/game/`, which the guard correctly flagged
+   (no `src/player/` test imports the engine either, for the identical reason). Split: pure
+   structural tests stay in `src/game/algorithms.test.ts`; real-engine verification moved to
+   `src/engine/algorithms.test.ts`, mirroring `lessons/registry.test.ts`'s own precedent.
+5. **Two real browser layout bugs, found only by this milestone's own screenshot self-review —
+   not by any unit test.** Once built, `/compare`'s two-column grid overflowed the page badly:
+   - **`min-w-0` was needed in two more places.** `Compare.tsx`'s grid item *and* the flex child
+     wrapping `Picture` inside it both defaulted to `min-width: auto`, the identical class of
+     bug 12a already found and fixed in `Workspace.tsx`/`Picture.tsx`. Confirmed via real
+     `getBoundingClientRect()` inspection that both were properly constrained after the fix —
+     which is what revealed the *second*, unrelated cause below (the screenshot stayed
+     byte-identical after this fix, which is what proved it wasn't the whole story).
+   - **A genuine ceiling on list size in the drawing system itself.** `NumberList.tsx`'s grid
+     has a hard 2.5rem-per-cell floor (a 25-cell grid needs ~1100px minimum, regardless of
+     container); `CallStackCards.tsx` stringifies a list argument via bare `String(arg)`, which
+     produces comma-joined text with *no spaces* — one unbreakable token the browser cannot
+     wrap at any width, and the tighter of the two constraints (it capped out around 12 items,
+     before the grid's own floor would have mattered). Neither had ever been triggered before —
+     no existing lesson defaults anywhere near 25 items. Both are the protected core drawing
+     system and out of this milestone's scope to fix.
+
+## Decided independently / owner decisions
+
+- **Insertion sort's `swaps: 0` gets a fourth counter (`moves`), not a redefinition of
+  `swaps`** — keeps D30's three named counters intact, adds rather than edits.
+- **The search pairing's default sorts the shared list before either algorithm runs** —
+  AC-9.7's "identical input" has to hold even though only one algorithm (binary search)
+  requires sortedness; stated in the UI, not done silently.
+- **The search pairing's default list size dropped from the intended 25 items to 8** (owner
+  decision, made after the two layout findings above): the largest size confirmed by real
+  screenshot to render without overflow. Consequence, asserted directly: **linear search wins
+  at the shipped default**, not binary search — binary's advantage only shows above ~12 items,
+  which doesn't fit. The Big-O text already said this could happen ("for a small list... linear
+  search can still win outright"); the default now demonstrates it rather than avoiding it.
+- **Compare mode is fixed at Overview**, not a per-run Overview/Detailed toggle like Workspace —
+  nothing about comparing two algorithms' costs needs Tier 2's sub-expression detail, and
+  keeping this screen's own scope tight was a deliberate choice, not an oversight.
+
+## `/code-review` found and fixed 10 real issues before commit (plus 2 flagged as cut for space)
+
+1. **`ChallengePanel.tsx`'s `GuessCostCard` leaked the real step count as visible (dimmed) text
+   before a guess was submitted** — defeated AC-9.10's own guessing mechanic. Removed the leaked
+   paragraph and the now-unused `actualSteps` prop entirely. The old test (`queryByText("42",
+   {exact:true})`) structurally could never have caught a number embedded in a longer sentence;
+   replaced with a `container.textContent`-based assertion that actually checks the whole
+   rendered page.
+2. **`Compare.tsx` had its own, narrower copy of `recordingFrom`** that only handled `"ok"`
+   results, silently dropping guardrail/runtime_error results into an unexplained blank state.
+   Extracted the more complete version (already correct in `Workspace.tsx`) into a shared
+   `src/engine/recordingFrom.ts`; both callers now use one implementation.
+3. **A stale pick-the-winner could carry its personalization into a second run's own
+   resolution.** Added a `runTokenRef` guard; the pick is only cleared when re-running over
+   *existing* results (`hasRun`), not the pick just made for the run about to start — the first
+   version of this fix was unconditional and broke its own new test, which is what caught it.
+   Pinned with real fixtures built for this (`SHORT_RESULT`/`LONG_RESULT` shared a
+   comparison-free source, so the personalization clause never actually rendered in the old
+   tests regardless of whether the bug existed — new `FEWER_COMPARISONS_RESULT`/
+   `MORE_COMPARISONS_RESULT` fixtures use a real `while a > b:` comparison line instead).
+4. **Switching pairings mid-run could race two in-flight runs.** Fixed primarily at the UI level
+   (`disabled={running}` on the pairing toggle — a disabled button never fires its click
+   handler, in jsdom or a real browser), with the token ref from #3 as defense-in-depth beyond
+   it. Documented in a code comment that the token guard alone is no longer independently
+   testable through the UI once `disabled` is in place, rather than shipping a test that
+   couldn't actually reach the race it claimed to cover.
+5. **Theoretical concern: does `counters.ts`'s scope-filter fix (12a's double-counting bug)
+   undercount a multi-depth recursive swap, or a swap on the last line before an implicit
+   return?** Investigated empirically rather than assumed either way — two adversarial real-
+   Pyodide traces (a recursive swap across every call depth; a swap immediately before a
+   function falls off the end) both matched independently-worked-out ground truth exactly.
+   No bug; pinned as regression tests in a new `src/engine/counters.test.ts` (outside
+   `src/game/`, per `architecture.test.ts`'s own boundary rule).
+6. **D8's 25-element cap was never actually enforced on typed input** — `DataInputPanel.tsx`'s
+   `parseNumberList` had no limit, in both Mode B lessons and Compare. Added
+   `MAX_LIST_LENGTH = 25` and a `.slice(0, MAX_LIST_LENGTH)` at the one place every user-typed
+   list already passes through.
+7. **`Landing.tsx`'s `MasteryRing` read `localStorage` directly in its render body**, despite its
+   own comment already (incorrectly) claiming "read once per mount" — the hero recording
+   autoplays, re-rendering the whole page roughly once a second indefinitely, so all 11 lesson
+   cards were re-reading and re-parsing the same blob every tick. Fixed with `useMemo` keyed on
+   `lessonId`.
+8. **`recordingFrom` duplication** (see #2) — one shared module now.
+9. **A `normalizeValues` ternary duplicated across `algorithms.test.ts`'s helpers** — extracted
+   into `algorithms.ts`'s new exported `effectiveValues(pairing, values)`.
+10. **`sameScope` duplicated between `counters.ts` and `runInfo.ts`** — the exact "two consumers
+    could silently disagree" risk this codebase has already been burned by once (m11b's compare-
+    badge logic). Extracted into `diff.ts`'s `sameScope`/`filterToActiveScope`, now used by both;
+    `runInfo.ts`'s own effect calculation gained the same active-scope filtering `counters.ts`
+    already had, closing a latent gap between the two.
+
+**Bonus, flagged by the reviewer as "cut for space" rather than a formal finding, fixed anyway:**
+`Connector.tsx`'s `window resize` listener fired a full recompute (three
+`getBoundingClientRect()` calls, one React state update) once per resize *event* — dozens of
+times during an active drag-resize — for a line that only needs to be accurate once per painted
+frame. Throttled with `requestAnimationFrame`, pinned by a new test confirming three rapid
+`resize` events coalesce into exactly one scheduled frame.
+
+Full check suite re-run clean after all twelve: typecheck, 680/680 tests (42 → 43 files, 672 →
+680 tests: +8 for this round), format, build, and all 37 Playwright scenarios (count unchanged —
+these are behavioral/structural fixes, not new user-facing scenarios).
+
+## Screenshots
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  43 passed (43)
+                    Tests       680 passed (680)        (626 → 680: +54 for this milestone,
+                                                          including the code-review round)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built — Compare is its own small lazy chunk (~8 kB), separate from
+                    Workspace's; landing (index) chunk unaffected
+=== playwright ===  37 passed (25.8s) — 32 → 37: +5 new compare-route scenarios
+```
+
+New screenshots, read directly before this checkpoint (three full self-review iterations, not
+one — the first two attempts at the search pairing's default both overflowed and were caught
+here, not shipped):
+
+- `compare-search.png` — the search pairing after a real run, at its final (8-item) default:
+  clean layout, no overflow, both pictures fully visible.
+- `compare-sort.png` — the sort pairing (10 items) after a real run: confirmed clean at the
+  original intended size, no changes needed there.
+
+## Files
+
+- `src/game/algorithms.ts` (new) + `src/game/algorithms.test.ts` (new, structural only).
+- `src/engine/algorithms.test.ts` (new) — real-engine verification, outside `src/game/` per
+  `architecture.test.ts`'s own rule.
+- `src/lessons/linear-search.py` (new, D36).
+- `src/routes/Compare.tsx` (new) + `src/routes/Compare.test.tsx` (new).
+- `src/player/DataInputPanel.tsx` (new, extracted from `Workspace.tsx`) +
+  `src/player/DataInputPanel.test.ts` (new, moved from `Workspace.test.tsx`).
+- `src/game/counters.ts` — `moves`, and the scope-aliasing fix. `src/game/counters.test.ts` —
+  both pinned.
+- `src/lessons/registry.ts` — `pyList` exported (was private) for `algorithms.ts` to reuse.
+- `src/App.tsx`, `src/routes/Landing.tsx` — the `/compare` route and its link.
+- `src/Workspace.tsx`, `src/Workspace.test.tsx` — `DataInputPanel` import updated, its own
+  copy and tests removed.
+- `scripts/screenshots/compare.spec.ts` (new) — 6 scenarios: 4 real-engine assertions
+  (exact counts, non-zero moves, pick-the-winner resolution, never-milliseconds), 2 screenshots.
+- `docs/GAME.md` — the compare-mode section, all five findings, plus the D8 cap-enforcement note.
+
+**Code-review round, additional files:**
+
+- `src/engine/recordingFrom.ts` (new) — shared `recordingFrom`, used by `Workspace.tsx` and
+  `Compare.tsx`.
+- `src/engine/counters.test.ts` (new) — real-Pyodide regression tests for the scope-filter
+  investigation (finding #5).
+- `src/game/ChallengePanel.tsx`, `src/game/ChallengePanel.test.tsx` — guess-cost leak fix.
+- `src/game/Connector.tsx`, `src/game/Connector.test.tsx` — resize-throttle fix.
+- `src/game/algorithms.ts`, `src/engine/algorithms.test.ts` — `effectiveValues` extraction.
+- `src/game/counters.ts`, `src/game/runInfo.ts`, `src/player/diff.ts` — `filterToActiveScope`
+  extraction.
+- `src/player/DataInputPanel.tsx`, `src/player/DataInputPanel.test.ts` — `MAX_LIST_LENGTH` cap.
+- `src/routes/Compare.tsx`, `src/routes/Compare.test.tsx` — stale-pick and race-condition fixes.
+- `src/routes/Landing.tsx`, `src/routes/Landing.test.tsx` — `MasteryRing` memoization.
+- `src/Workspace.tsx` — updated to import the shared `recordingFrom`.
+
+## Github Commands for this milestone
+
+```bash
+git add src/game/algorithms.ts src/game/algorithms.test.ts src/game/counters.ts \
+  src/game/counters.test.ts src/game/ChallengePanel.tsx src/game/ChallengePanel.test.tsx \
+  src/game/Connector.tsx src/game/Connector.test.tsx src/game/runInfo.ts \
+  src/engine/algorithms.test.ts src/engine/counters.test.ts src/engine/recordingFrom.ts \
+  src/lessons/linear-search.py src/lessons/registry.ts \
+  src/routes/Compare.tsx src/routes/Compare.test.tsx \
+  src/routes/Landing.tsx src/routes/Landing.test.tsx \
+  src/player/DataInputPanel.tsx src/player/DataInputPanel.test.ts src/player/diff.ts \
+  src/Workspace.tsx src/Workspace.test.tsx src/App.tsx \
+  scripts/screenshots/compare.spec.ts docs/
+git commit -m "Milestone 12b: Game layer — compare the algorithms, plus code-review fixes"
+git push
+```
+
+## Next
+
+Milestone 13 — Game layer: Practice / reverse mode (§9's Practice half), per the Build
+milestones table. §9's own Explore criteria (AC-9.1–9.10, 9.22) are now fully closed across
+12a and 12b.

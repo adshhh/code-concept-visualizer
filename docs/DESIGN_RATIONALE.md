@@ -1305,6 +1305,142 @@ process three times.
 
 ---
 
+## 33. Milestone 12a: a heuristic that agreed with itself, a browser that disagreed with the CSS
+
+12a's own review pass kept finding the same shape of defect m11a and 11b's entries above already
+named — reasoning about a plan or a rule and being wrong in a way only running the real thing would
+show — but it also found one flavor those two entries hadn't: a bug that no unit test, however
+thorough, could have caught in principle, because it lived in how a real browser lays out real CSS.
+
+**A cross-check that was supposed to be a formality caught a real bug.** Overview has no comparison
+events, so "did this branch execute" has to be inferred from which line ran next. The first version
+of that inference: "the next executed line is indented deeper than the header → the body ran."
+Reasonable-sounding, and correct for a plain `if`. It is wrong for `elif`. A false `elif` hands
+control to the `else:` block, whose body is *also* indented deeper than the `elif` line — and
+CPython emits no line event for a bare `else:` header, so there is nothing between the two to tell
+them apart by depth alone. Every false `elif` in this codebase was being read as taken. The plan for
+this milestone included, almost as an afterthought, cross-checking Overview's inference against
+Detailed's own `compare` events on a second algorithm — not because a bug was suspected, but because
+11a and 11b's own entries had already established that two independent sources of truth are cheap
+insurance. Bubble sort (no `elif`) agreed with itself by coincidence. Binary search (two `elif`
+clauses) disagreed at exactly the two branches this bug predicts it would. The fix — test membership
+in the header's own body *range*, not mere indentation — took longer to write a comment explaining
+than to write.
+
+**The same instinct, applied to recursion, found a second bug of a completely different shape.**
+Nothing about the `elif` fix suggested anything was wrong with how lines get grouped into "one
+executed unit" in the first place — but building the next piece (counting comparisons, which needs
+that same grouping) meant running it against a recursive fixture, and `factorial(10)` immediately
+produced a comparison count of 1 instead of 10. `if n <= 1:` runs once per call, at ten different
+call depths, on ten *consecutive* frames with nothing else in between — and the grouping logic,
+written with only iterative loops in mind, was keyed on source line alone, so it silently merged all
+ten separate decisions into one. Neither bug would have been caught by more tests of the same shape
+the code already had; each needed a fixture the first version's author simply hadn't been thinking
+about when writing it. The fix for both ended up being the same instinct twice: don't trust that a
+rule generalizes past the one shape it was designed for — go find the shape most likely to break it
+and run the code against it before believing it works.
+
+**A bug the source code was innocent of.** The most interesting defect this milestone found lived
+nowhere a code reader would think to look. Once the picture pane's own column narrowed — from 65% of
+the row to 45%, to make room for the new challenge panel — a real Playwright click on a real panel
+button started landing on the picture instead. The picture's own JSX hadn't changed at all; neither
+had the panel's. The cause was two instances of the same CSS default, present since the very first
+line of `Picture.tsx` was written at milestone 5 and never once triggered until this milestone
+happened to ask for a narrower box: a flex item's `min-width` defaults to `auto`, not `0`, so an
+item refuses to shrink below its own content's intrinsic width no matter how little room its
+container actually has. At 65% there was always enough slack to hide it. At 45%, for a step whose
+picture happened to be wide enough (a ten-item list, a call-stack card), the box was forced wider
+than its own allocation and visually bled into the neighboring column — invisible to `tsc`, invisible
+to every one of this project's 620-plus `jsdom`-based unit tests (`jsdom` doesn't lay out CSS at
+all), and findable by exactly one thing this codebase has: a real browser, clicking a real pixel.
+Fixed with `min-w-0` in the two places the default was doing the damage, confirmed harmless at the
+original 65% by re-running the full existing 27-scenario Playwright suite, not just the new one.
+
+**Why this belongs next to 11a and 11b's own entries, not as a new lesson.** All three milestones
+converge on the same discipline stated three different ways: a claim about *logic* is verified by
+running the logic against a fixture chosen to be adversarial, not agreeable; a claim about *layout*
+is verified by asking a real browser what it actually painted, because no amount of reading CSS
+correctly predicts how a flexbox default behaves under a constraint nobody had tried yet. Both of
+this milestone's first two bugs were caught because the plan built in a cross-check against a second
+data source as routine, not as a response to suspicion. The third was caught only because this
+project already treats Playwright as load-bearing rather than decorative — a screenshot suite that
+existed for visual self-review turned out to be the one tool capable of catching a defect that was,
+by construction, invisible to everything else in the check suite.
+
+---
+
+## 34. Milestone 12b: a bug that had been shipping since 12a, and a number that kept refusing to fit
+
+12b's own review pass split cleanly into two halves — a research pass before any code existed,
+and a build pass that kept finding real things wrong with the code and the screen, right up
+until the last screenshot. Neither half took anything on faith.
+
+**The research pass paid for itself before a single line of `Compare.tsx` was written.**
+Simulating all four algorithms against what `counters.ts` actually counts — not against what
+they were assumed to count — found two problems that would have shipped a feature teaching the
+opposite of what it claimed to. Insertion sort shifts elements rather than swapping pairs, so
+it reports `swaps: 0`; read next to bubble sort's real 18 swaps, that looks like insertion sort
+did nothing, when it performed 27 real writes. And binary search, at the milestone's originally
+planned default size, lost to linear search on every target position — its own per-iteration
+overhead (three comparison lines against linear's one) outweighs the halving advantage until
+well past ten items, the opposite of "the halving is the lesson" this whole screen exists to
+show. Both were owner decisions, not code fixes: add a fourth counter rather than redefine an
+existing one, and choose a default where the intended lesson actually happens rather than
+leaving the code correct and the demo backwards.
+
+**The double-counting bug is the more interesting one, because it didn't start in 12b at all.**
+`countRun`'s swap/move counting summed every scope change a diffed frame carried — and a
+mutable list bound at module scope, then passed into a function, is the *same* object visible
+from both scopes at once, because Python passes lists by reference. `diffScope` dutifully
+reports the identical mutation twice, once per scope. The shape that triggers it —
+`nums = [...]; print(bubble_sort(nums))` — is not something 12b invented. It is the exact shape
+all three shipped Mode B lessons' own starter code already uses, and has used since milestone 9.
+`counters.ts` shipped at 12a with this bug already live, silently correct only by coincidence:
+every fixture 12a's own tests happened to use passed its list as a literal argument directly
+(`bubble_sort([5, 2, 4, 1, 3])`), never through a prior module-level binding, so the aliasing
+that breaks the count never occurred in anything 12a actually tested. 12b's own generated
+source was the first thing in this codebase's history to exercise the shape a real lesson has
+always used. Confirmed against the real engine before writing the fix — one real swap producing
+two `swap` `CellChange` entries in the raw diff output — and fixed by restricting each count to
+whichever scope is actually executing at that point, which is provably safe rather than merely
+plausible: `global`/`nonlocal` are outside the supported subset (`SUBSET.md`), so there is no
+accepted program in which a module-scope change can appear while execution is inside a call for
+any reason other than this exact aliasing.
+
+**The last finding took three real screenshots to actually see, and the first fix was the wrong
+one.** Once `/compare`'s two-picture layout was built, the page overflowed badly — a picture's
+content bleeding past the right edge, the two algorithm panels visually overlapping. The
+instinctive fix was the one already proven at 12a: add `min-w-0` where a flex or grid item was
+refusing to shrink below its own content's width. It was applied, rebuilt, and the screenshot
+came back *pixel-identical* to the broken one. That result was itself the useful data point — a
+real fix changes a screenshot; a screenshot that doesn't move means the theory was wrong, not
+that the fix failed to compile. Direct inspection of the live DOM's own computed layout
+(`getBoundingClientRect`, not assumption) showed every container was in fact now correctly
+sized. The overflow was never a container-sizing problem at all: `NumberList.tsx`'s grid has a
+hard 2.5rem-per-cell floor that no ancestor `min-width` can override, and separately,
+`CallStackCards.tsx` stringifies a list argument with `String(arg)`, which for an array yields
+comma-joined digits with no spaces anywhere — one unbreakable token a browser cannot wrap
+regardless of how narrow its box is. Both are real, load-bearing gaps in a promise this
+codebase states as a hard rule — "everything always fits on screen... no horizontal scrolling
+anywhere" — that had simply never been tested against a list anywhere near the stated 25-element
+cap, because no lesson's own default had ever asked for one. Fixing either is a change to the
+protected core drawing system, judged out of this milestone's own scope; the resolution was to
+find, by real screenshot rather than arithmetic (an early width estimate was tried and was
+wrong), the largest list size that actually renders cleanly, and to accept and state plainly
+the honest consequence — the shipped default now demonstrates linear search winning, not binary
+search, because the size that fits is smaller than the size where binary's advantage appears.
+
+**Why this belongs next to 11a, 11b, and 12a's own entries.** Every one of those found the same
+kind of gap between what was assumed and what was true, at a different layer each time: 11a in
+an AST rewrite, 11b in a rendering heuristic, 12a in CSS and in a program's own control-flow
+inference. 12b adds two more layers to the same list — a counting algorithm that was already
+wrong before this milestone touched it, discovered only because a new caller finally exercised
+the shape that broke it, and a CSS assumption that a screenshot proved wrong twice before the
+real cause was found. None of the five findings in this milestone were caught by reading code
+more carefully. All five were caught by running it — against a hand simulation checked twice,
+against the real engine, against a real browser's own computed layout — and believing the
+result over the expectation every time it disagreed.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

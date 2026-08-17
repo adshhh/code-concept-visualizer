@@ -2,35 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { Workspace, parseNumberList } from "./Workspace";
+import { Workspace } from "./Workspace";
 import { run, runDetailed, checkEngineAvailable } from "./engine/run";
 import type { RunResult } from "./engine/types";
 import { getLesson } from "./lessons/registry";
 
-// Found by code review: Number("") is 0, which survives a naive Number.isFinite filter and
-// silently injects a spurious 0 for every empty token (a trailing/double comma, or the field
-// cleared entirely) instead of dropping it as the DataInputPanel's own docstring claims.
-describe("parseNumberList — the data-input panel's list parser", () => {
-  it("parses a clean comma-separated list", () => {
-    expect(parseNumberList("5, 2, 8")).toEqual([5, 2, 8]);
-  });
-
-  it("drops a trailing comma instead of injecting a spurious 0", () => {
-    expect(parseNumberList("5, 2,")).toEqual([5, 2]);
-  });
-
-  it("drops a double comma instead of injecting a spurious 0", () => {
-    expect(parseNumberList("5,,8")).toEqual([5, 8]);
-  });
-
-  it("returns an empty list for a fully cleared field, not [0]", () => {
-    expect(parseNumberList("")).toEqual([]);
-  });
-
-  it("drops non-numeric tokens", () => {
-    expect(parseNumberList("5, abc, 8")).toEqual([5, 8]);
-  });
-});
+// parseNumberList's own tests moved to src/player/DataInputPanel.test.ts at 12b, alongside
+// the component/function that now lives in src/player/DataInputPanel.tsx (extracted so
+// Compare.tsx can reuse it, rather than a second hand-copied version).
 
 // Workspace's job is wiring engine output into the player, not re-verifying the engine
 // itself (that's engine/run.test.ts, engine/tracer.test.ts, etc.) — so run() is mocked here,
@@ -271,6 +250,49 @@ describe("Workspace — D38/m11b, the Overview/Detailed toggle", () => {
     // rather than a second concept (see the m11b plan's own decision on this).
     await user.click(screen.getByRole("button", { name: "detailed" }));
     expect(screen.getByText("press Run to see this")).toBeInTheDocument();
+  });
+});
+
+describe("Workspace — D26/m12a, the plain/challenge view toggle", () => {
+  it("defaults to plain, with no challenge panel rendered", () => {
+    renderWorkspace();
+    expect(screen.getByRole("button", { name: "plain" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.queryByTestId("challenge-panel")).not.toBeInTheDocument();
+  });
+
+  it("switching to challenge renders the panel, without re-running or going stale", async () => {
+    vi.mocked(run).mockClear();
+    vi.mocked(run).mockResolvedValue(okResult);
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "Run" }));
+    await waitFor(() =>
+      expect(screen.getByText("step 1 of 2")).toBeInTheDocument(),
+    );
+    expect(run).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "challenge" }));
+
+    expect(screen.getByTestId("challenge-panel")).toBeInTheDocument();
+    // The view toggle is orthogonal to staleness (unlike the detail-level toggle) — the
+    // recording on screen is unchanged, so nothing should look like it needs a re-run.
+    expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it("switching back to plain removes the panel again", async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await user.click(screen.getByRole("button", { name: "challenge" }));
+    expect(screen.getByTestId("challenge-panel")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "plain" }));
+    expect(screen.queryByTestId("challenge-panel")).not.toBeInTheDocument();
   });
 });
 

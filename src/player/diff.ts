@@ -17,6 +17,44 @@ export type CellChange =
   | { kind: "pop"; path: VarPath; index: number; value: unknown }
   | { kind: "insert"; path: VarPath; key: string; value: unknown };
 
+/** Whether two `VarPath["scope"]` values name the same scope. Shared (not reimplemented) by
+ * every consumer that needs to tell a real change apart from a scope-aliased duplicate of it
+ * — see `filterToActiveScope`'s own docstring for what that means and why it matters. */
+export function sameScope(a: VarPath["scope"], b: VarPath["scope"]): boolean {
+  if (a === "module" || b === "module") return a === b;
+  return a.callDepth === b.callDepth;
+}
+
+/** A mutable object (a list) bound at module scope and then passed into a call is the *same*
+ * object visible from both scopes — Python's own pass-by-reference — so `diffScope` (below)
+ * reports one real mutation once per scope it's visible from: `nums = [...]; f(nums)` shows
+ * the same change tagged both `module` and the call's own depth, and a recursive function
+ * that threads the same list through several calls shows it at *every* depth simultaneously
+ * (found by code review while building 12b's compare-the-algorithms — `countRun` was
+ * summing every scope's own entry and double- or multi-counting a single real event).
+ *
+ * `activeScope` — normally `currentScopeDescriptor` of whichever frame is executing the line
+ * being diffed — picks out the one entry that reflects the code actually doing the mutating;
+ * every other scope's own copy of the same change is a duplicate view of it, not a second
+ * event. This is safe for the whole supported subset, not merely convenient: `global`/
+ * `nonlocal` are rejected by the validator (`SUBSET.md`), so there is no accepted program in
+ * which a non-active scope's change is caused by anything other than this aliasing — never a
+ * second, independent mutation a filter here could wrongly discard. Verified against the real
+ * engine on two adversarial shapes before relying on that claim rather than just asserting it:
+ * a list threaded through several simultaneous recursive call depths (a single real swap is
+ * visible at every depth *and* at module scope at once — `filterToActiveScope` keeps exactly
+ * one), and a swap on the very last line of a call, immediately before it implicitly returns
+ * (the mutating line's own captured frame is still tagged at the deeper, pre-pop depth — the
+ * pop is always a separate, later transition with nothing new to report — so there's no gap
+ * where the real change is visible only at a scope shallower than `activeScope` expects). Both
+ * are pinned in `counters.test.ts`. */
+export function filterToActiveScope(
+  changes: CellChange[],
+  activeScope: VarPath["scope"],
+): CellChange[] {
+  return changes.filter((change) => sameScope(change.path.scope, activeScope));
+}
+
 export interface StepDiff {
   changes: CellChange[];
   callStackDelta: "pushed" | "popped" | "same";
