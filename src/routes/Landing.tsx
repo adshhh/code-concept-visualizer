@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Picture } from "../player/Picture";
 import { usePlayback } from "../player/usePlayback";
@@ -22,12 +22,20 @@ import { isMastered, readMastery } from "../game/mastery";
  * accuracy. `localStorage` only, no accounts." A binary filled/unfilled ring rather than a
  * partial-progress arc — D25's own wording only ever asks for a threshold to be reached, not
  * an incremental fraction to be displayed, so a solid dot once mastered vs. an outline before
- * is the whole requirement, not a simplification of a bigger one. Read once per mount:
- * `localStorage` has no reactive subscription, and progress only ever changes on the lesson
- * page, not here — a fresh read on landing (reached only by navigating, i.e. a fresh mount) is
- * exactly as current as it needs to be. */
+ * is the whole requirement, not a simplification of a bigger one. Read once per mount, via
+ * `useMemo` keyed on `lessonId` (found by code review: this used to read `localStorage`
+ * directly in the render body, which the comment here already claimed was "once per mount"
+ * but the code didn't actually do — Landing's own hero recording autoplays, re-rendering the
+ * whole page roughly once a second indefinitely, so every lesson card was re-reading and
+ * re-parsing the same `localStorage` blob every tick for no reason). `localStorage` has no
+ * reactive subscription, and progress only ever changes on the lesson page, not here — one
+ * read per mount (reached only by navigating, i.e. a fresh mount) is exactly as current as it
+ * needs to be. */
 function MasteryRing({ lessonId }: { lessonId: string }) {
-  const mastered = isMastered(readMastery(lessonId));
+  const mastered = useMemo(
+    () => isMastered(readMastery(lessonId)),
+    [lessonId],
+  );
   return (
     <span
       role="img"
@@ -89,9 +97,19 @@ export function Landing() {
         </p>
 
         <div>
-          <h2 className="mb-3 text-base font-semibold text-slate-100">
-            Pick a lesson — any of them, in any order
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-slate-100">
+              Pick a lesson — any of them, in any order
+            </h2>
+            {/* m12b: §9's compare-the-algorithms — its own route (two pictures don't fit a
+             * pane sized for one), linked from here rather than tucked inside a lesson. */}
+            <Link
+              to="/compare"
+              className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 hover:ring-slate-600"
+            >
+              Compare the algorithms
+            </Link>
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {LESSONS.map((lesson) => (
               <Link

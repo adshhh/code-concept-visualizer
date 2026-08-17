@@ -16,6 +16,13 @@ const Workspace = lazy(() =>
   import("./Workspace").then((module) => ({ default: module.Workspace })),
 );
 
+/** m12b: same reasoning as `Workspace` above — Compare pulls in the engine (two sequential
+ * real runs) and shouldn't cost the landing page anything until someone actually navigates
+ * here. */
+const Compare = lazy(() =>
+  import("./routes/Compare").then((module) => ({ default: module.Compare })),
+);
+
 /** React Router reuses one mounted `/lesson/:id` element across param changes rather than
  * remounting it (a well-known gotcha) — without this, navigating from one lesson straight to
  * another (nothing does that yet, but nothing should have to know not to) would keep the
@@ -43,6 +50,20 @@ export function App() {
               }
             >
               <LessonRoute />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/compare"
+          element={
+            <Suspense
+              fallback={
+                <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">
+                  Loading…
+                </div>
+              }
+            >
+              <Compare />
             </Suspense>
           }
         />

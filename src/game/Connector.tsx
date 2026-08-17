@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { Question } from "./questions";
 
 interface LineCoords {
@@ -30,6 +30,7 @@ export function Connector({
   activeQuestion: Question | null;
 }) {
   const [line, setLine] = useState<LineCoords | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     function recompute() {
@@ -63,9 +64,25 @@ export function Connector({
       });
     }
 
+    // Throttled to at most one recompute per animation frame — found by code review: a raw
+    // resize listener fires dozens of times during an active drag-resize, each one doing
+    // three getBoundingClientRect() calls and a React state update for no visible benefit
+    // over recomputing once per frame.
+    function onResize() {
+      if (rafRef.current !== null) return;
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        recompute();
+      });
+    }
+
     recompute();
-    window.addEventListener("resize", recompute);
-    return () => window.removeEventListener("resize", recompute);
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
   }, [containerRef, activeQuestion]);
 
   if (!line) return null;

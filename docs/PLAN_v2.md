@@ -327,8 +327,55 @@ Three constraints shape every decision:
 > documented in `docs/GAME.md` and pinned by a test naming it explicitly rather than fixed,
 > since a proper fix (tracking per call identity) is a larger change than this milestone's scope.
 >
-> **Next: milestone 12b (Game layer — compare-the-algorithms)**, per the Build milestones table
-> below and the 12a plan file's own sketch.
+> **Milestone 12b is built and checkpointed** (see `checkpoint_report.md`). `/compare` closes
+> §9's Explore half entirely (AC-9.1–9.10, 9.22) — two fixed pairings (`src/game/algorithms.ts`):
+> search (linear vs binary) and sort (bubble vs insertion), both algorithms in a pairing always
+> run through the same `run()` on identical input. `counters.ts` gained a fourth counter,
+> `moves` — insertion sort shifts rather than swaps, so `swaps: 0` alone reads as "did nothing"
+> (it performs 25 real moves on the shipped default; bubble sort's own 18 swaps are 36 moves).
+>
+> **A real double-counting bug, found before it shipped.** `countRun` summed diff changes
+> across every scope a frame carries; a mutable list bound at module scope and then passed into
+> a function is the *same* object visible from both scopes (Python's own pass-by-reference), so
+> one real swap was being reported twice. Latent in `countRun` since 12a — the committed
+> fixtures 12a tested against happen to pass list literals directly as call arguments, never
+> through a module-level binding first, so it was never exercised until 12b's own generated
+> source (`nums = [...]; print(bubble_sort(nums))`) hit the exact shape all three shipped Mode B
+> lessons' own starter code already uses. Fixed by restricting each count to whichever scope is
+> actually executing — safe for the whole supported subset, since `global`/`nonlocal` are
+> outside it (`SUBSET.md`).
+>
+> **Two more findings, from this milestone's own screenshot self-review, exposed a real ceiling
+> on list size the app's own "everything always fits, no scrolling" promise (D8) didn't
+> actually hold at 25 items.** `NumberList.tsx`'s grid has a hard 2.5rem-per-cell floor (~1100px
+> minimum for 25 cells); `CallStackCards.tsx` stringifies a list argument with no spaces between
+> numbers, producing one unbreakable line of text at any width — the tighter of the two
+> constraints, capping out around 12 items. Neither had ever been triggered before (no existing
+> lesson defaults anywhere near 25 items). Both are the protected core drawing system and out of
+> this milestone's own scope to fix; **the search pairing's default dropped from the originally
+> intended 25 items to 8** — the largest confirmed by real screenshot to render without
+> overflow. The honest consequence, asserted directly rather than hidden: **linear search wins
+> at the shipped default** (8 vs 11 comparisons) — binary's own per-iteration overhead only pays
+> off from around 12 items, above the size that fits. The Big-O text says so explicitly. Full
+> trail, including the compare-mode-specific `min-w-0` fix this also needed, in
+> `checkpoint_report.md` and `docs/GAME.md`.
+>
+> **§9 (Explore) is now fully closed: AC-9.1–9.10, 9.22.** Remaining §9 criteria (11–21, 23)
+> belong to Practice (m13) and flowcharts (m14).
+>
+> **`/code-review` run on 12b's full diff found and fixed 10 real issues, plus 2 more flagged as
+> "cut for space" fixed anyway** (see `checkpoint_report.md`'s "Milestone 12b Completed" section
+> for the full list). Two worth noting here: a leaked guess-cost paragraph in `ChallengePanel.tsx`
+> that defeated AC-9.10's own guessing mechanic, and a real double-counting *concern* (not a bug —
+> investigated with two adversarial real-Pyodide traces and confirmed the 12b scope-filter fix
+> holds under multi-depth recursion and last-line-before-return swaps). The rest were a stale
+> pick-the-winner race, a pairing-switch race, D8's cap never actually being enforced on typed
+> input (now is, at `DataInputPanel.tsx`'s shared parser), an unmemoized `localStorage` read on
+> every autoplay tick in `Landing.tsx`, three small duplication extractions, and an unthrottled
+> resize listener in `Connector.tsx`. Full suite re-verified green after all fixes: typecheck,
+> 680/680 tests, build, and all 37 Playwright scenarios (including a fresh real-engine run).
+>
+> **Next: milestone 13 (Game layer — Practice / reverse mode)**, per the Build milestones table.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -433,7 +480,7 @@ one checkpoint = one branch = one merge.**
 | 10                            | Landing page & navigation · **React Router (one URL per lesson)**                                                                   | §11, §2 (AC-2.7)                   | Needs lesson recordings (#7–9) to exist. **v2:** routing was never specified anywhere — a URL per lesson makes a single lesson shareable as a link and makes the back button work. Also where **AC-2.7** (site survives Python failing to load) first becomes checkable |
 | **Phase D — Depth**           |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
-| 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, done, closing AC-9.1–9.6/9.10/9.22 — see checkpoint_report.md; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9, not yet started** |
+| 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, closing AC-9.1–9.6/9.10/9.22; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9. Both done — see checkpoint_report.md. §9 (Explore) fully closed** |
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12                                                                                                                                                                                                                  |
 | 14                            | Flowcharts                                                                                                                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable                                                                                                                                                                                    |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
@@ -1089,10 +1136,24 @@ whole if time runs short.
    > tick (not `stepForward()`, which pauses by design and can't exercise this).
 7. Compare mode runs both algorithms on identical input and reports steps, comparisons and swaps.
    **No millisecond timing appears anywhere in the UI** — grep-verifiable.
+   > **m12b:** done — `/compare`, two fixed pairings. A fourth counter, `moves`, was added
+   > alongside the three named here (insertion sort's `swaps: 0` needed it to not read as "did
+   > nothing" — see the Resume-here box). Both algorithms in a pairing run through the identical
+   > `run()` path, sequentially, on input normalized to be genuinely identical (the search
+   > pairing sorts before either algorithm runs, since binary search requires it).
+   > `engine/algorithms.test.ts`'s own rendered-page + source-grep assertions cover the
+   > never-milliseconds requirement.
 8. Pick-the-winner is asked before the comparison starts and resolved after.
+   > **m12b:** done — always skippable (running without picking is a legitimate decline,
+   > matching §9's own always-skippable spirit elsewhere), resolved by whichever algorithm had
+   > fewer comparisons once both sides complete.
 9. Every algorithm that ships has a Big-O explanation referencing the counts actually observed in
    that run — linear search, binary search, bubble sort, insertion sort, and merge sort if the
    stretch lesson lands.
+   > **m12b:** done for the four algorithms that ship in v1 (merge sort is a stretch lesson not
+   > yet attempted — see §10). Each `Algorithm.bigO()` is a template substituting this run's own
+   > `RunCounts`, never authored per run — pinned by a test asserting the sentence changes when
+   > the counts do.
 10. Guess-the-cost is asked before play and scored on closeness.
     > **m12a:** done — `guessCost.ts`'s `scoreGuess`, asked once per run before the first
     > playback step is taken (a manual step, Play, or scrubbing all close the window

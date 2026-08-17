@@ -63,11 +63,19 @@ describe("ChallengePanel — placeholder", () => {
 });
 
 describe("ChallengePanel — guess the cost (AC-9.10)", () => {
-  it("does not reveal the actual count before a guess is submitted", () => {
-    render(<ChallengePanel challenge={fakeChallenge({ phase: "cost" })} />);
-    // The real count is present in the DOM (so a sighted-but-not-looking-closely test can
-    // still assert against it), but never as bare visible text before a guess.
-    expect(screen.queryByText("42", { exact: true })).not.toBeInTheDocument();
+  it("does not reveal the actual count anywhere in the rendered text before a guess is submitted", () => {
+    // Found by code review: an earlier version rendered the real answer as dimmed text right
+    // on this card. The regression that let it ship was in the test, not just the component —
+    // `queryByText("42", { exact: true })` never matches a number embedded inside a longer
+    // sentence like "(actual: 42 — hidden until you guess)", since Testing Library's exact
+    // match requires a node's *entire* text content to equal the query, not a substring — so
+    // the check passed green while the number sat in plain view. Scanning the full rendered
+    // text for the substring is what actually catches it.
+    const actualSteps = 12345; // an implausible, unambiguous number to search for
+    const { container } = render(
+      <ChallengePanel challenge={fakeChallenge({ phase: "cost", actualSteps })} />,
+    );
+    expect(container.textContent).not.toContain(String(actualSteps));
   });
 
   it("submits the entered number and nothing else", async () => {

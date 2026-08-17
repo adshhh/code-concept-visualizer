@@ -22,10 +22,7 @@ export function ChallengePanel({
       className="flex h-full flex-col gap-3 rounded-lg bg-slate-900/60 p-4 ring-1 ring-slate-800"
     >
       {challenge.phase === "cost" && (
-        <GuessCostCard
-          actualSteps={challenge.actualSteps}
-          onSubmit={challenge.submitGuess}
-        />
+        <GuessCostCard onSubmit={challenge.submitGuess} />
       )}
       {challenge.phase === "question" && challenge.activeQuestion && (
         <QuestionCard
@@ -48,16 +45,10 @@ export function ChallengePanel({
   );
 }
 
-/** AC-9.10: asked before pressing play. `actualSteps` is already known the instant a
- * recording exists (it's just `frames.length`) — the guess is a UX question, not a data one,
- * which is why nothing here waits for playback to reach the end. */
-function GuessCostCard({
-  actualSteps,
-  onSubmit,
-}: {
-  actualSteps: number;
-  onSubmit: (steps: number) => void;
-}) {
+/** AC-9.10: asked before pressing play. The real answer is never rendered here, in any form
+ * — not even dimmed — until after a guess is submitted (found by code review: an earlier
+ * version printed it as visible, if dimmed, text right on this card, defeating the guess). */
+function GuessCostCard({ onSubmit }: { onSubmit: (steps: number) => void }) {
   const [raw, setRaw] = useState("");
   const parsed = Number(raw);
   const canSubmit = raw.trim() !== "" && Number.isFinite(parsed) && parsed >= 0;
@@ -96,10 +87,11 @@ function GuessCostCard({
       </div>
       {/* Real acceptance is "asked before pressing play," not "blocks pressing play" — §9's
           own "always skippable" spirit extends here: ignoring this and hitting Run/Play is a
-          legitimate way to decline, needing no separate control of its own. */}
-      <p className="text-xs text-slate-600">
-        (actual: {actualSteps} — hidden until you guess)
-      </p>
+          legitimate way to decline, needing no separate control of its own.
+          Found by code review: this card previously also rendered the real answer as visible
+          text right here ("actual: {actualSteps}"), just dimmed — readable the whole time,
+          defeating the guess. The real number is never shown until after a guess is
+          submitted, in the placeholder's own recap (see `costResult` below). */}
     </form>
   );
 }

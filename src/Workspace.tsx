@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { run, runDetailed, checkEngineAvailable } from "./engine/run";
 import type { DetailLevel, RunResult } from "./engine/types";
-import type { Recording } from "./recording/types";
+import { recordingFrom } from "./engine/recordingFrom";
 import { resolveScope } from "./player/scope";
 import { translateRuntimeError } from "./player/errorMessages";
 import { Picture } from "./player/Picture";
@@ -13,72 +13,12 @@ import { MotionRoot } from "./player/motion/MotionRoot";
 import { readDevPreload } from "./devPreload";
 import { LESSONS, getLesson } from "./lessons/registry";
 import { getLessonRecording } from "./lessons/recordings";
-import type { LessonInputField } from "./lessons/types";
+import { DataInputPanel } from "./player/DataInputPanel";
 import { useChallenge } from "./game/useChallenge";
 import { ChallengePanel } from "./game/ChallengePanel";
 import { Connector } from "./game/Connector";
 
 type ViewMode = "plain" | "challenge";
-
-/** Parses a comma-separated data-input field into a number list. Empty tokens (a trailing or
- * double comma, or the field cleared entirely) are dropped *before* `Number()` runs — `Number("")`
- * is `0`, which would otherwise survive `Number.isFinite` and silently inject a spurious 0
- * instead of being dropped (found by code review). Exported (not inlined in the `onChange`
- * handler below) so this parsing logic is unit-testable on its own. */
-export function parseNumberList(raw: string): number[] {
-  return raw
-    .split(",")
-    .map((token) => token.trim())
-    .filter((token) => token.length > 0)
-    .map((token) => Number(token))
-    .filter((n) => Number.isFinite(n));
-}
-
-/** One data-input control per Mode B field (§4: "code read-only; the user supplies input
- * data"). Deliberately simple for m9's three lessons: the displayed text is always re-derived
- * from the current parsed value, so malformed input (a trailing comma, a non-numeric token) is
- * silently dropped rather than shown as an error — acceptable for v1's scope, not built out
- * further (see the checkpoint's Uncertain section). */
-function DataInputPanel({
-  fields,
-  values,
-  onChange,
-}: {
-  fields: LessonInputField[];
-  values: Record<string, number[] | number>;
-  onChange: (name: string, value: number[] | number) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-lg bg-slate-900/60 p-3 ring-1 ring-slate-800">
-      {fields.map((field) => (
-        <label
-          key={field.name}
-          className="flex flex-col gap-1 text-sm text-slate-300"
-        >
-          {field.label}
-          <input
-            type="text"
-            className="rounded bg-slate-800 px-2 py-1 text-slate-100 ring-1 ring-slate-700"
-            value={
-              field.kind === "number-list"
-                ? (values[field.name] as number[]).join(", ")
-                : String(values[field.name])
-            }
-            onChange={(event) => {
-              const raw = event.target.value;
-              if (field.kind === "number-list") {
-                onChange(field.name, parseNumberList(raw));
-              } else {
-                const n = Number(raw);
-                onChange(field.name, Number.isFinite(n) ? n : 0);
-              }
-            }}
-          />
-        </label>
-      ))}
-    </div>
-  );
-}
 
 function defaultInputValues(
   lesson: (typeof LESSONS)[number],
@@ -165,17 +105,6 @@ function deriveFeedback(result: RunResult | null): RunFeedback {
   }
 }
 
-function recordingFrom(result: RunResult | null): Recording | undefined {
-  if (!result) return undefined;
-  if (
-    result.status === "ok" ||
-    result.status === "guardrail" ||
-    result.status === "runtime_error"
-  ) {
-    return { source: result.source, frames: result.frames };
-  }
-  return undefined;
-}
 
 /** The real shell around the picture (§7 playback controls, §8 editor + error UX) —
  * supersedes both m3's EngineDevHarness and m5's PictureDevHarness, which existed only
