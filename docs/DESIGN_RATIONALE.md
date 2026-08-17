@@ -1305,6 +1305,70 @@ process three times.
 
 ---
 
+## 33. Milestone 12a: a heuristic that agreed with itself, a browser that disagreed with the CSS
+
+12a's own review pass kept finding the same shape of defect m11a and 11b's entries above already
+named — reasoning about a plan or a rule and being wrong in a way only running the real thing would
+show — but it also found one flavor those two entries hadn't: a bug that no unit test, however
+thorough, could have caught in principle, because it lived in how a real browser lays out real CSS.
+
+**A cross-check that was supposed to be a formality caught a real bug.** Overview has no comparison
+events, so "did this branch execute" has to be inferred from which line ran next. The first version
+of that inference: "the next executed line is indented deeper than the header → the body ran."
+Reasonable-sounding, and correct for a plain `if`. It is wrong for `elif`. A false `elif` hands
+control to the `else:` block, whose body is *also* indented deeper than the `elif` line — and
+CPython emits no line event for a bare `else:` header, so there is nothing between the two to tell
+them apart by depth alone. Every false `elif` in this codebase was being read as taken. The plan for
+this milestone included, almost as an afterthought, cross-checking Overview's inference against
+Detailed's own `compare` events on a second algorithm — not because a bug was suspected, but because
+11a and 11b's own entries had already established that two independent sources of truth are cheap
+insurance. Bubble sort (no `elif`) agreed with itself by coincidence. Binary search (two `elif`
+clauses) disagreed at exactly the two branches this bug predicts it would. The fix — test membership
+in the header's own body *range*, not mere indentation — took longer to write a comment explaining
+than to write.
+
+**The same instinct, applied to recursion, found a second bug of a completely different shape.**
+Nothing about the `elif` fix suggested anything was wrong with how lines get grouped into "one
+executed unit" in the first place — but building the next piece (counting comparisons, which needs
+that same grouping) meant running it against a recursive fixture, and `factorial(10)` immediately
+produced a comparison count of 1 instead of 10. `if n <= 1:` runs once per call, at ten different
+call depths, on ten *consecutive* frames with nothing else in between — and the grouping logic,
+written with only iterative loops in mind, was keyed on source line alone, so it silently merged all
+ten separate decisions into one. Neither bug would have been caught by more tests of the same shape
+the code already had; each needed a fixture the first version's author simply hadn't been thinking
+about when writing it. The fix for both ended up being the same instinct twice: don't trust that a
+rule generalizes past the one shape it was designed for — go find the shape most likely to break it
+and run the code against it before believing it works.
+
+**A bug the source code was innocent of.** The most interesting defect this milestone found lived
+nowhere a code reader would think to look. Once the picture pane's own column narrowed — from 65% of
+the row to 45%, to make room for the new challenge panel — a real Playwright click on a real panel
+button started landing on the picture instead. The picture's own JSX hadn't changed at all; neither
+had the panel's. The cause was two instances of the same CSS default, present since the very first
+line of `Picture.tsx` was written at milestone 5 and never once triggered until this milestone
+happened to ask for a narrower box: a flex item's `min-width` defaults to `auto`, not `0`, so an
+item refuses to shrink below its own content's intrinsic width no matter how little room its
+container actually has. At 65% there was always enough slack to hide it. At 45%, for a step whose
+picture happened to be wide enough (a ten-item list, a call-stack card), the box was forced wider
+than its own allocation and visually bled into the neighboring column — invisible to `tsc`, invisible
+to every one of this project's 620-plus `jsdom`-based unit tests (`jsdom` doesn't lay out CSS at
+all), and findable by exactly one thing this codebase has: a real browser, clicking a real pixel.
+Fixed with `min-w-0` in the two places the default was doing the damage, confirmed harmless at the
+original 65% by re-running the full existing 27-scenario Playwright suite, not just the new one.
+
+**Why this belongs next to 11a and 11b's own entries, not as a new lesson.** All three milestones
+converge on the same discipline stated three different ways: a claim about *logic* is verified by
+running the logic against a fixture chosen to be adversarial, not agreeable; a claim about *layout*
+is verified by asking a real browser what it actually painted, because no amount of reading CSS
+correctly predicts how a flexbox default behaves under a constraint nobody had tried yet. Both of
+this milestone's first two bugs were caught because the plan built in a cross-check against a second
+data source as routine, not as a response to suspicion. The third was caught only because this
+project already treats Playwright as load-bearing rather than decorative — a screenshot suite that
+existed for visual self-review turned out to be the one tool capable of catching a defect that was,
+by construction, invisible to everything else in the check suite.
+
+---
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
