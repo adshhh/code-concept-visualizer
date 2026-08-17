@@ -13,8 +13,10 @@ import insertionSortAlgorithm from "./11-insertion-sort.py?raw";
 
 /** Renders a JS number array as a Python list literal — the one piece of string-building
  * `buildSource` needs (m9's data-input decision: Mode B's custom data is baked into generated
- * source text, never threaded through `tracer.py`'s unused `input` parameter). */
-function pyList(nums: number[]): string {
+ * source text, never threaded through `tracer.py`'s unused `input` parameter). Exported (12b)
+ * so `game/algorithms.ts`'s own `buildSource` functions can build compare-mode's generated
+ * source the identical way, rather than a second copy that could drift from this one. */
+export function pyList(nums: number[]): string {
   return `[${nums.join(", ")}]`;
 }
 

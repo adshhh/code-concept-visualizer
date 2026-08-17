@@ -29,6 +29,10 @@ export function Chip({
       layout
       animate={emphasisVariants[emphasis]}
       transition={GESTURE_TRANSITION}
+      // m12a: the connector line's anchor (Connector.tsx) — additive, same shape m11b's
+      // data-glowed took. Every scalar chip (Number/Boolean/String/None) renders through this
+      // shared shell, so one attribute here covers all of them.
+      data-anchor={name}
       className={`flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 ${ringClass(error)}`}
     >
       <span className="text-xs font-medium text-slate-500">{name}</span>

@@ -257,7 +257,14 @@ export function Picture({
 
   return (
     <div className="flex h-full w-full gap-4 p-4">
-      <div className="flex flex-1 flex-col gap-3">
+      {/* `min-w-0` overrides the flex item default of `min-width: auto` — without it, this
+       * area refuses to shrink below its own intrinsic content width (a wide list, several
+       * chips), pushing the whole row wider than whatever container Picture is placed in
+       * instead of wrapping inside it. Never visible at this component's original 65%-wide
+       * home (there was always room to spare); found by m12a's Playwright suite once the
+       * challenge view's narrower picture column exposed it — a real click landed on
+       * overflowed content instead of the panel button it was aimed at. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-wrap gap-2">
           {classifiedEntries
             .filter(([, , shape]) => isScalar(shape))
