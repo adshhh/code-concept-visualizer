@@ -7,6 +7,8 @@
 # script doesn't exist yet, that check is skipped rather than treated as a failure.
 
 set -uo pipefail
+export PATH="/opt/homebrew/bin:$PATH"
+
 
 INPUT=$(cat)
 FILE=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')

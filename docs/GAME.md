@@ -318,6 +318,84 @@ engine prints for each of the 18 programs — same "a changed snapshot may never
 re-recorded" discipline as the lesson trace snapshots. Nothing about an exercise's expected
 output is hand-typed, keeping D34 true end-to-end.
 
+## Practice: the `/practice` route (13b, AC-9.15–9.17, demonstrates AC-9.14)
+
+`src/routes/Practice.tsx` — concept × difficulty segmented controls (matching `Compare.tsx`'s
+own pairing toggle) select one of 13a's 18 programs; `PracticeExercise` remounts on every
+switch (`key={program.id}`, the same reset precedent as `App.tsx`'s `LessonRoute`), so a fresh
+exercise never needs a dozen pieces of state hand-reset.
+
+### The majority outcome gets first-class UI, not an afterthought
+
+13a's own measurement found 55–100% of near-miss arrangements are validator-rejected — the
+*typical* wrong answer isn't runnable at all, never mind wrong-output. **Owner decision:**
+invalid arrangements stay fully submittable — pressing Check always runs the real `run()`
+(AC-9.15) — and the response is the validator's own message with the exact offending block
+highlighted (a ring **and** a ⚠ glyph, AC-5.10), not a dead end. Retries are unlimited, with no
+"show the answer" escape hatch (owner decision) — the divergence animation, when a run
+produces one, is the help.
+
+### Feedback covers all six `RunResult` statuses, not just the two obvious ones
+
+`deriveFeedback` (extracted from `Workspace.tsx` to a shared `src/runFeedback.ts` this
+milestone, rather than duplicated — see below) handles `rejected`/`timeout`/`validator_
+mismatch`/`guardrail`/`runtime_error` uniformly. The one status it can say nothing about by
+design is `ok`: the engine ran cleanly, so `deriveFeedback` correctly returns an empty banner
+— whether the *answer* is right is an application-level question only `Practice.tsx` can ask,
+since it's the only thing that knows the expected output. `Practice.tsx` handles that one case
+itself (`result.status === "ok" && !outcome.correct` → its own "doesn't print what was asked"
+message, plus what it actually printed) — found while reviewing the render logic, not by a
+test failing, since no test had yet driven a genuinely wrong-but-valid run.
+
+### `usePlayback`'s own contract, honored on every check
+
+`usePlayback`'s docstring states plainly that it never infers a new recording from
+`frameCount` alone — the caller must call `reset()` on every fresh one (`Compare.tsx`'s
+`handleRun` already does this in its `finally` block). `Practice.tsx`'s check effect does the
+same before conditionally jumping to a divergence step, so a second check's scrub position
+never carries over from wherever the first one was left.
+
+### Reordering: pointer drag and keyboard as peers, not drag with a fallback
+
+`src/game/BlockList.tsx` — full write-up and the keyboard-testing pattern now live in
+`docs/VISUALS.md`'s Accessibility section, since this is the repo's first fully
+keyboard-operable widget and the pattern is meant to be inherited by future ones, not
+re-derived. Summary: framer-motion's `Reorder` (confirmed present and React-19-compatible in
+the installed 13.1.0 before building, not assumed) gives pointer drag and the layout
+animation; grab/move/drop keyboard support — `Space` to pick up, arrows to move the grabbed
+block, `Space` to drop, `Escape` to cancel, blur drops safely — is entirely this file's own
+code, since framer-motion ships zero keyboard/ARIA support for `Reorder`. A dedicated drag
+handle (`dragListener={false}` + `useDragControls`) keeps pointer drag from fighting the
+button's own click/keyboard handling on the same element.
+
+### The one flagged risk that didn't materialize
+
+The 13b plan named real-browser pointer drag against framer-motion as the genuinely uncertain
+piece — no precedent anywhere in this repo, and the planned fallback was to unit-test the drag
+wiring alone and keep the real proof on the keyboard path. It wasn't needed: the drag test
+(`practice.spec.ts`) passed on the first real run and across four repeated runs, several small
+`page.mouse.move()` steps between `down()`/`up()` (a single jump doesn't register as a drag
+gesture in most pointer libraries).
+
+### A real layout bug, found by screenshot self-review
+
+`Picture.tsx`'s own root has no background — `Compare.tsx`'s two-picture layout never exposed
+this, since its richer algorithm state (call-stack cards, wider lists) nearly fills the
+reserved `min-h-[16rem]`. Practice's programs are much simpler (often a single variable), so
+the same reserved height rendered as a visually blank gap with no boundary — reading as a
+broken layout, not an animation area. Fixed by wrapping the picture in the same visible card
+(`rounded-xl bg-slate-950 ring-1 ring-slate-800`) `Compare.tsx` already uses, keeping
+`relative` on the inner div since some of `Picture`'s own children position against it.
+
+### `deriveFeedback` extraction
+
+Moved from a `Workspace.tsx`-private function to `src/runFeedback.ts`, importable by both
+`Workspace.tsx` and `Practice.tsx`. Lives at `src/` root rather than `src/player/`: it needs
+`RunResult` from `src/engine/` *and* `translateRuntimeError`/`resolveScope` from `src/player/`,
+and `architecture.test.ts` forbids `player/` importing `engine/`. `Workspace.test.tsx`'s full
+14-test suite passes unchanged after the move, confirming it was a pure extraction, not a
+rewrite — the same discipline the 12b code-review round used for `recordingFrom`.
+
 ## Files
 
 **12a:** `src/game/lineRuns.ts` · `runInfo.ts` · `moments.ts` · `questions.ts` · `counters.ts` ·
@@ -341,3 +419,12 @@ link).
 `reverseMode.test.ts` (new) · `src/engine/reverseMode.test.ts` (new — the real-engine
 divergence tests; lives outside `src/game/` for the same reason `algorithms.test.ts` does) ·
 `tests/fixtures/practice/expected-output.json` (new, generated).
+
+**13b:** `src/routes/Practice.tsx` + `Practice.test.tsx` (new) · `src/game/BlockList.tsx` +
+`BlockList.test.tsx` (new — this repo's first keyboard/focus tests) ·
+`scripts/screenshots/practice.spec.ts` (new — keyboard-only solve, pointer drag, divergence,
+2 screenshots) · `src/runFeedback.ts` + `runFeedback.test.ts` (new, extracted out of
+`Workspace.tsx`) · `src/game/blocks.ts` (+`moveBlock`) · `src/practice/registry.ts`
+(+`getExpectedOutput`) · `src/Workspace.tsx` (imports the extracted `deriveFeedback`, no
+behaviour change) · `App.tsx`/`Landing.tsx` (the `/practice` route and its link) ·
+`docs/VISUALS.md` (the keyboard-operability pattern, in Accessibility).

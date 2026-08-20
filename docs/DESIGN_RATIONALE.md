@@ -1486,6 +1486,57 @@ before milestone 1: the audit's whole value is that it re-checks assumptions tha
 written against code that has since been built, and this one had been quietly false since the plan
 was first drafted.
 
+## 36. Milestone 13b: the risk that didn't happen, the one that wasn't on the list, and a feature nothing had space to say
+
+13b's own plan named one thing as genuinely uncertain: real-browser pointer drag against
+framer-motion, since nothing in this codebase had ever driven a drag gesture before, and the
+fallback — unit-test the drag wiring, keep the real proof on the keyboard path — was written
+down in advance rather than improvised later. It didn't get used. The drag test passed on its
+first real run and stayed green across repeated runs; several small `page.mouse.move()` calls
+between `down()`/`up()` were enough, the same shape a real trackpad drag produces. Worth
+recording precisely because it's the boring outcome: the plan identified a real risk, verified
+it directly instead of assuming either way, and the answer was "it works." Not every finding in
+this document is a bug caught — some are a bet that paid off, checked rather than just hoped.
+
+**The risk that materialized was a different one, and it wasn't on anyone's list.**
+`usePlayback`'s own docstring says plainly that it never infers a fresh recording from
+`frameCount` alone — the caller has to call `reset()` on every new one. Compare.tsx already does
+this, in its own `handleRun`'s `finally` block, and reading that code going in should have been
+enough to remember it going out. It wasn't: the first draft of `Practice.tsx`'s divergence-jump
+effect only handled the *wrong-with-a-divergence-step* case, because that was the acceptance
+criterion actually being built toward (AC-9.16). Found by re-reading the component immediately
+after writing it, not by a failing test — no test yet existed that would have caught a second
+check's scrub position bleeding into a fresh recording, because none had been written for that
+scenario specifically. The fix mirrors Compare.tsx exactly: `reset()` unconditionally on every
+new `result`, then `goToStep` only when there's a real divergence to jump to. The lesson isn't
+"remember `usePlayback`'s contract" — it's that reading a sibling's implementation for one
+pattern (the divergence jump) doesn't guarantee reading it for every pattern in the same
+function, and the fix here was catching that gap by re-reading rather than by a test failing,
+which is a worse way to find it than the alternative but a much better way than not finding it
+at all.
+
+**A feature `deriveFeedback` was never asked to have.** The function was extracted verbatim from
+`Workspace.tsx` — same six-status switch, same behavior, `Workspace.test.tsx`'s full suite
+passing unchanged confirmed the move was pure. What it can't do, by design, is say whether an
+*answer* is right: `deriveFeedback`'s "ok" branch has always returned an empty banner, correctly,
+because `Workspace.tsx` never had a concept of "right answer" for it to report on — the engine
+running cleanly was the whole story there. Reverse mode does have that concept, and it's the
+single most common non-rejected outcome (valid Python, wrong output). This isn't a bug in
+`deriveFeedback` — extending it to know about expected output would be exactly the kind of
+scope-creep this project avoids, folding an application-level question into an engine-status
+translator shared by two different features. `Practice.tsx` owns that one case itself, in the
+one place that actually has the information to answer it.
+
+**A layout bug findable only by looking, matching every recent milestone's own pattern.**
+`Picture.tsx` has no background of its own; Compare.tsx's two-picture layout never exposed this
+because its richer state (call stacks, wider lists) nearly fills the reserved height regardless.
+Practice's programs are deliberately small — often one variable — so the identical
+`min-h-[16rem]` read as a blank, boundary-less gap instead of an animation area. Not something a
+unit test could have caught (jsdom has no layout), and not something reasoning about the CSS in
+isolation would have caught either, since the class names were correct — copied faithfully from
+Compare.tsx. Only a real screenshot, of a *small* program specifically, showed it. Fixed with the
+one class Compare.tsx's own outer card supplies that Practice's first draft dropped.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

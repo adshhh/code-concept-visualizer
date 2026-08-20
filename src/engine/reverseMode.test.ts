@@ -46,7 +46,7 @@ describe("checkAttempt against real runs of real misarrangements (AC-9.15/9.16)"
     expect(attempt.stdout).toBe("0\n");
 
     const outcome = checkAttempt(
-      { stdout: attempt.stdout!, frames: attempt.frames! },
+      { completed: true, stdout: attempt.stdout!, frames: attempt.frames! },
       EXPECTED_FOR_LOOPS_EASY,
     );
     expect(outcome.correct).toBe(false);
@@ -74,7 +74,11 @@ describe("checkAttempt against real runs of real misarrangements (AC-9.15/9.16)"
     expect(attempt.status).toBe("runtime_error");
 
     const outcome = checkAttempt(
-      { stdout: attempt.stdout ?? "", frames: attempt.frames! },
+      {
+        completed: false,
+        stdout: attempt.stdout ?? "",
+        frames: attempt.frames!,
+      },
       EXPECTED_FOR_LOOPS_EASY,
     );
     expect(outcome.correct).toBe(false);
@@ -93,7 +97,11 @@ describe("checkAttempt against real runs of real misarrangements (AC-9.15/9.16)"
     expect(attempt.frames).toHaveLength(1);
 
     const outcome = checkAttempt(
-      { stdout: attempt.stdout ?? "", frames: attempt.frames! },
+      {
+        completed: false,
+        stdout: attempt.stdout ?? "",
+        frames: attempt.frames!,
+      },
       EXPECTED_FOR_LOOPS_EASY,
     );
     expect(outcome.divergence).toEqual({ step: 0 });
@@ -119,7 +127,7 @@ describe("checkAttempt against real runs of real misarrangements (AC-9.15/9.16)"
     expect(attempt.status).toBe("ok");
 
     const outcome = checkAttempt(
-      { stdout: attempt.stdout!, frames: attempt.frames! },
+      { completed: true, stdout: attempt.stdout!, frames: attempt.frames! },
       original.stdout!,
     );
     expect(outcome.correct).toBe(true);
@@ -134,5 +142,31 @@ describe("checkAttempt against real runs of real misarrangements (AC-9.15/9.16)"
       "    total = total + price\ntotal = 0\nfor price in [4, 7, 2]:\nprint(total)\n",
     );
     expect(attempt.status).not.toBe("ok");
+  });
+
+  // Found by code review: a real program that prints exactly the expected output and only then
+  // crashes on a stray trailing line — `runtime_error`'s own `stdout` is the raw partial output
+  // buffer (verified directly against tracer.py's own capture, not assumed), so it can equal the
+  // expected output even though the run never actually completed. `completed: false` is what
+  // stops this from being reported as a pass.
+  it("never reports a crash as correct, even when everything printed before it matched", () => {
+    const attempt = trace(
+      "total = 0\nfor price in [4, 7, 2]:\n    total = total + price\nprint(total)\nprint(does_not_exist)\n",
+    );
+    expect(attempt.status).toBe("runtime_error");
+    expect(attempt.stdout).toBe(EXPECTED_FOR_LOOPS_EASY);
+
+    const outcome = checkAttempt(
+      {
+        completed: false,
+        stdout: attempt.stdout!,
+        frames: attempt.frames!,
+      },
+      EXPECTED_FOR_LOOPS_EASY,
+    );
+    expect(outcome.correct).toBe(false);
+    // Every frame's own cumulative stdout stayed a prefix of the expected output right up to the
+    // crash, so the divergence correctly lands on the crash frame itself — the last one.
+    expect(outcome.divergence).toEqual({ step: attempt.frames!.length - 1 });
   });
 });

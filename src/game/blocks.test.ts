@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assembleSource,
   checkBlockSplittable,
+  moveBlock,
   shuffleBlocks,
   toBlocks,
 } from "./blocks";
@@ -153,5 +154,55 @@ describe("shuffleBlocks — a puzzle, deterministically", () => {
   it("handles degenerate inputs without looping forever", () => {
     expect(shuffleBlocks([], "seed")).toEqual([]);
     expect(shuffleBlocks([blocks[0]!], "seed")).toEqual([blocks[0]]);
+  });
+});
+
+describe("moveBlock — the keyboard grab/move/drop primitive (AC-9.17, m13b)", () => {
+  const blocks = toBlocks(SIMPLE);
+
+  it("moves a block forward, shifting everything between it and the target", () => {
+    const moved = moveBlock(blocks, 0, 2);
+    expect(moved.map((b) => b.text)).toEqual([
+      "for n in [1, 2]:",
+      "    total = total + n",
+      "total = 0",
+      "print(total)",
+    ]);
+  });
+
+  it("moves a block backward, shifting everything between it and the target", () => {
+    const moved = moveBlock(blocks, 3, 1);
+    expect(moved.map((b) => b.text)).toEqual([
+      "total = 0",
+      "print(total)",
+      "for n in [1, 2]:",
+      "    total = total + n",
+    ]);
+  });
+
+  it("keeps exactly the same blocks — never loses or invents one", () => {
+    const moved = moveBlock(blocks, 1, 3);
+    expect(moved.map((b) => b.id).sort()).toEqual(
+      blocks.map((b) => b.id).sort(),
+    );
+  });
+
+  it("is a no-op when from equals to", () => {
+    expect(moveBlock(blocks, 2, 2)).toEqual(blocks);
+  });
+
+  // A keyboard handler naturally computes index-1 at the top of the list or index+1 past the
+  // bottom — this is the normal edge of the interaction, not a caller bug to guard against.
+  it("is a no-op for an out-of-range index in either direction, without throwing", () => {
+    expect(() => moveBlock(blocks, -1, 2)).not.toThrow();
+    expect(moveBlock(blocks, -1, 2)).toEqual(blocks);
+    expect(moveBlock(blocks, 0, blocks.length)).toEqual(blocks);
+    expect(moveBlock(blocks, blocks.length, 0)).toEqual(blocks);
+  });
+
+  it("does not mutate the array it was given", () => {
+    const original = [...blocks];
+    moveBlock(blocks, 0, 3);
+    expect(blocks).toEqual(original);
   });
 });
