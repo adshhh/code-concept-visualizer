@@ -375,7 +375,43 @@ Three constraints shape every decision:
 > resize listener in `Connector.tsx`. Full suite re-verified green after all fixes: typecheck,
 > 680/680 tests, build, and all 37 Playwright scenarios (including a fresh real-engine run).
 >
-> **Next: milestone 13 (Game layer — Practice / reverse mode)**, per the Build milestones table.
+> **Milestone 13a is built and checkpointed** (see `checkpoint_report.md`). Per the owner's
+> decision, milestone 13 splits on the 11a/11b and 12a/12b precedent: 13a (this checkpoint) is
+> Practice's 18-program corpus, block derivation, and answer checking — no UI. 13b (the
+> `/practice` route, drag + keyboard reordering, divergence animation) is next, on its own branch.
+>
+> **A pre-build audit (`decisions/003`) found §9's Practice half claiming things that weren't
+> true, before any code was written.** Three things moved to milestone 14, which now owns them in
+> the Build milestones table's own row 14, not just in a note: the 6 algorithm Practice programs
+> (D33 bars reverse mode from algorithms; flowcharts are their only consumer), AC-9.12/hint level
+> (D32 defines it as flowchart cards, and m13 has no cards), and the fact that **§9's claim that
+> the flowchart can reuse the validator's own parsed structure is false** — `src/subset/parser.ts`
+> is a recognizer whose methods all return `void`, with no AST anywhere in the codebase; m14 must
+> build a real tree, not inherit one. Full reasoning in
+> `docs/decisions/004-practice-scope-split.md` and `DESIGN_RATIONALE.md` §35.
+>
+> **18 programs (6 basics × 3 levels), all-new rather than reused lesson code** (D33's own
+> reasoning applies at smaller scale: reassembling code you've just watched is recall, not
+> reasoning). `src/game/blocks.ts` derives blocks from source lines and `src/game/reverseMode.ts`
+> checks an arrangement by comparing output, never the original order — both engine-free per
+> `architecture.test.ts`, with the real `run()` call left to 13b's route.
+>
+> **A real corpus bug, found by measuring rather than assuming.** `src/practice/
+> measureArrangements.test.ts` ran real near-miss arrangements (one block moved) through the real
+> engine for all 18 programs and found `if-else-medium` at **0% animatable** — its entire body was
+> one rigid nested statement, so every one-block move broke Python syntax and AC-9.16's animation
+> could never fire for it. Fixed by lifting its list literal onto its own top-level line (0% →
+> 1.8%); `registry.test.ts` now requires every program to have ≥2 top-level statements so this
+> can't return silently. The other 17 programs were already fine, verified rather than assumed —
+> whole-space and near-miss animatable rates across all 18 range 0.1–20.8% and 1.8–35.0%.
+>
+> **§9 criteria 11 and 12 are now partially closed**: AC-9.11 (24 programs) holds for the 18 in
+> scope at m13, fully closes only at m14; AC-9.12 (independent hint level) is entirely deferred to
+> m14. AC-9.13–9.16's foundation (derivation, output-only correctness, exact divergence step) is
+> built and real-engine-verified; 13b closes them for real through the UI.
+>
+> **Next: milestone 13b (Game layer — Practice: the `/practice` route and reverse-mode UI)**, per
+> the Build milestones table.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -481,8 +517,8 @@ one checkpoint = one branch = one merge.**
 | **Phase D — Depth**           |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
 | 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, closing AC-9.1–9.6/9.10/9.22; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9. Both done — see checkpoint_report.md. §9 (Explore) fully closed** |
-| 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12                                                                                                                                                                                                                  |
-| 14                            | Flowcharts                                                                                                                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable                                                                                                                                                                                    |
+| 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**                                                                                                                                                                                                                  |
+| 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
 
@@ -1160,8 +1196,19 @@ whole if time runs short.
     > permanently — "before play" as a real constraint, not just a suggestion).
 11. **24 authored programs exist** — 8 concepts × 3 levels (D27). Each runs successfully on first
     press of Run and stays inside the §1 subset.
+    > **v2 re-sequencing (m13a, owner decision):** split 18 + 6 by consumer. **m13a authors the 18**
+    > for the 6 basics — the only concepts reverse mode is allowed to cover (D33). The remaining 6
+    > (binary search, bubble sort × 3 levels) have **no consumer until flowcharts**, so they move to
+    > **m14**, which now owns them in the Build milestones table. This criterion is therefore
+    > **partially closed at m13a and fully closed only at m14** — and if D28 cuts flowcharts whole,
+    > those 6 were correctly never written. See `decisions/004-practice-scope-split.md`.
 12. Program difficulty and hint level are **independently selectable** (D32); choosing hard + easy
     hints works and is not a special case.
+    > **v2 re-sequencing (m13a, owner decision): this criterion moves to m14.** D32 defines hint
+    > level as how many _flowchart cards_ start pre-filled, and flowcharts are m14 — so m13 has
+    > nothing for a hint selector to control, and shipping one there would be a dead control in the
+    > UI. **m13 ships the program-difficulty selector only**; independence is demonstrated at m14,
+    > where both settings finally exist. `decisions/004-practice-scope-split.md`.
 13. **No exercise has hand-authored content beyond its program** (D34) — the flowchart, the blocks,
     the pre-fill choice and the answer check all derive from it. Verified by inspection of the
     lesson data files.

@@ -2609,3 +2609,150 @@ git push
 Milestone 13 — Game layer: Practice / reverse mode (§9's Practice half), per the Build
 milestones table. §9's own Explore criteria (AC-9.1–9.10, 9.22) are now fully closed across
 12a and 12b.
+
+# Milestone 13a Completed — Practice: the program corpus, block derivation, and answer checking
+
+**Owner decision this session: milestone 13 splits, on the 11a/11b and 12a/12b precedent.** 13a
+(this checkpoint) is the 18-program corpus, block derivation, and output-comparison answer
+checking — no new UI. 13b (the `/practice` route, drag + keyboard reordering, divergence
+animation) is next, on its own branch.
+
+## What
+
+D34: "every exercise derives from one authored example program." 13a builds the one hand-written
+artifact per exercise and everything that derives from it, with real-engine verification at every
+step — no UI to click through yet, so this milestone's "does it actually work" evidence is test
+output rather than screenshots, same as milestone 1's own precedent for non-visual work.
+
+- **`src/practice/`** — 18 new short Python programs (`src/practice/programs/*.py`), 6 concepts ×
+  3 levels, all newly authored rather than reused lesson code (owner decision: reusing the exact
+  program a learner just stepped through in a lesson would make reverse mode recall rather than
+  reasoning, the same failure D33 already names for algorithms). `registry.ts` globs them with
+  `import.meta.glob`, following `lessons/recordings.ts`'s own precedent; `registry.test.ts` asserts
+  all 18 expected ids actually resolve, so a typo'd filename fails loudly rather than quietly
+  shrinking the corpus.
+- **`src/game/blocks.ts`** — `toBlocks`/`assembleSource` derive draggable blocks from source lines
+  and reassemble them, round-trip-tested for all 18 programs. `checkBlockSplittable` states and
+  enforces `toBlocks`'s real precondition (one statement per physical line) rather than assuming
+  it — it rejects bracket-continued statements, single-line suites, and blank/comment lines, all
+  of which the subset's own tokenizer accepts but would silently break a naive line-based split.
+  `shuffleBlocks` is seeded on the program id (never `Math.random()`, so a reload never changes the
+  puzzle) and retries with a bumped seed if it lands on the solution.
+- **`src/game/reverseMode.ts`** — `checkAttempt` takes only `{ stdout, frames }` plus the expected
+  output, never the original program: correctness is "produces the expected output," never "matches
+  the original line order," which is what checking by execution honestly means (D34). The
+  divergence step for AC-9.16 is computed exactly, not approximated — `frame.stdout` is cumulative,
+  so the first frame whose output stops being a prefix of the expected output is the exact frame to
+  animate to.
+- **`src/engine/reverseMode.test.ts`** — real-Pyodide tests of `checkAttempt` against four genuine
+  misarrangements (a hoisted print that runs to completion wrong, a crash before printing, a
+  different-but-still-correct order, and an indented-first arrangement the validator rejects
+  outright). Lives outside `src/game/`, same reason `algorithms.test.ts`/`counters.test.ts` do —
+  `architecture.test.ts` forbids `src/game/` → `src/engine/`.
+- **`tests/fixtures/practice/expected-output.json`** — generated from a real engine run and
+  committed via `toMatchFileSnapshot`, same discipline as the lesson trace snapshots. Nothing about
+  an exercise's expected output is typed by hand.
+
+## Why (including what was decided independently)
+
+Per `decisions/003`, a short audit of §9's Practice half against its neighbors ran before any code
+was written, and it found real problems worth stopping for — all four resolved with the owner
+before implementation started:
+
+1. **D27 asks for 24 programs; D33 bars reverse mode from the 2 algorithm concepts.** That leaves
+   6 of the 24 with no consumer until flowcharts exist (m14). **Owner decision: author 18 now, move
+   the other 6 to m14 in writing** — not just noted here, but added to the Build milestones table's
+   own row 14, since a deferral recorded anywhere else is exactly the "promised work no milestone
+   owns" failure the project's very first audit caught. `docs/decisions/004-practice-scope-split.md`.
+2. **AC-9.12 (independently selectable hint level) has nothing to control at m13** — D32 defines
+   hint level as how many flowchart cards start pre-filled, and m13 has no cards. **Owner decision:
+   defer AC-9.12 to m14 entirely** rather than ship a selector that visibly does nothing.
+3. **All-new programs, not lesson starter code** — reusing the lesson code a learner just stepped
+   through would make the easy level recall rather than reasoning, the same failure D33 already
+   names for the algorithms, just at smaller scale. Owner decision, made explicitly rather than
+   defaulted into.
+4. **§9 states something about the codebase that isn't true.** It claims the flowchart is
+   "generated by parsing the program (§1 validator already parses it)." `src/subset/parser.ts` is a
+   recognizer — every method returns `void`, and the one place block nesting is recognized
+   (`parseSuite()`) discards it immediately after consuming it. No AST exists anywhere in the
+   codebase. This doesn't block 13a (D34 only needs source lines, which the tokenizer already gives
+   for free), but it means **m14 must build a real parse tree**, not inherit one — corrected in the
+   plan rather than left for m14 to discover on day one. `DESIGN_RATIONALE.md` §35.
+
+## Findings
+
+**A real corpus bug, found by measuring rather than assuming.** `src/practice/
+measureArrangements.test.ts` (gated behind `MEASURE=1`, not part of the normal suite — it runs
+hundreds to thousands of real engine invocations) measured two populations for all 18 programs: the
+whole arrangement space (exhaustive up to 6 blocks, sampled above) and, more importantly, **near-miss
+arrangements** — every one-block move, which is what a learner who is close but wrong actually
+produces, not a uniform-random shuffle. `if-else-medium` measured **0.0% animatable** in the
+near-miss population: its entire body was one rigid nested `for`/`if`/`elif`/`else` statement, so
+every single one-block move broke Python's own indentation rules and was rejected by the validator
+before ever reaching the engine. AC-9.16 ("a wrong arrangement can be animated") would have been
+structurally unreachable for that one exercise, not merely rare — and nothing in the plan or the
+corpus test as first written would have caught it, since the whole-space measurement alone showed a
+non-zero (if tiny) number. Fixed by lifting the program's list literal onto its own top-level line
+(0.0% → 1.8%); `registry.test.ts` now asserts every program has ≥2 top-level statements, so this
+class of bug can't return silently. Across the corrected corpus, near-miss animatable rates range
+1.8%–35.0% and whole-space rates 0.1%–20.8% — full table in `docs/GAME.md`.
+
+## Files Created/Modified
+
+- `src/practice/programs/*.py` (new, 18) — one authored artifact per exercise (D34).
+- `src/practice/types.ts`, `src/practice/registry.ts` (new) — the corpus registry and glob.
+- `src/practice/registry.test.ts` (new) — real-engine `describe.each` over all 18: subset-valid,
+  runs clean, matches the committed output snapshot, corpus-constraint and ≥2-top-level-statements
+  invariants, block round-trip, shuffle-is-never-solved.
+- `src/practice/measureArrangements.test.ts` (new) — the `MEASURE=1`-gated arrangement measurement.
+- `src/game/blocks.ts` + `blocks.test.ts` (new) — derivation, precondition check, seeded shuffle.
+- `src/game/reverseMode.ts` + `reverseMode.test.ts` (new) — output comparison and divergence step.
+- `src/engine/reverseMode.test.ts` (new) — real-engine divergence tests (outside `src/game/`).
+- `tests/fixtures/practice/expected-output.json` (new, generated).
+- `docs/PLAN_v2.md` — milestone table row 14 rewritten to own the deferred work; AC-9.11/9.12
+  annotated; Resume-here box updated.
+- `docs/GAME.md` — new Practice section with the measured numbers and the corpus-parser correction.
+- `docs/decisions/004-practice-scope-split.md` (new) — the scheduling and correctness deferrals.
+- `docs/DESIGN_RATIONALE.md` — new §35.
+
+## Uncertain / worth double-checking
+
+The 18 programs' difficulty labels (`easy`/`medium`/`hard`) are my own judgment, not derived from
+anything measurable — worth a second look before 13b ships a difficulty selector against them.
+Also: `checkBlockSplittable`'s single-line-suite detection assumes a top-level `:` outside brackets
+always ends a compound header (true for the whole supported subset per `SUBSET.md`, since dict
+literals and slices always put their own `:` inside brackets) — correct for this corpus, verified
+against all 18 by test, but worth remembering if a future program is added by hand rather than
+through the same review.
+
+## Screenshots
+
+No UI exists yet — 13a is corpus and logic only. Terminal output in its place:
+
+```
+=== typecheck ===   tsc --noEmit                     (no output = clean)
+=== tests ===       Test Files  47 passed | 1 skipped (48)
+                    Tests       855 passed | 1 skipped (856)   (680 → 855: +175 for this milestone)
+=== format ===      All matched files use Prettier code style!
+=== build ===       ✓ built — no new route yet, so no new chunk
+=== playwright ===  37 passed (26.0s) — unchanged, confirming 13a is additive
+=== measurement === MEASURE=1 run: 18/18 programs have a non-zero animatable near-miss rate
+                    after the if-else-medium fix (range 1.8%–35.0%)
+```
+
+## Github Commands for this milestone
+
+```bash
+git checkout -b milestone-13-practice-reverse-mode
+git add src/practice/ src/game/blocks.ts src/game/blocks.test.ts src/game/reverseMode.ts \
+  src/game/reverseMode.test.ts src/engine/reverseMode.test.ts \
+  tests/fixtures/practice/expected-output.json docs/
+git commit -m "Milestone 13a: Practice — the program corpus, block derivation, and answer checking"
+git push -u origin milestone-13-practice-reverse-mode
+```
+
+## Next
+
+Milestone 13b — the `/practice` route: pointer-drag and keyboard block reordering (peer input
+methods, not drag-with-a-fallback — AC-9.17), and the divergence animation wired through the
+existing `Picture`/`usePlayback` pipeline. Closes AC-9.15, 9.16, 9.17 and demonstrates 9.14.
