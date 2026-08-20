@@ -3,10 +3,9 @@ import { useParams } from "react-router-dom";
 import { run, runDetailed, checkEngineAvailable } from "./engine/run";
 import type { DetailLevel, RunResult } from "./engine/types";
 import { recordingFrom } from "./engine/recordingFrom";
-import { resolveScope } from "./player/scope";
-import { translateRuntimeError } from "./player/errorMessages";
+import { deriveFeedback } from "./runFeedback";
 import { Picture } from "./player/Picture";
-import { CodeEditor, type EditorDiagnostic } from "./player/CodeEditor";
+import { CodeEditor } from "./player/CodeEditor";
 import { PlaybackControls } from "./player/PlaybackControls";
 import { usePlayback, type Playback } from "./player/usePlayback";
 import { MotionRoot } from "./player/motion/MotionRoot";
@@ -26,83 +25,6 @@ function defaultInputValues(
   return Object.fromEntries(
     (lesson.inputFields ?? []).map((field) => [field.name, field.default]),
   );
-}
-
-interface RunFeedback {
-  diagnostic: EditorDiagnostic | undefined;
-  bannerText: string | undefined;
-  errorHighlight: { name: string } | undefined;
-}
-
-const NO_FEEDBACK: RunFeedback = {
-  diagnostic: undefined,
-  bannerText: undefined,
-  errorHighlight: undefined,
-};
-
-/** Every `RunResult` variant translated into what the editor/banner/picture actually show.
- * `rejected` reuses the m2 validator's own already-formatted message (AC-8.1). `guardrail`
- * reuses its own already-beginner-language message (m3 — see errorMessages.ts's docstring).
- * `runtime_error` is the one variant that needs real translation (AC-8.2), via
- * errorMessages.ts against the last captured frame — the failing line itself, per
- * tracer.py's own capture-on-exception behavior.
- *
- * Every branch below produces a `bannerText`/`diagnostic` when it has one — including
- * `rejected`, `timeout`, and `validator_mismatch`, none of which carry a `Recording`. Found by
- * code review: an earlier version gated all feedback display on "does this result have a
- * recording," which silently hid the banner/diagnostic for exactly those three statuses. */
-function deriveFeedback(result: RunResult | null): RunFeedback {
-  if (!result) return NO_FEEDBACK;
-
-  switch (result.status) {
-    case "ok":
-      return NO_FEEDBACK;
-    case "rejected":
-      return {
-        diagnostic: { line: result.line, message: result.message },
-        bannerText: result.message,
-        errorHighlight: undefined,
-      };
-    case "timeout":
-    case "validator_mismatch":
-      return {
-        diagnostic: undefined,
-        bannerText: result.message,
-        errorHighlight: undefined,
-      };
-    case "guardrail": {
-      const last = result.frames[result.frames.length - 1];
-      return {
-        diagnostic: last
-          ? { line: last.line, message: result.message }
-          : undefined,
-        bannerText: result.message,
-        errorHighlight: undefined,
-      };
-    }
-    case "runtime_error": {
-      const last = result.frames[result.frames.length - 1];
-      if (!last) {
-        return {
-          diagnostic: undefined,
-          bannerText: result.message,
-          errorHighlight: undefined,
-        };
-      }
-      const translated = translateRuntimeError(
-        result.errorType,
-        result.message,
-        result.source,
-        last.line,
-        resolveScope(last),
-      );
-      return {
-        diagnostic: { line: last.line, message: translated.text },
-        bannerText: translated.text,
-        errorHighlight: translated.highlight,
-      };
-    }
-  }
 }
 
 /** The real shell around the picture (§7 playback controls, §8 editor + error UX) —
