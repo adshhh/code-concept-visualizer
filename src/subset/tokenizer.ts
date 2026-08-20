@@ -283,6 +283,16 @@ export function tokenizeLine(
   return { tokens, depthDelta };
 }
 
+/** A line the tokenizer skips entirely — no tokens, no line number in the stream. Exported so
+ * any other caller reasoning about "is this a real statement line" (e.g. `src/game/blocks.ts`'s
+ * block derivation) uses the identical definition rather than a second one that could silently
+ * drift from it — `String.trim()` strips a broader set of whitespace than `[ \t]` does, so a
+ * `.trim()`-based copy of this check is not guaranteed to agree with it on every input. */
+export function isBlankOrCommentLine(rawLine: string): boolean {
+  const withoutIndent = rawLine.replace(/^[ \t]*/, "");
+  return withoutIndent === "" || withoutIndent.startsWith("#");
+}
+
 /** Tokenizes a full program: indentation-aware, bracket-continuation-aware. Produces INDENT/
  * DEDENT/NEWLINE tokens the way Python's own tokenizer does, so the parser can rely on them for
  * block structure instead of re-deriving indentation itself. */
@@ -297,12 +307,10 @@ export function tokenize(source: string): Token[] {
     const rawLine = lines[lineNo - 1]!;
 
     if (atLineStart) {
-      const withoutIndent = rawLine.replace(/^[ \t]*/, "");
-      const isBlankOrComment =
-        withoutIndent === "" || withoutIndent.startsWith("#");
-      if (isBlankOrComment) {
+      if (isBlankOrCommentLine(rawLine)) {
         continue;
       }
+      const withoutIndent = rawLine.replace(/^[ \t]*/, "");
       if (rawLine.includes("\t")) {
         syntaxError(lineNo, "Use spaces for indentation, not tabs.");
       }

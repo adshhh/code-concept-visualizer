@@ -1,0 +1,20 @@
+{
+  "for-loops-easy": "13\n",
+  "for-loops-medium": "['ada!', 'grace!', 'alan!']\n",
+  "for-loops-hard": "3\n10\n21\n21\n",
+  "index-loops-easy": "[20, 40, 60]\n",
+  "index-loops-medium": "18\n",
+  "index-loops-hard": "grace 95\n",
+  "if-else-easy": "hot\n",
+  "if-else-medium": "A\npass\nfail\n",
+  "if-else-hard": "hi\nhey\n2\n",
+  "while-loops-easy": "3\n2\n1\n",
+  "while-loops-medium": "64 6\n",
+  "while-loops-hard": "18\n",
+  "functions-easy": "8\n14\n",
+  "functions-medium": "9\n8\n",
+  "functions-hard": "[4, 6, 10]\n",
+  "recursion-easy": "3\n2\n1\n",
+  "recursion-medium": "15\n",
+  "recursion-hard": "0\n1\n1\n2\n3\n5\n"
+}
