@@ -98,14 +98,24 @@ export function Landing() {
             <h2 className="text-base font-semibold text-slate-100">
               Pick a lesson — any of them, in any order
             </h2>
-            {/* m12b: §9's compare-the-algorithms — its own route (two pictures don't fit a
-             * pane sized for one), linked from here rather than tucked inside a lesson. */}
-            <Link
-              to="/compare"
-              className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 hover:ring-slate-600"
-            >
-              Compare the algorithms
-            </Link>
+            <div className="flex gap-2">
+              {/* m12b: §9's compare-the-algorithms — its own route (two pictures don't fit a
+               * pane sized for one), linked from here rather than tucked inside a lesson. */}
+              <Link
+                to="/compare"
+                className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 hover:ring-slate-600"
+              >
+                Compare the algorithms
+              </Link>
+              {/* m13b: §9's reverse mode — a sibling of Explore in the structure tree, not a
+               * view inside a lesson, same reasoning as Compare's own route above. */}
+              <Link
+                to="/practice"
+                className="rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-100 ring-1 ring-slate-700 hover:ring-slate-600"
+              >
+                Practice
+              </Link>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {LESSONS.map((lesson) => (

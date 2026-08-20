@@ -23,6 +23,13 @@ const Compare = lazy(() =>
   import("./routes/Compare").then((module) => ({ default: module.Compare })),
 );
 
+/** m13b: same reasoning again — Practice calls the real engine to check each arrangement. */
+const Practice = lazy(() =>
+  import("./routes/Practice").then((module) => ({
+    default: module.Practice,
+  })),
+);
+
 /** React Router reuses one mounted `/lesson/:id` element across param changes rather than
  * remounting it (a well-known gotcha) — without this, navigating from one lesson straight to
  * another (nothing does that yet, but nothing should have to know not to) would keep the
@@ -64,6 +71,20 @@ export function App() {
               }
             >
               <Compare />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/practice"
+          element={
+            <Suspense
+              fallback={
+                <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">
+                  Loading…
+                </div>
+              }
+            >
+              <Practice />
             </Suspense>
           }
         />
