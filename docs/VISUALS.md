@@ -137,7 +137,52 @@ positioning problem than this milestone's scope covers.
   — the picture renders its full, correct final state with nothing stuck mid-transition.
 - **Colour is never the sole carrier of meaning (AC-5.10):** the boolean ✓/✗ glyph; the
   digit is always printed regardless of shading; `dim` emphasis always pairs its opacity drop
-  with a scale change, never opacity alone.
+  with a scale change, never opacity alone. `src/game/BlockList.tsx`'s grabbed state (m13b)
+  follows the same rule: a ring colour change *and* a ↕ glyph, never the ring alone; the
+  validator-highlighted block pairs a red ring with a ⚠ glyph the same way.
+
+### Keyboard operability (AC-9.17, m13b) — the pattern and how it's tested
+
+`src/game/BlockList.tsx` is this codebase's first fully keyboard-operable interactive widget
+(everything before it was native `<button>`/`<input>` elements needing no custom handling).
+framer-motion's own `Reorder` ships zero keyboard/ARIA support — verified against the
+installed package before building, not assumed — so the whole layer below is this file's own
+work, and the pattern is recorded here as the convention for any future interactive widget in
+this app to follow:
+
+- **Roving tabindex**: exactly one row is `tabIndex={0}` at a time; arrow keys move which one
+  when nothing is grabbed.
+- **Grab/move/drop**: `Space`/`Enter` picks up the focused row; arrow keys then move the block
+  itself instead of moving focus; `Space`/`Enter` again drops it; `Escape` cancels, restoring
+  the order from before the pick-up; losing focus while grabbed drops safely at the current
+  position rather than leaving the interaction stranded.
+- **A visible hint line and an `aria-live="polite"` region** announcing every pick-up/move/
+  drop/cancel — the mechanic doesn't rely on being discovered, and it's usable without sight.
+
+**How this gets tested, at each layer** (no precedent existed anywhere in this repo before
+m13b, so this is now the template):
+
+- **jsdom (`BlockList.test.tsx`)**: `userEvent.keyboard(" {ArrowDown}...")` drives the whole
+  state machine — grab, move, drop, cancel, boundary no-ops, and the blur-drops-safely case.
+  One real gotcha, worth remembering for the next keyboard test in this codebase: a raw DOM
+  `.blur()` call does *not* flush the resulting React re-render synchronously, so an assertion
+  reading the DOM right after it can see stale state — use `fireEvent.blur()` (which RTL wraps
+  in `act()`) instead, not a bare method call. The harness rendering `BlockList` must also be a
+  real *controlled* component (a `useState` wrapper feeding `onReorder`'s output back into
+  `blocks`), not a bare `vi.fn()` spy with no state behind it — otherwise every simulated
+  keypress recomputes from the same pristine array and never sees its own previous move.
+- **Playwright (`practice.spec.ts`)**: a full exercise solved with `page.keyboard.press(...)`
+  alone, `.focus()` used only to enter the widget (a real DOM `focus()` call, not a click, so
+  the test is genuinely mouse-free) — this is AC-9.17's actual proof, since jsdom can't
+  validate real focus/tab order the way a browser does. The exact keyboard sequence is
+  hand-traced against `moveBlock`'s own splice semantics from the real (seeded, deterministic)
+  shuffle order, the same discipline `engine/reverseMode.test.ts` uses for its own
+  hand-traced misarrangements — not guessed and iterated until it happened to pass.
+- **Pointer drag**, for comparison, needed no special handling once it existed: several small
+  `page.mouse.move()` steps between `mouse.down()`/`mouse.up()` (a single jump doesn't register
+  as a drag gesture), plus one `await expect(...).toBeVisible()` readiness wait before reading
+  the "before" state — the same readiness discipline `compare.spec.ts` already established,
+  just newly needed here since this was the repo's first pointer-drag test.
 
 ## Layout (AC-5.8)
 

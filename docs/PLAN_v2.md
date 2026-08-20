@@ -410,8 +410,44 @@ Three constraints shape every decision:
 > m14. AC-9.13–9.16's foundation (derivation, output-only correctness, exact divergence step) is
 > built and real-engine-verified; 13b closes them for real through the UI.
 >
-> **Next: milestone 13b (Game layer — Practice: the `/practice` route and reverse-mode UI)**, per
-> the Build milestones table.
+> **Milestone 13b is built and checkpointed** (see `checkpoint_report.md`). `/practice`, a new
+> route on the `/compare` precedent (its own lazy chunk, linked from `Landing.tsx`), closes
+> AC-9.15–9.17 and demonstrates AC-9.14. Concept × difficulty segmented controls select one of
+> 13a's 18 programs; `src/game/BlockList.tsx` reorders its shuffled blocks by pointer drag
+> (framer-motion `Reorder`, confirmed present in the installed 13.1.0 and React-19-compatible
+> before building, though it ships zero keyboard/ARIA support of its own) and by keyboard —
+> grab/move/drop as a peer input method, not a fallback, this repo's first fully keyboard-operable
+> widget. Checking an arrangement runs it through the real `run()` and 13a's `checkAttempt`; a
+> wrong-but-runnable attempt jumps the picture to its exact divergence step, an invalid one shows
+> the validator's own message with the offending block highlighted — the *majority* outcome per
+> 13a's own measurement, not an edge case, so it gets first-class UI rather than an afterthought.
+>
+> **All four audit findings from 13a's planning were fixed, not just recorded** (owner's explicit
+> instruction): §9's "given an input" and "their broken version is animated" sentences both carry
+> `v2 correction` annotations reflecting what the corpus and the measurement actually show;
+> `Workspace.tsx`'s `deriveFeedback` was extracted to a shared `src/runFeedback.ts` rather than
+> duplicated (`Workspace.test.tsx` passes unchanged, confirming the extraction was pure); and the
+> keyboard-interaction testing pattern this milestone had to invent from nothing is now recorded
+> in `docs/VISUALS.md`'s Accessibility section for future widgets to inherit.
+>
+> **The one flagged risk in the plan — real-browser pointer drag against framer-motion, no
+> precedent anywhere in this repo — did not materialize.** It passed on the first real run and
+> across repeated runs; no fallback to unit-testing the drag wiring was needed.
+>
+> **One real layout bug, found by this milestone's own screenshot self-review.** `Picture.tsx`'s
+> root has no background of its own — Compare.tsx's two-picture layout never revealed this since
+> its richer algorithm state nearly fills the reserved height, but Practice's much simpler
+> programs (often one variable) left a visually blank gap with no visible boundary, reading as a
+> broken layout rather than the animation area. Fixed by wrapping it in the same visible card
+> Compare.tsx already uses. Full findings list in `docs/GAME.md`'s Practice section.
+>
+> **§9 (Explore + Practice's reverse-mode half) now covers AC-9.1–9.17, 9.22.** AC-9.11 (partial)
+> and AC-9.12 remain m14's, per `decisions/004-practice-scope-split.md`. Remaining §9 criteria
+> (18–21, 23) are flowcharts, m14's alone.
+>
+> **Next: milestone 14 (Flowcharts, plus the deferred algorithm Practice programs and AC-9.12)**,
+> per the Build milestones table — the largest remaining item, deliberately sequenced last so it
+> can be cut whole under time pressure (D28) without leaving anything else half-finished.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -517,7 +553,7 @@ one checkpoint = one branch = one merge.**
 | **Phase D — Depth**           |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
 | 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, closing AC-9.1–9.6/9.10/9.22; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9. Both done — see checkpoint_report.md. §9 (Explore) fully closed** |
-| 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**                                                                                                                                                                                                                  |
+| 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
 | 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
@@ -1120,6 +1156,21 @@ the right order. **Validation runs their assembled code through the same `run()`
 output — no per-exercise answer needs authoring. When wrong, **their broken version is animated** so
 they watch exactly where it diverges. The strongest architectural fit of any mechanic here.
 
+> **v2 correction (m13b):** "given an input" assumed a shape the v1 corpus doesn't have — none of
+> the 18 programs (`src/practice/`) take external input; each carries its own data literal (e.g.
+> `grades = [95, 72, 48]`) as one of its own lines, so that literal is itself one of the shuffled
+> blocks. The exercise shows the expected output only; there is no separate "input" to display.
+>
+> **v2 correction (m13b):** "their broken version is animated" holds only for the *runnable* wrong
+> subset. 13a measured real near-miss arrangements (one block moved from the correct order) against
+> the real engine for all 18 programs: 55–100% are rejected by the validator before ever reaching
+> the engine, since blocks carry indentation and most one-block moves break Python's own syntax.
+> Animation is real and works (AC-9.16 only ever claimed a wrong arrangement *can* be animated,
+> which still holds) — but it's the feedback for the minority of wrong attempts, not the typical
+> one. The validator's own rejection message, shown with the offending block highlighted, is the
+> majority-path feedback in m13b's design. See `docs/GAME.md`'s Practice section for the full
+> per-program numbers and `DESIGN_RATIONALE.md` for why this shaped the feedback UI.
+
 For v1, blocks carry their own correct indentation and the user orders them only; requiring the user
 to set indentation is held as a v2 difficulty lever.
 
@@ -1212,12 +1263,32 @@ whole if time runs short.
 13. **No exercise has hand-authored content beyond its program** (D34) — the flowchart, the blocks,
     the pre-fill choice and the answer check all derive from it. Verified by inspection of the
     lesson data files.
+    > **m13a/13b:** done for reverse mode's half of this criterion — `src/game/blocks.ts` derives
+    > blocks from a program's own lines, `src/game/reverseMode.ts` checks an attempt by running it
+    > and comparing output, and `getExpectedOutput` is a committed real-engine snapshot, never
+    > typed. The flowchart half is m14's.
 14. Reverse mode exists on the 6 basics only, not on algorithms (D33).
+    > **m13a:** done — `src/practice/`'s 18 programs are exactly the 6 basics × 3 levels;
+    > `registry.test.ts` asserts the concept list directly.
 15. Reverse mode validates by running the user's assembled code through the same `run()` entry point
     as everything else — verified by test, not assumed.
+    > **m13b:** done — `Practice.tsx`'s `handleCheck` calls the real `run()`, the identical
+    > entry point `Workspace.tsx`/`Compare.tsx` use; `Practice.test.tsx` asserts it's called with
+    > `assembleSource(blocks)`, and `practice.spec.ts` proves it end to end against the real engine.
 16. A wrong reverse-mode arrangement can be animated to show where it diverges from the expected
     output.
+    > **m13b:** done — `checkAttempt`'s `divergence` (13a) drives `usePlayback.goToStep`;
+    > `practice.spec.ts` exercises a real wrong-but-runnable attempt and confirms the picture
+    > lands on the diverging step. Measured (13a) rather than assumed: most wrong arrangements
+    > are validator-rejected before ever reaching the engine, so this is the feedback for the
+    > runnable minority, not the typical case — the rejected majority gets the validator's own
+    > message instead, with the offending block highlighted. See `docs/GAME.md`.
 17. Reverse mode is fully operable by keyboard, not drag-only.
+    > **m13b:** done — grab/move/drop (`BlockList.tsx`), a peer input method to pointer drag over
+    > the same state, not a fallback. `practice.spec.ts` solves a full exercise using only
+    > `page.keyboard.press(...)`, no mouse events at all — this repo's first such proof; the
+    > pattern is now documented in `docs/VISUALS.md`'s Accessibility section for future widgets
+    > to follow.
 18. A flowchart is generated correctly for a subset-valid program **the system has never seen before**
     — proving generation, not authoring.
 19. Flowchart layout has no overlapping nodes and clearly routed loop-back arrows, at every hint level.

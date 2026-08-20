@@ -12,6 +12,7 @@ import {
   PRACTICE_CONCEPTS,
   PRACTICE_LEVELS,
   PRACTICE_PROGRAMS,
+  getExpectedOutput,
   getProgram,
   programsForConcept,
 } from "./registry";
@@ -65,6 +66,15 @@ describe("practice corpus shape (AC-9.11, AC-9.14)", () => {
   it("getProgram finds an entry by id and returns undefined for an unknown one", () => {
     expect(getProgram(PRACTICE_PROGRAMS[0]!.id)).toBe(PRACTICE_PROGRAMS[0]);
     expect(getProgram("does-not-exist")).toBeUndefined();
+  });
+
+  it("getExpectedOutput returns a real committed value for every program, and throws for an unknown id", () => {
+    for (const program of PRACTICE_PROGRAMS) {
+      expect(getExpectedOutput(program.id).length).toBeGreaterThan(0);
+    }
+    expect(() => getExpectedOutput("does-not-exist")).toThrow(
+      /No committed expected output/,
+    );
   });
 });
 

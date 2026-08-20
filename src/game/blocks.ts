@@ -34,6 +34,27 @@ export function assembleSource(blocks: Block[]): string {
   return blocks.map((block) => block.text).join("\n") + "\n";
 }
 
+/** Moves the block at `from` to sit at `to`, leaving every other block in its relative order —
+ * the one primitive both the keyboard grab/move/drop flow and a stray malformed drag event need
+ * (m13b's `BlockList.tsx`). Out-of-range indices are a no-op (returns the same array reference,
+ * not a copy) rather than a throw: a keyboard handler computing `index - 1` at the top of a list
+ * or `index + 1` at the bottom is the normal case here, not a bug to guard against upstream. */
+export function moveBlock(blocks: Block[], from: number, to: number): Block[] {
+  if (
+    from === to ||
+    from < 0 ||
+    from >= blocks.length ||
+    to < 0 ||
+    to >= blocks.length
+  ) {
+    return blocks;
+  }
+  const next = [...blocks];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved!);
+  return next;
+}
+
 /** `toBlocks` treats one physical line as one statement. That is only sound for source where it
  * is actually true, so this states the precondition rather than assuming it, and the corpus test
  * runs it over all 18 programs.

@@ -8,6 +8,13 @@ import type { Frame } from "../recording/types";
  * belongs to the route (the precedent is `Workspace.tsx` and `Compare.tsx`); it hands the pieces
  * in as plain data. `Frame` comes from `src/recording/types`, which is engine-free by design. */
 export interface Attempt {
+  /** True only for a run that reached its own natural end (`status: "ok"`). A crash or a
+   * guardrail cutoff can print output that happens to equal the expected output *so far* —
+   * `stdout` alone can't tell the two apart from a real success, so this flag is what does.
+   * Found by code review: without it, an arrangement that prints everything correctly and then
+   * crashes on a stray trailing line was reported as correct, the crash message was never shown,
+   * and the divergence jump never fired since `correct` was already true. */
+  completed: boolean;
   /** Complete program output. For an `ok` or `runtime_error` result this is the result-level
    * `stdout`; for a `guardrail` result — which has none — it is the last frame's own `stdout`. */
   stdout: string;
@@ -24,14 +31,17 @@ export interface AttemptOutcome {
   divergence: { step: number } | null;
 }
 
-/** Correct **iff the output matches**. Any arrangement producing the expected output is right,
- * even when it isn't the original line order — several orderings usually are, and that is what
- * checking by execution honestly means rather than a leniency bolted on afterwards. */
+/** Correct **iff the run completed on its own and the output matches**. Any arrangement
+ * producing the expected output is right, even when it isn't the original line order — several
+ * orderings usually are, and that is what checking by execution honestly means rather than a
+ * leniency bolted on afterwards. The `completed` half matters just as much as the output check:
+ * a crash or a guardrail cutoff can print exactly the expected output and then keep going wrong,
+ * and `stdout` alone can't see past whatever was printed before that happened. */
 export function checkAttempt(
   attempt: Attempt,
   expectedStdout: string,
 ): AttemptOutcome {
-  if (attempt.stdout === expectedStdout) {
+  if (attempt.completed && attempt.stdout === expectedStdout) {
     return { correct: true, divergence: null };
   }
   return {
