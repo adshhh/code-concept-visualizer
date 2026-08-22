@@ -1,14 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Practice } from "./Practice";
 import { run } from "../engine/run";
 import type { RunResult } from "../engine/types";
 import type { Frame } from "../recording/types";
-import { PRACTICE_CONCEPTS } from "../practice/registry";
-import { getExpectedOutput, getProgram } from "../practice/registry";
+import {
+  PRACTICE_CONCEPTS,
+  PRACTICE_LEVELS,
+  getExpectedOutput,
+  getProgram,
+} from "../practice/registry";
 import { shuffleBlocks, toBlocks } from "../game/blocks";
+import { buildPuzzle, HINT_LEVELS } from "../game/flowchartBlanks";
+import { flowchartFrom } from "../game/flowchartModel";
 
 // Same reasoning as Workspace.test.tsx/Compare.test.tsx: Practice's job is wiring an assembled
 // arrangement into a real run() and translating whatever comes back, not re-verifying the
@@ -303,5 +309,161 @@ describe("Practice — switching concept or difficulty starts a fresh exercise",
       getExpectedOutput(nextProgram.id).trim(),
     );
     expect(screen.queryByTestId("practice-feedback")).not.toBeInTheDocument();
+  });
+});
+
+describe("Practice — flowchart fill-in-the-blanks (m14b)", () => {
+  it("shows the hint-level control only inside the flowchart exercise (finding 4)", async () => {
+    const user = userEvent.setup();
+    renderPractice();
+    // for-loops (default) starts in reverse mode — no hint-level control at all.
+    expect(
+      screen.queryByRole("group", { name: "hint level" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Flowchart" }));
+    expect(
+      screen.getByRole("group", { name: "hint level" }),
+    ).toBeInTheDocument();
+  });
+
+  it("difficulty and hint level are independently selectable — all 9 combinations render a fresh puzzle (AC-9.12)", async () => {
+    const user = userEvent.setup();
+    renderPractice();
+    // Binary search is flowchart-only, so there's no exercise-type switch to also drive.
+    await user.click(screen.getByRole("button", { name: "Binary search" }));
+
+    const difficultyGroup = screen.getByRole("group", { name: "difficulty" });
+    const hintGroup = screen.getByRole("group", { name: "hint level" });
+
+    for (const level of PRACTICE_LEVELS) {
+      await user.click(
+        within(difficultyGroup).getByRole("button", { name: level }),
+      );
+      for (const hint of HINT_LEVELS) {
+        await user.click(within(hintGroup).getByRole("button", { name: hint }));
+        // Hard + easy hints is not a special case (D32) — both a hard program and a full-hint
+        // puzzle render the same way as every other combination.
+        expect(screen.getByTestId("flowchart")).toBeInTheDocument();
+        expect(
+          screen.getByRole("list", { name: "card bank" }),
+        ).toBeInTheDocument();
+      }
+    }
+  });
+
+  it("solving every blank correctly reports success (real puzzle, computed the same way the component does)", async () => {
+    const user = userEvent.setup();
+    const program = getProgram("functions-easy")!;
+    const chart = flowchartFrom(program.source)!;
+    // Same seed formula FlowchartPuzzle uses internally — `${programId}#${hintLevel}` — so this
+    // is the actual puzzle the component will build, not a guessed one.
+    const puzzle = buildPuzzle(chart, "hard", `${program.id}#hard`);
+    expect(puzzle.blanks.length).toBeGreaterThan(0); // a real, non-vacuous puzzle
+
+    renderPractice();
+    await user.click(screen.getByRole("button", { name: "Functions" }));
+    await user.click(screen.getByRole("button", { name: "Flowchart" }));
+    await user.click(
+      within(screen.getByRole("group", { name: "hint level" })).getByRole(
+        "button",
+        { name: "hard" },
+      ),
+    );
+
+    for (const blank of puzzle.blanks) {
+      await user.click(
+        screen.getAllByRole("button", { name: `Card: ${blank.answer}` })[0]!,
+      );
+      await user.click(screen.getByTestId(`flowchart-slot-${blank.nodeId}`));
+    }
+
+    expect(screen.getByText(/All cards placed/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByTestId("flowchart-feedback")).toHaveTextContent(
+      "That's it — every blank matches the program.",
+    );
+  });
+
+  it("a wrong placement is reported, with the offending blank marked (never colour alone, AC-5.10)", async () => {
+    const user = userEvent.setup();
+    const program = getProgram("functions-easy")!;
+    const chart = flowchartFrom(program.source)!;
+    const puzzle = buildPuzzle(chart, "hard", `${program.id}#hard`);
+    // This test's own value depends on having at least 2 blanks with different answers to swap —
+    // functions-easy's 2 blankable nodes (m14b's own measured corpus data) satisfy this.
+    expect(puzzle.blanks.length).toBeGreaterThanOrEqual(2);
+    expect(puzzle.blanks[0]!.answer).not.toBe(puzzle.blanks[1]!.answer);
+
+    renderPractice();
+    await user.click(screen.getByRole("button", { name: "Functions" }));
+    await user.click(screen.getByRole("button", { name: "Flowchart" }));
+    await user.click(
+      within(screen.getByRole("group", { name: "hint level" })).getByRole(
+        "button",
+        { name: "hard" },
+      ),
+    );
+
+    // Deliberately swapped: blank 0 gets blank 1's answer and vice versa.
+    await user.click(
+      screen.getAllByRole("button", {
+        name: `Card: ${puzzle.blanks[1]!.answer}`,
+      })[0]!,
+    );
+    await user.click(
+      screen.getByTestId(`flowchart-slot-${puzzle.blanks[0]!.nodeId}`),
+    );
+    await user.click(
+      screen.getAllByRole("button", {
+        name: `Card: ${puzzle.blanks[0]!.answer}`,
+      })[0]!,
+    );
+    await user.click(
+      screen.getByTestId(`flowchart-slot-${puzzle.blanks[1]!.nodeId}`),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Check" }));
+    expect(screen.getByTestId("flowchart-feedback")).toHaveTextContent(
+      /still wrong/,
+    );
+    const wrongSlot = screen.getByTestId(
+      `flowchart-slot-${puzzle.blanks[0]!.nodeId}`,
+    );
+    expect(wrongSlot).toHaveTextContent("⚠");
+  });
+
+  it("clicking an already-filled blank with nothing held picks that card back up", async () => {
+    const user = userEvent.setup();
+    const program = getProgram("functions-easy")!;
+    const chart = flowchartFrom(program.source)!;
+    const puzzle = buildPuzzle(chart, "hard", `${program.id}#hard`);
+
+    renderPractice();
+    await user.click(screen.getByRole("button", { name: "Functions" }));
+    await user.click(screen.getByRole("button", { name: "Flowchart" }));
+    await user.click(
+      within(screen.getByRole("group", { name: "hint level" })).getByRole(
+        "button",
+        { name: "hard" },
+      ),
+    );
+
+    const firstBlank = puzzle.blanks[0]!;
+    await user.click(
+      screen.getAllByRole("button", { name: `Card: ${firstBlank.answer}` })[0]!,
+    );
+    await user.click(screen.getByTestId(`flowchart-slot-${firstBlank.nodeId}`));
+    // Filled — the card is gone from the bank.
+    expect(
+      screen.queryByRole("button", { name: `Card: ${firstBlank.answer}` }),
+    ).not.toBeInTheDocument();
+
+    // Click it again with nothing held: takes the card back rather than doing nothing.
+    await user.click(screen.getByTestId(`flowchart-slot-${firstBlank.nodeId}`));
+    expect(
+      screen.getAllByRole("button", { name: `Card: ${firstBlank.answer}` }),
+    ).toHaveLength(1);
   });
 });

@@ -16,8 +16,15 @@ import {
   type Block,
 } from "../game/blocks";
 import { checkAttempt, type Attempt } from "../game/reverseMode";
-import { flowchartFrom } from "../game/flowchartModel";
-import { Flowchart } from "../game/Flowchart";
+import { flowchartFrom, type FlowNode } from "../game/flowchartModel";
+import { Flowchart, type FlowchartSlotState } from "../game/Flowchart";
+import {
+  buildPuzzle,
+  checkPuzzle,
+  HINT_LEVELS,
+  type HintLevel,
+} from "../game/flowchartBlanks";
+import { CardBank } from "../game/CardBank";
 import {
   PRACTICE_CONCEPTS,
   PRACTICE_LEVELS,
@@ -34,6 +41,57 @@ const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {
   reverse: "Reverse the code",
   flowchart: "Flowchart",
 };
+
+/** The one `role="group"` + `aria-pressed` segmented-control shape this page used four separate
+ * times by hand (concept, difficulty, exercise type, and m14b's new hint level) — found by code
+ * review while adding the fourth copy. Generic over an arbitrary item type, not just a string
+ * union, since the concept control's items are `PracticeConcept` objects, not their own ids. */
+function SegmentedControl<T>({
+  ariaLabel,
+  items,
+  getKey,
+  getLabel,
+  isActive,
+  onSelect,
+  wrap = false,
+  capitalize = false,
+}: {
+  ariaLabel: string;
+  items: readonly T[];
+  getKey: (item: T) => string;
+  getLabel: (item: T) => string;
+  isActive: (item: T) => boolean;
+  onSelect: (item: T) => void;
+  wrap?: boolean;
+  capitalize?: boolean;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={`flex overflow-hidden self-start rounded-lg ring-1 ring-slate-700 ${wrap ? "flex-wrap" : ""}`}
+    >
+      {items.map((item) => {
+        const active = isActive(item);
+        return (
+          <button
+            key={getKey(item)}
+            type="button"
+            onClick={() => onSelect(item)}
+            aria-pressed={active}
+            className={`px-3 py-2 text-sm ${capitalize ? "capitalize" : ""} ${
+              active
+                ? "bg-slate-700 text-slate-100"
+                : "bg-slate-800 text-slate-400"
+            }`}
+          >
+            {getLabel(item)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /** §9's Practice half. Reverse mode (D34): given a program's expected output, drag its own
  * shuffled lines back into an order that produces it — validated by running the assembled
@@ -82,72 +140,35 @@ export function Practice() {
           </Link>
         </div>
 
-        <div
-          role="group"
-          aria-label="concept"
-          className="flex flex-wrap overflow-hidden self-start rounded-lg ring-1 ring-slate-700"
-        >
-          {PRACTICE_CONCEPTS.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setConceptId(c.id)}
-              aria-pressed={conceptId === c.id}
-              className={`px-3 py-2 text-sm ${
-                conceptId === c.id
-                  ? "bg-slate-700 text-slate-100"
-                  : "bg-slate-800 text-slate-400"
-              }`}
-            >
-              {c.title}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          ariaLabel="concept"
+          items={PRACTICE_CONCEPTS}
+          getKey={(c) => c.id}
+          getLabel={(c) => c.title}
+          isActive={(c) => c.id === conceptId}
+          onSelect={(c) => setConceptId(c.id)}
+          wrap
+        />
 
-        <div
-          role="group"
-          aria-label="difficulty"
-          className="flex overflow-hidden self-start rounded-lg ring-1 ring-slate-700"
-        >
-          {PRACTICE_LEVELS.map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => setLevel(l)}
-              aria-pressed={level === l}
-              className={`px-3 py-2 text-sm capitalize ${
-                level === l
-                  ? "bg-slate-700 text-slate-100"
-                  : "bg-slate-800 text-slate-400"
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          ariaLabel="difficulty"
+          items={PRACTICE_LEVELS}
+          getKey={(l) => l}
+          getLabel={(l) => l}
+          isActive={(l) => l === level}
+          onSelect={setLevel}
+          capitalize
+        />
 
         {concept.exercises.length > 1 ? (
-          <div
-            role="group"
-            aria-label="exercise type"
-            className="flex overflow-hidden self-start rounded-lg ring-1 ring-slate-700"
-          >
-            {concept.exercises.map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setExerciseType(type)}
-                aria-pressed={activeExerciseType === type}
-                className={`px-3 py-2 text-sm ${
-                  activeExerciseType === type
-                    ? "bg-slate-700 text-slate-100"
-                    : "bg-slate-800 text-slate-400"
-                }`}
-              >
-                {EXERCISE_TYPE_LABEL[type]}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            ariaLabel="exercise type"
+            items={concept.exercises}
+            getKey={(type) => type}
+            getLabel={(type) => EXERCISE_TYPE_LABEL[type]}
+            isActive={(type) => type === activeExerciseType}
+            onSelect={setExerciseType}
+          />
         ) : (
           <p className="text-xs text-slate-500">
             {concept.title} only offers a flowchart — reassembling an algorithm
@@ -171,10 +192,13 @@ export function Practice() {
   );
 }
 
-/** Read-only at m14a — the fill-in-the-blanks half (blanks, cards, hint level) is m14b. Nothing
- * here is hand-authored (D34/AC-9.13): `flowchartFrom` derives the whole diagram from the
- * program's own source. */
+/** Nothing here is hand-authored (D34/AC-9.13): `flowchartFrom` derives the whole diagram from
+ * the program's own source, and `buildPuzzle` (m14b) derives which of its labels are blanked
+ * from the chart alone plus a hint level — never a per-program answer key. Owns the hint-level
+ * control (finding 4, inherited from m14a's own audit): it renders only here, never as a fourth
+ * page-level segmented control, since reverse mode has no cards to pre-fill. */
 function FlowchartExercise({ program }: { program: PracticeProgram }) {
+  const [hintLevel, setHintLevel] = useState<HintLevel>("easy");
   const chart = useMemo(() => flowchartFrom(program.source), [program]);
 
   return (
@@ -182,14 +206,214 @@ function FlowchartExercise({ program }: { program: PracticeProgram }) {
       <p className="text-xs text-slate-500">
         Generated from this program — nothing here is hand-authored (D34).
       </p>
+
       {chart ? (
-        <div className="rounded-lg bg-slate-900/60 p-4 ring-1 ring-slate-800">
-          <Flowchart nodes={chart} />
-        </div>
+        <>
+          <SegmentedControl
+            ariaLabel="hint level"
+            items={HINT_LEVELS}
+            getKey={(level) => level}
+            getLabel={(level) => level}
+            isActive={(level) => level === hintLevel}
+            onSelect={setHintLevel}
+            capitalize
+          />
+
+          {/* Keyed remount on program+hintLevel, extending `Practice()`'s own `key={program.id}`
+           * reset precedent one level deeper: changing hint level is a genuinely new puzzle, not
+           * an edit to the current one, so it gets React's own clean slate rather than a pile of
+           * hand-reset state (placements, held card, targeted blank, last check's result). */}
+          <FlowchartPuzzle
+            key={`${program.id}#${hintLevel}`}
+            programId={program.id}
+            chart={chart}
+            hintLevel={hintLevel}
+          />
+        </>
       ) : (
         <p className="rounded-lg bg-red-950/60 px-4 py-2 text-sm text-red-300 ring-1 ring-red-900">
           Couldn't generate a flowchart for this program.
         </p>
+      )}
+    </div>
+  );
+}
+
+/** The actual fill-in-the-blanks puzzle for one (program, hint level) pair. `Flowchart` and
+ * `CardBank` each own their own widget-level mechanics (which node is targeted, which card is
+ * held) and report intent upward via callbacks — this component is the one place that turns
+ * those intents into "where does this card end up," matching the split `BlockList.tsx`/
+ * `Practice.tsx` already keep for reverse mode. */
+function FlowchartPuzzle({
+  programId,
+  chart,
+  hintLevel,
+}: {
+  programId: string;
+  chart: FlowNode[];
+  hintLevel: HintLevel;
+}) {
+  const puzzle = useMemo(
+    () => buildPuzzle(chart, hintLevel, `${programId}#${hintLevel}`),
+    [chart, hintLevel, programId],
+  );
+  const cardById = useMemo(
+    () => new Map(puzzle.cards.map((card) => [card.id, card])),
+    [puzzle],
+  );
+  const blankNodeIds = useMemo(
+    () => puzzle.blanks.map((blank) => blank.nodeId),
+    [puzzle],
+  );
+
+  // nodeId -> the id of the card currently sitting there. Deliberately keyed by card id, not
+  // text: two blanks can share an identical answer (finding 5), and this still has to know which
+  // *physical* card to return to the bank if that slot gets cleared.
+  const [placements, setPlacements] = useState<Map<string, string>>(
+    () => new Map(),
+  );
+  // Which card is held and which blank it's currently aimed at, or neither — one state, not two,
+  // because a target only ever means something while a card is held (found by code review: two
+  // separate `useState`s made "held with no target" and "a target with nothing held" both
+  // representable, relying on four call sites to keep them in sync by hand).
+  const [held, setHeld] = useState<{
+    cardId: string;
+    targetedNodeId: string;
+  } | null>(null);
+  // null = not checked yet; a Set (possibly empty) = the wrong node ids from the last Check.
+  const [wrongNodeIds, setWrongNodeIds] = useState<Set<string> | null>(null);
+
+  // Every edit to `placements` invalidates whatever the last Check reported — routed through this
+  // one helper so a third mutation site can't forget the reset the way two hand-written call
+  // sites already had to remember it independently (found by code review).
+  function mutatePlacements(
+    updater: (prev: Map<string, string>) => Map<string, string>,
+  ) {
+    setPlacements(updater);
+    setWrongNodeIds(null);
+  }
+
+  function placeHeldCardAt(nodeId: string) {
+    if (held === null) return;
+    const { cardId } = held;
+    mutatePlacements((prev) => new Map(prev).set(nodeId, cardId));
+    setHeld(null);
+  }
+
+  function handleSlotActivate(nodeId: string) {
+    if (held !== null) {
+      placeHeldCardAt(nodeId);
+      return;
+    }
+    // Nothing held: clicking an already-filled blank picks that card back up, so a mistake can
+    // be corrected without solving every other blank over again. Clicking an empty blank with
+    // nothing held is a no-op — there's nothing to place and nothing to take back.
+    const existingCardId = placements.get(nodeId);
+    if (existingCardId === undefined) return;
+    mutatePlacements((prev) => {
+      const next = new Map(prev);
+      next.delete(nodeId);
+      return next;
+    });
+    setHeld({ cardId: existingCardId, targetedNodeId: nodeId });
+  }
+
+  function handlePickUp(cardId: string) {
+    const firstEmpty = blankNodeIds.find((id) => !placements.has(id));
+    const targetedNodeId = firstEmpty ?? blankNodeIds[0];
+    // No blanks at all means no cards either (1:1), so a real bank never offers a card to pick up
+    // here — this guard only exists so `held`'s type stays non-optional on `targetedNodeId`.
+    if (targetedNodeId === undefined) return;
+    setHeld({ cardId, targetedNodeId });
+  }
+
+  function handleNavigate(direction: "prev" | "next") {
+    if (held === null) return;
+    const index = blankNodeIds.indexOf(held.targetedNodeId);
+    if (index === -1) return;
+    const nextIndex = direction === "next" ? index + 1 : index - 1;
+    if (nextIndex < 0 || nextIndex >= blankNodeIds.length) return;
+    setHeld({ ...held, targetedNodeId: blankNodeIds[nextIndex]! });
+  }
+
+  function handleCancel() {
+    setHeld(null);
+  }
+
+  function handleCheck() {
+    const placedText = new Map<string, string>();
+    for (const [nodeId, cardId] of placements) {
+      const card = cardById.get(cardId);
+      if (card) placedText.set(nodeId, card.text);
+    }
+    const outcome = checkPuzzle(puzzle, placedText);
+    setWrongNodeIds(new Set(outcome.wrongNodeIds));
+  }
+
+  const bankCards = useMemo(() => {
+    const placedCardIds = new Set(placements.values());
+    return puzzle.cards.filter((card) => !placedCardIds.has(card.id));
+  }, [puzzle, placements]);
+
+  const slotStates = useMemo(() => {
+    const states = new Map<string, FlowchartSlotState>();
+    for (const blank of puzzle.blanks) {
+      const cardId = placements.get(blank.nodeId);
+      states.set(blank.nodeId, {
+        filled:
+          cardId !== undefined ? (cardById.get(cardId)?.text ?? null) : null,
+        wrong: wrongNodeIds?.has(blank.nodeId) ?? false,
+      });
+    }
+    return states;
+  }, [puzzle, placements, cardById, wrongNodeIds]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-lg bg-slate-900/60 p-4 ring-1 ring-slate-800">
+        <Flowchart
+          nodes={chart}
+          slots={{
+            states: slotStates,
+            targetedNodeId: held?.targetedNodeId ?? null,
+            onActivate: handleSlotActivate,
+          }}
+        />
+      </div>
+
+      <CardBank
+        cards={bankCards}
+        heldId={held?.cardId ?? null}
+        onPickUp={handlePickUp}
+        onNavigate={handleNavigate}
+        onPlace={() => {
+          if (held !== null) placeHeldCardAt(held.targetedNodeId);
+        }}
+        onCancel={handleCancel}
+      />
+
+      <button
+        type="button"
+        onClick={handleCheck}
+        className="self-start rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50"
+      >
+        Check
+      </button>
+
+      {wrongNodeIds && (
+        <div
+          aria-live="polite"
+          data-testid="flowchart-feedback"
+          className={`rounded-lg px-4 py-2 text-sm ring-1 ${
+            wrongNodeIds.size === 0
+              ? "bg-emerald-950/40 text-emerald-300 ring-emerald-900"
+              : "bg-slate-900/60 text-slate-300 ring-slate-800"
+          }`}
+        >
+          {wrongNodeIds.size === 0
+            ? "That's it — every blank matches the program."
+            : `${wrongNodeIds.size} blank${wrongNodeIds.size === 1 ? "" : "s"} still wrong — check the highlighted ones.`}
+        </div>
       )}
     </div>
   );

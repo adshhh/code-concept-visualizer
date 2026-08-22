@@ -32,6 +32,18 @@ export type FlowNode =
       body: FlowNode[];
     };
 
+/** Forces a compile error at the call site's own `switch` if a `FlowNode["kind"]` branch is ever
+ * missing a case — this model has already shipped two silent-drop bugs from exactly this gap
+ * (an unexpanded function, then a dropped top-level loop, both m14a) before either was caught by
+ * eye rather than by the compiler. `stmtToNode` below is safe without this because its explicit
+ * `FlowNode` return type plus a `return` on every branch already makes TypeScript reject a
+ * missing case; a `switch` with no meaningful return value (e.g. `flowchartBlanks.ts`'s
+ * `collectBlankable`) or one embedded in a component with an inferred return type (`Flowchart.tsx`'s
+ * `FlowchartNode`) gets no such protection for free, which is what this exists to restore. */
+export function assertNeverFlowNode(node: never): never {
+  throw new Error(`Unhandled FlowNode kind: ${JSON.stringify(node)}`);
+}
+
 const PRINT_CALL_RE = /^print\s*\(/;
 
 /**

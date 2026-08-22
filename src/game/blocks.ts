@@ -1,5 +1,6 @@
 import { isBlankOrCommentLine, tokenize } from "../subset/tokenizer";
 import { RejectionError } from "../subset/types";
+import { seededShuffle } from "./seededRandom";
 
 /** D34: "the reverse-mode blocks are its shuffled lines." One block per non-blank source line,
  * carrying its own leading whitespace — §9 locks that for v1 ("blocks carry their own correct
@@ -137,43 +138,9 @@ function checkStatement(statement: ReturnType<typeof tokenize>): string | null {
 }
 
 /** Seeded on the program id, never `Math.random()`: a user who reloads mid-solve must not get a
- * different puzzle, and the corpus test needs to assert the shipped arrangement for all 18. */
-function mulberry32(seed: number): () => number {
-  let a = seed;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function hashSeed(seed: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    hash ^= seed.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-/** Fisher-Yates over a seeded stream, retried with a bumped seed if it lands on the original
- * order — a pre-solved exercise is a broken one, and for a 4-block program that is a 1-in-24
- * event, not a theoretical one. */
+ * different puzzle, and the corpus test needs to assert the shipped arrangement for all 18. The
+ * PRNG and retry-on-identity logic live in `seededRandom.ts`, shared with `flowchartBlanks.ts`'s
+ * card bank (m14b) since both need the identical determinism over a different item shape. */
 export function shuffleBlocks(blocks: Block[], seed: string): Block[] {
-  if (blocks.length < 2) return [...blocks];
-
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const random = mulberry32(hashSeed(`${seed}#${attempt}`));
-    const shuffled = [...blocks];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-    }
-    if (shuffled.some((block, index) => block.id !== blocks[index]!.id)) {
-      return shuffled;
-    }
-  }
-  // Unreachable for any real corpus program; a rotation is still a valid non-identity ordering.
-  return [...blocks.slice(1), blocks[0]!];
+  return seededShuffle(blocks, seed);
 }

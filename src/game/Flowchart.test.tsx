@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Flowchart } from "./Flowchart";
+import userEvent from "@testing-library/user-event";
+import { Flowchart, type FlowchartSlots } from "./Flowchart";
 import { flowchartFrom } from "./flowchartModel";
 
 describe("Flowchart — renders every node kind the model can produce", () => {
@@ -81,5 +82,110 @@ describe("Flowchart — renders every node kind the model can produce", () => {
     expect(screen.getByText("return n // 2")).toBeInTheDocument();
     // The call site, dropped entirely by an earlier scoped design, renders as a real sibling node.
     expect(screen.getByText("print(half(8))")).toBeInTheDocument();
+  });
+});
+
+describe("Flowchart — slots (m14b fill-in-the-blanks)", () => {
+  const chart = flowchartFrom("x = 1\nprint(x)\n")!;
+  // chart: [start terminal, process "x = 1", io "print(x)", end terminal] — find the process
+  // node's real id from the model itself rather than hard-coding "n1", so this test can't drift
+  // silently if flowchartModel.ts's id scheme ever changes.
+  const processNodeId = chart.find((n) => n.kind === "process")!.id;
+  const ioNodeId = chart.find((n) => n.kind === "io")!.id;
+
+  function slotsFixture(
+    overrides: Partial<FlowchartSlots> = {},
+  ): FlowchartSlots {
+    return {
+      states: new Map(),
+      targetedNodeId: null,
+      onActivate: vi.fn(),
+      ...overrides,
+    };
+  }
+
+  it("renders exactly 14a's plain labels when slots is omitted entirely", () => {
+    render(<Flowchart nodes={chart} />);
+    expect(screen.getByText("x = 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("a node absent from slots.states still shows its real label, even when slots is present", () => {
+    const slots = slotsFixture();
+    render(<Flowchart nodes={chart} slots={slots} />);
+    expect(screen.getByText("x = 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("an empty blank renders as an interactive placeholder, not the real label", () => {
+    const slots = slotsFixture({
+      states: new Map([[processNodeId, { filled: null }]]),
+    });
+    render(<Flowchart nodes={chart} slots={slots} />);
+    expect(screen.queryByText("x = 1")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /empty blank/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("a filled blank shows the placed text", () => {
+    const slots = slotsFixture({
+      states: new Map([[processNodeId, { filled: "x = 1" }]]),
+    });
+    render(<Flowchart nodes={chart} slots={slots} />);
+    expect(
+      screen.getByRole("button", { name: /filled with "x = 1"/i }),
+    ).toHaveTextContent("x = 1");
+  });
+
+  it("a wrong placement carries a glyph, never colour alone (AC-5.10)", () => {
+    const slots = slotsFixture({
+      states: new Map([[processNodeId, { filled: "y = 2", wrong: true }]]),
+    });
+    render(<Flowchart nodes={chart} slots={slots} />);
+    const button = screen.getByRole("button", { name: /incorrect/i });
+    expect(button).toHaveTextContent("⚠");
+  });
+
+  it("clicking a blank calls onActivate with that node's id", async () => {
+    const user = userEvent.setup();
+    const onActivate = vi.fn();
+    const slots = slotsFixture({
+      states: new Map([[processNodeId, { filled: null }]]),
+      onActivate,
+    });
+    render(<Flowchart nodes={chart} slots={slots} />);
+    await user.click(screen.getByRole("button", { name: /empty blank/i }));
+    expect(onActivate).toHaveBeenCalledWith(processNodeId);
+  });
+
+  it("the targeted node stays interactive while every node keeps its own data-testid", () => {
+    const slots = slotsFixture({
+      states: new Map([
+        [processNodeId, { filled: null }],
+        [ioNodeId, { filled: null }],
+      ]),
+      targetedNodeId: processNodeId,
+    });
+    render(<Flowchart nodes={chart} slots={slots} />);
+    expect(screen.getAllByTestId(/^flowchart-node-/).length).toBe(4);
+    expect(
+      screen.getAllByRole("button", { name: /empty blank/i }),
+    ).toHaveLength(2);
+  });
+
+  it("never turns a terminal, jump, or function signature into a blank even if slots is present", () => {
+    const recursive = flowchartFrom(
+      "def f(n):\n    if n <= 1:\n        return n\n    return f(n - 1) + f(n - 2)\n",
+    )!;
+    const funcNode = recursive.find((n) => n.kind === "function")!;
+    const slots = slotsFixture({
+      // Deliberately keyed on the function's own id — BlankableLabel is never even consulted
+      // for a function/terminal/jump node, so this must have no effect at all.
+      states: new Map([[funcNode.id, { filled: null }]]),
+    });
+    render(<Flowchart nodes={recursive} slots={slots} />);
+    expect(screen.getByText("f(n)")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });

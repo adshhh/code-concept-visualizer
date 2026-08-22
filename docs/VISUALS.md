@@ -184,6 +184,40 @@ m13b, so this is now the template):
   the "before" state — the same readiness discipline `compare.spec.ts` already established,
   just newly needed here since this was the repo's first pointer-drag test.
 
+### Select-then-place (AC-9.12/9.13, m14b) — one mechanic instead of drag-plus-fallback
+
+`src/game/CardBank.tsx` + `src/game/Flowchart.tsx`'s `slots` prop are this codebase's second
+fully keyboard-operable widget pair, and deliberately **not** built on `BlockList.tsx`'s drag
+pattern — a bank→blank placement needs a real drop target, and those targets live inside nested
+flex columns that reflow every time a blank fills (an empty placeholder and a filled label are
+different widths), so hit-testing against them would mean re-measuring every blank after every
+placement. Instead, mouse and keyboard drive the **identical state transition** —
+`onPickUp(cardId)` then `onActivate(nodeId)` — through two different triggers:
+
+| | pointer | keyboard |
+| --- | --- | --- |
+| pick up a card | click it | focus it (roving tabindex), `Space`/`Enter` |
+| choose a blank | click the one you want directly | `↑`/`↓` moves a *target cursor* the parent tracks, independent of DOM focus |
+| place | (the click above both picks and places) | `Space`/`Enter` on the still-focused, still-held card |
+| cancel | click nothing — no held state to leave stuck | `Escape` |
+| fix a mistake | click the filled blank with nothing held | same click, keyboard reaches it by cursor |
+
+**The one deliberate divergence from `BlockList.tsx`'s own rules, and why:** losing focus never
+drops a held card here, where `BlockList.tsx`'s own rule is the opposite ("losing focus while
+grabbed drops safely at the current position"). There, blur committing the current position is
+always safe — a reorder has nowhere else to go. Here, picking a card up only makes sense as the
+first half of a gesture that finishes on a *different* widget (a blank inside `Flowchart`) — a
+blur-triggered drop would cancel the very placement the learner is mid-gesture on. Only `Escape`,
+or an actual placement, ends a held state.
+
+**A real bug this pattern surfaced, not a hypothetical one:** a placed card's own button unmounts
+the instant it leaves the bank (the array shrinks), and without intervention the browser drops
+focus to `<body>` — found while tracing the exact keyboard sequence for `practice.spec.ts`'s full
+solve, not by reading the component in isolation. `CardBank.tsx` now refocuses whichever card is
+first once one actually leaves, so a keyboard-only learner never loses their place in the page
+after a placement; `CardBank.test.tsx` proves `document.activeElement` is never `document.body`
+after one.
+
 ## Layout (AC-5.8)
 
 The `PictureDevHarness` shell (visible in every screenshot above) demonstrates the ~35%/~65%

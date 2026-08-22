@@ -1666,6 +1666,81 @@ own API for a caller outside `src/subset/`, which costs more than a redundant le
 ≤100-line program costs today. Recorded as a comment naming the trigger to revisit (a hotter call
 path, e.g. live validation-as-you-type) rather than spent now.
 
+## 38. Milestone 14b: a spotlight that computed correctly and still didn't read, and a drag that was never going to work
+
+§9 describes the flowchart exercise in one sentence — "drag cards to complete the flowchart" —
+and the plan for this milestone spent real time on the actual shape of that sentence before
+writing any code, because it turned out not to describe a buildable interaction as literally
+stated.
+
+**Why "drag" was the wrong verb, decided before implementation, not discovered by building it and
+having it fail.** 13b's `BlockList.tsx` drag is a `Reorder.Group` — cards trade places *within one
+list*, and framer-motion's own layout math handles where everything ends up with no separate drop
+target to compute. Placing a card into a specific flowchart blank is a different problem: the
+blanks live inside nested flex columns that **reflow every time one fills**, since an empty dashed
+placeholder and a filled label are different widths. A real pointer drag would need to hit-test
+against every blank's bounding box, and that box moves the instant any *other* blank changes
+state. Rather than build that and find out it was fragile, the plan chose select-then-place up
+front — click a card, click a blank — with an identical keyboard path (`decisions/006`). One
+mechanic that behaves the same for a mouse, a touchscreen, and a keyboard beats a real drag
+gesture plus a separately-maintained keyboard affordance that can quietly drift out of sync with
+it, which is exactly the shape of bug this project has already paid for once (13b's own drag/
+keyboard pair needed to be built as two paths precisely because framer-motion's `Reorder` ships no
+keyboard support at all).
+
+**A hint-level rule that would have been wrong if written on assumption instead of measurement.**
+D32 wants hint level to control "how many cards start pre-filled," and the obvious way to hit that
+is a fixed count per level — three pre-filled at medium, say. Measuring the real 24-program corpus
+first (`docs/GAME.md`'s own table) showed why that would have failed silently: blankable-node
+counts range from 2 (`functions-easy`) to 10 (`bubble-sort-hard`). A fixed count of 3 is trivial on
+the 10-node chart and literally impossible on the 2-node one. The shipped rule is proportional —
+roughly 2/3, 1/3, none pre-filled — which is a direct consequence of measuring before writing the
+formula, the same `decisions/003` discipline this project has followed since milestone 13. It also
+meant the acceptance criterion itself needed a more honest reading: AC-9.21's "scale inversely"
+can't be *strictly* decreasing on a 2-node chart (medium and hard both correctly round to "nothing
+pre-filled"), so the shipped test asserts non-increasing everywhere and strictly-decreasing only
+where the chart is large enough to show it — a weaker-sounding claim that is actually the true one,
+verified against all 24 programs rather than a handful of hand-picked examples.
+
+### The spotlight that computed correctly and still didn't read
+
+CLAUDE.md's hard rule — "whatever the current step touches is drawn large and bright; everything
+else recedes... this applies to every renderer, not just some" — got implemented the
+straightforward way first: every flowchart node wrapped in a `motion.div` animating to
+`emphasisVariants[emphasis]`, the exact shared variant `NumberList.tsx` and `DictTable.tsx` already
+use for the identical purpose. It typechecked, it passed every test, and the screenshot it produced
+looked almost identical to the unfocused state. `emphasisVariants.primary` is a 12% scale bump and
+a 15% brightness lift — legible on a filled value box with real content and colour to modulate, and
+nearly invisible on a small bordered placeholder that's mostly empty space to begin with. The
+"everything else recedes" half of the rule read perfectly clearly in the same screenshot; only the
+"drawn large and bright" half failed, and only for this one shape.
+
+The fix wasn't to abandon the shared variant — the dimming it produces on every *other* node is
+correct and stays exactly as it was — but to add a second, more assertive treatment specifically to
+the targeted blank's own button: a visible ring, a tinted background, and a soft glow, layered on
+top of the existing emphasis rather than replacing it. Re-screenshotting confirmed the difference
+immediately, the same way the weak version had been immediately visible once actually looked at.
+Recorded in `decisions/006` as a real trade-off rather than a footnote: a shared animation variant
+that works well for one shape of content is not guaranteed to work for every shape, and the way to
+find out is to render it and look, not to trust that "it uses the established pattern" is the same
+claim as "it reads."
+
+### A focus bug that only existed once the exact keystrokes were traced
+
+Writing `practice.spec.ts`'s keyboard-only solve required tracing the actual sequence of key
+presses against the real, seeded puzzle output before writing a single line of the test — the same
+discipline `BlockList.tsx`'s own keyboard test already established. Doing that surfaced a bug the
+component's own unit tests hadn't caught: the moment a card is placed, its button in the bank
+unmounts (the array that produced it just got one shorter), and a browser's default behaviour when
+the focused element disappears is to drop focus to `<body>`. Every unit test up to that point had
+checked the *state* after a placement — the bank shrank, the blank filled — without ever checking
+*where keyboard focus ended up*, because nothing in those tests continued interacting after a
+placement the way an actual multi-blank solve does. The fix (`CardBank.tsx` refocuses whichever
+card is now first, but only when a card actually left, never on an unrelated re-render) came with
+its own regression test asserting `document.activeElement` is never `document.body` — a check that
+literally could not have been written without first asking "what does a real learner's next
+keypress actually land on," rather than "does the state look right."
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

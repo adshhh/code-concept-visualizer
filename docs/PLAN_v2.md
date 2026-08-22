@@ -511,8 +511,43 @@ Three constraints shape every decision:
 > new Flowcharts section, which already carried the equivalent per-milestone design detail for
 > reverse mode.
 >
-> **Next: milestone 14b (fill-in-the-blanks, the card bank, drag + keyboard, hint level)**, closing
-> AC-9.12, AC-9.19 in full, and AC-9.21 — per the Build milestones table.
+> **Milestone 14b is built and checkpointed** (see `checkpoint_report.md`). Closes AC-9.12, AC-9.19
+> in full, AC-9.21; fully closes AC-9.13. `src/game/flowchartBlanks.ts` derives, from the chart
+> alone, which nodes are blanked (ranked by teaching value: `branch` → `loop` → `io` → `process`,
+> never a terminal/jump/`def` signature) and what the shuffled card bank holds (exactly the blanked
+> labels, no distractors); `src/game/CardBank.tsx` is the select-then-place bank widget;
+> `src/game/Flowchart.tsx` gained an optional `slots` prop that turns some labels into interactive
+> blanks with zero change to 14a's read-only render when omitted.
+>
+> **§9's "drag cards" wording is corrected, decided before implementation** (owner decision, on
+> the pre-milestone-audit precedent): a bank→blank drag needs real drop-target hit-testing against
+> blanks that reflow every time one fills, which a real pointer drag would have made fragile. The
+> exercise instead uses select-then-place — click a card, click a blank — with an identical
+> keyboard path (Space to pick up, arrows to move the target, Space to place, Escape to cancel).
+> See `decisions/006-flowchart-blanks-and-select-to-place.md`.
+>
+> **Hint level is a measured proportion, not a guessed fixed count.** The corpus's own
+> blankable-node totals range 2–10 (measured directly before `blankCount`'s ratios were written,
+> full table in `docs/GAME.md`); easy/medium/hard pre-fill roughly 2/3, 1/3, none. AC-9.21's own
+> test asserts the honest form of "scales inversely" — non-increasing everywhere, strictly
+> decreasing wherever the chart is large enough to show it — verified against all 24 real programs.
+>
+> **Two real bugs, both found by tracing exact behaviour rather than reading the code.** Screenshot
+> self-review found the shared `emphasisVariants` spotlight treatment — correct and load-bearing on
+> every other node kind — was nearly invisible on a small dashed placeholder; fixed with a direct
+> ring-and-glow on the targeted blank specifically, layered on top of the existing dim treatment
+> elsewhere. Tracing the exact keyboard sequence for `practice.spec.ts`'s full solve (before writing
+> the test, not after it failed) found that a placed card's button unmounting drops browser focus to
+> `<body>`; `CardBank.tsx` now refocuses the next remaining card, with a regression test proving
+> `document.activeElement` is never `document.body` after a placement. Full detail in
+> `DESIGN_RATIONALE.md` §38.
+>
+> **§9 (Game layer) is now fully closed — every criterion 1–23 holds.** Milestone 14, the largest
+> single item in the plan and D28's designated cut-whole boundary, is complete without needing to
+> be cut.
+>
+> **Next: milestone 15 (Phase E — ship)**: ~10 visual snapshots, the 13-step verification
+> walkthrough, `docs/PORTING.md`, and the README + demo GIF — per the Build milestones table.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -619,7 +654,7 @@ one checkpoint = one branch = one merge.**
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
 | 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, closing AC-9.1–9.6/9.10/9.22; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9. Both done — see checkpoint_report.md. §9 (Explore) fully closed** |
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
-| 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, drag + keyboard) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21. 14a done — see `checkpoint_report.md` and `decisions/005-statement-tree-and-derived-scope.md`.** |
+| 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, select-then-place + keyboard — a `v2 correction (m14b)` on §9's own "drag" wording, see `decisions/006`) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21, fully closing AC-9.13. **Both done — see `checkpoint_report.md`, `decisions/005-statement-tree-and-derived-scope.md`, `decisions/006-flowchart-blanks-and-select-to-place.md`. §9 (Game layer) fully closed.** |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
 
@@ -1154,6 +1189,17 @@ Practice ── our material, per concept
 **Mode A and Mode B are user-facing** (correcting an earlier draft) — they are the two ways of
 entering Explore. The former Watch/Challenge distinction (D12) is the view toggle inside Explore.
 
+> **v2 correction (m14b):** "drag cards to complete the flowchart" describes an interaction the
+> layout can't do honestly. 13b's `BlockList.tsx` drag is a `Reorder` within one list — no drop
+> targets, framer handles the geometry. A card→blank drag needs real drop-target hit-testing
+> against slots that live inside nested flex columns which reflow every time a slot fills, so
+> every rect would need re-measuring after each drop — real work with no acceptance criterion
+> asking for pointer drag specifically (AC-9.17's own standard is keyboard as a peer input method,
+> not that dragging must exist). The exercise instead uses **select-then-place**: click a card to
+> pick it up, click a blank to place it; on keyboard, Space to pick up, arrows to move between
+> blanks, Space to place, Escape to cancel — one mechanic, identical for mouse, touch and
+> keyboard, rather than two paths that can diverge. See `decisions/006`.
+
 ### Why the Practice scope is affordable (D34)
 
 The only hand-written artifact is **the example program**. From each one, everything else derives:
@@ -1277,12 +1323,11 @@ whole if time runs short.
 
 **Acceptance criteria**
 
-> **v2 — updated through m14a** (see `checkpoint_report.md`, `docs/GAME.md` for the per-milestone
-> detail; each criterion below also carries its own inline annotation). **Closed:** 1–11, 13
-> (partial — reverse-mode and flowchart-generation halves; the pre-fill half is m14b's), 14–18, 20,
-> 22. **Open, all m14b's:** 12 (hint level), 19 (partial — the hint-level half), 21. **23** holds
-> by construction — flowcharts are the last §9 feature milestone being built, per D28 — rather than
-> being something the code itself demonstrates.
+> **v2 — updated through m14b. Every criterion 1–23 is closed; §9 (Game layer) is fully closed**
+> (see `checkpoint_report.md`, `docs/GAME.md` for the per-milestone detail; each criterion below
+> also carries its own inline annotation). **23** holds by construction — flowcharts were the last
+> §9 feature milestone, per D28 — rather than being something the code itself demonstrates, and
+> D28's own "cut whole if time runs short" boundary was never needed.
 
 1. `docs/GAME.md` documents the surprisingness heuristic used to rank prediction moments.
    > **m12a:** done — includes real measured numbers (45 comparisons, 21 raw flips, 4 clearing
@@ -1354,6 +1399,10 @@ whole if time runs short.
     > nothing for a hint selector to control, and shipping one there would be a dead control in the
     > UI. **m13 ships the program-difficulty selector only**; independence is demonstrated at m14,
     > where both settings finally exist. `decisions/004-practice-scope-split.md`.
+    > **m14b: closed.** Difficulty (`Practice()`'s own `level` state) and hint level
+    > (`FlowchartExercise`'s own `hintLevel` state) are two independent `useState`s with no
+    > coupling — hard + easy hints is not a special case because no code path treats it as one.
+    > `Practice.test.tsx` walks all 9 combinations, not just the diagonal.
 13. **No exercise has hand-authored content beyond its program** (D34) — the flowchart, the blocks,
     the pre-fill choice and the answer check all derive from it. Verified by inspection of the
     lesson data files.
@@ -1364,6 +1413,10 @@ whole if time runs short.
     > **m14a:** done for the flowchart's own generation — `src/game/flowchartModel.ts` derives
     > every node from `src/subset/tree.ts`, itself sliced verbatim from source text, never typed.
     > The pre-fill choice is m14b's, once hint level exists to compute it from.
+    > **m14b: fully closed.** `src/game/flowchartBlanks.ts`'s `buildPuzzle` takes only
+    > `(nodes, hint, seed)` — which nodes blank, and what the shuffled bank holds, are both
+    > computed from the chart alone, never a per-program answer key. The card bank is exactly the
+    > blanked labels, no distractors (D32's own wording).
 14. Reverse mode exists on the 6 basics only, not on algorithms (D33).
     > **m13a:** done — `src/practice/`'s 18 programs are exactly the 6 basics × 3 levels;
     > `registry.test.ts` asserts the concept list directly.
@@ -1409,6 +1462,10 @@ whole if time runs short.
     > jsdom sweep over all 32 fixtures. The loop-back visual is a bracket + a `▲` glyph, not a
     > drawn curved arrow — an owner call worth a second look at review. "At every hint level" is
     > m14b's, once hint level exists.
+    > **m14b: fully closed.** `practice.spec.ts`'s pairwise `boundingBox()` check now runs at all
+    > 3 hint levels (empty puzzle) plus once more on a partially-filled chart, since a filled slot
+    > is a different size than an empty dashed placeholder — the case that actually stresses the
+    > nested-flex-column argument, not just the read-only layout.
 20. A branch inside the flowchart's scope renders as a single diamond with both arms, not as two
     separate flowcharts (D35).
     > **m14a:** done — an `elif` chain desugars into nested branches (each `elif` is "the else
@@ -1416,11 +1473,22 @@ whole if time runs short.
     > never a second top-level chart. `flowchartModel.test.ts` and `Flowchart.test.tsx` both pin
     > this against `if-else-medium.py`'s real 3-way branch.
 21. Pre-filled cards scale inversely with hint level.
+    > **m14b: closed, in its honest form.** A fixed pre-fill count can't scale meaningfully across
+    > the corpus's real range (2–10 blankable nodes, measured before the rule was written — see
+    > `docs/GAME.md`'s table) — `blankCount` is proportional instead (≈2/3, ≈1/3, none), and the
+    > criterion's test asserts pre-filled count is non-increasing across levels for all 24 real
+    > programs, strictly decreasing wherever the chart is large enough to distinguish them. The
+    > two smallest programs (`functions-easy`, `recursion-medium`, 2 blankable nodes each)
+    > correctly tie medium and hard at 0 pre-filled rather than being forced into a fake
+    > distinction. `decisions/006-flowchart-blanks-and-select-to-place.md`.
 22. Mastery ring per D25: fills at ~5 predictions answered with 80%+ accuracy, `localStorage` only.
     > **m12a:** done — `mastery.ts`, one namespaced key, wrapped against a throwing
     > `localStorage` (private-mode Safari) so a progress ring can never break a lesson page.
     > Rendered on the Landing page's lesson cards.
 23. Flowcharts are the last thing built (D28).
+    > **m14b:** holds — flowcharts (14a/14b) were built after every other §9 feature milestone
+    > (12a/12b, 13a/13b), and D28's "cut whole if time runs short" boundary was never invoked;
+    > §9 closes complete rather than by the cut.
 
 **Parked for v2:** craft-the-input · bug hunt · user-set indentation in reverse mode · reverse mode
 on the algorithms.

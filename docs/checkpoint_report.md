@@ -3138,3 +3138,281 @@ git push
 Milestone 14b — fill-in-the-blanks: the card bank, drag + keyboard reordering into blank flowchart
 nodes, and the hint-level control (independently selectable from program difficulty, D32). Closes
 AC-9.12, AC-9.19 in full, and AC-9.21.
+
+# Milestone 14b Completed — Flowchart fill-in-the-blanks: derived blanks, the card bank, hint level
+
+14a's read-only flowchart is now the actual exercise: some node labels start blank, the learner
+fills them from a shuffled card bank, and Check reports which blanks are still wrong.
+`src/game/flowchartBlanks.ts` derives — from the chart alone — which nodes are blanked (ranked by
+teaching value: `branch` → `loop` → `io` → `process`; never a terminal, jump exit, or `def`
+signature) and what the bank holds (exactly the blanked labels, shuffled, no distractors).
+`src/game/CardBank.tsx` is the bank widget; `src/game/Flowchart.tsx` gained an optional `slots`
+prop that turns some labels into interactive blanks with zero change to 14a's own render when
+omitted. `Practice.tsx`'s `FlowchartExercise` gained a hint-level control (easy/medium/hard,
+independent of program difficulty) and a new `FlowchartPuzzle` component that owns which card sits
+in which blank.
+
+Closes **AC-9.12** (difficulty and hint level are two independent `useState`s with no coupling —
+`Practice.test.tsx` walks all 9 combinations), **AC-9.19 in full** (no-overlap now checked at all
+3 hint levels and on a partially-filled chart, not just the one read-only state 14a proved), and
+**AC-9.21** (pre-filled count is non-increasing across every level for all 24 real programs,
+strictly decreasing wherever the chart is large enough to show it). Fully closes **AC-9.13**
+(nothing here is hand-authored beyond the program — `buildPuzzle` takes only `(nodes, hint, seed)`).
+**§9 (Game layer) is now completely closed — every criterion 1–23 holds** — the largest single
+item in the plan, and D28's designated "cut whole if time runs short" boundary, finished without
+ever needing to be cut.
+
+## Why
+
+**Select-then-place instead of drag — decided before writing any code, not discovered by building
+a drag gesture and having it fail.** §9's own wording says "drag cards to complete the flowchart."
+13b's `BlockList.tsx` drag reorders *within one list* — no separate drop target, framer-motion's
+own layout math handles it entirely. Placing a card into a specific blank is a different problem:
+blanks live inside nested flex columns that reflow every time one fills (an empty dashed
+placeholder and a filled label are different widths), so a real drag would need to re-measure
+every blank's bounding box after every single placement. The exercise instead uses
+select-then-place — click a card to pick it up, click a blank to place it — with an identical
+keyboard path (Space to pick up, arrows to move the target between blanks, Space to place, Escape
+to cancel): one mechanic, byte-identical for mouse and keyboard, rather than a real drag gesture
+plus a separately-maintained keyboard affordance that can drift apart from it over time. Full
+reasoning in `docs/decisions/006-flowchart-blanks-and-select-to-place.md`.
+
+**Hint level is a measured proportion, not a guessed fixed count.** Before writing `blankCount`,
+the actual blankable-node count was measured across all 24 corpus programs: it ranges from 2
+(`functions-easy`, `recursion-medium`) to 10 (`bubble-sort-hard`) — see `docs/GAME.md`'s table. A
+fixed count like "3 pre-filled at medium" would be trivial on the 10-node chart and literally
+impossible on the 2-node one. The shipped rule pre-fills roughly 2/3 at easy, 1/3 at medium, none
+at hard — proportional, so every program's medium and hard actually mean something. This also
+meant rewriting AC-9.21's test to its honest form: non-increasing everywhere, strictly decreasing
+only where the chart is large enough to show a difference (the two 2-node programs correctly tie
+medium and hard at zero, rather than the test forcing a fake distinction).
+
+**No distractor cards.** D32 says "how many cards start pre-filled," not "how large the bank is" —
+the bank holds exactly the blanked labels. A generated distractor (a mutated comparison, a shifted
+bound) would itself be a second hand-tuned artifact per program, exactly the cost D34 argues
+Practice can't afford. The real trade-off — the last card in a small bank is free by elimination —
+is stated as a limitation in `docs/GAME.md`, not hidden.
+
+**The PRNG behind the card shuffle is shared with reverse mode's block shuffle, not copied.**
+`blocks.ts`'s `shuffleBlocks` had its own private `mulberry32`/`hashSeed`/retry-on-identity
+implementation; the card bank needed the identical determinism (same seed → same puzzle across
+reloads) over a different item shape. Extracted both into `src/game/seededRandom.ts`'s
+`seededShuffle<T extends { id: string }>`, and `shuffleBlocks` now delegates to it — confirmed
+behavior-preserving by running `blocks.test.ts` unchanged against the delegating version (all 24
+tests passed with no edits).
+
+## Two real bugs, both found by tracing exact behaviour rather than reading the code
+
+**The spotlight computed correctly and still didn't read.** CLAUDE.md's hard rule ("whatever the
+current step touches is drawn large and bright... applies to every renderer") was implemented the
+straightforward way first — every node wrapped in the same `emphasisVariants` treatment
+`NumberList.tsx`/`DictTable.tsx` already use. It passed every test. The screenshot taken for this
+milestone's own self-review showed why that wasn't enough: `emphasisVariants.primary`'s 12% scale
+bump and 15% brightness lift is legible on a filled value box and nearly invisible on a small
+mostly-empty dashed placeholder. The "everything else recedes" half of the spotlight read
+perfectly; only "drawn large and bright" failed, and only for this one shape. Fixed with a direct
+ring, tinted background, and glow on the targeted blank's own button, layered on top of the
+existing dim treatment elsewhere rather than replacing it — re-screenshotting confirmed the
+difference immediately.
+
+**A placement silently dropped keyboard focus to `<body>`.** Found while hand-tracing the exact
+key sequence for `practice.spec.ts`'s full keyboard-only solve — before writing the test, not
+after it failed. The instant a card is placed, its own button unmounts (the bank array shrank by
+one), and a browser's default is to drop focus to `<body>` when the focused element disappears —
+a keyboard-only learner would lose their place in the page after every single placement, something
+no unit test had caught because none of them kept interacting *after* a placement the way a real
+multi-blank solve does. `CardBank.tsx` now refocuses whichever card is now first, but only when a
+card actually left (never on an unrelated re-render, so it can't fight a pick-up mid-gesture); a
+regression test proves `document.activeElement` is never `document.body` afterward.
+
+One smaller polish, also found at screenshot self-review: an empty card bank (every card placed)
+rendered a visible, empty bordered box below the "All cards placed" message — the bank's container
+now renders only when it has cards to show.
+
+## Files Created/Modified
+
+- `src/game/flowchartBlanks.ts` (new): `blankableNodes` (rank by teaching value), `blankCount`
+  (the proportional hint-level formula), `buildPuzzle` (derives one puzzle from a chart + hint +
+  seed), `checkPuzzle` (compares by card **text**, not identity, so two blanks with an identical
+  answer are interchangeable).
+- `src/game/flowchartBlanks.test.ts` (new): ranking, counts, the AC-9.21 measurement over all 24
+  real corpus programs, `buildPuzzle`'s determinism and chart-ordering, and the duplicate-label
+  `checkPuzzle` case.
+- `src/game/seededRandom.ts` (new): `mulberry32`/`hashSeed`/`seededShuffle`, extracted out of
+  `blocks.ts`'s own private implementation.
+- `src/game/seededRandom.test.ts` (new): determinism, seed-dependence, never-identity, small-list
+  edge cases.
+- `src/game/CardBank.tsx` (new): the select-then-place bank widget — roving tabindex, pick up,
+  navigate, place, cancel, an `aria-live` announcer, and the focus-follows-placement fix.
+- `src/game/CardBank.test.tsx` (new): pick up/cancel/place, keyboard parity with click, the
+  disabled state, and the focus-follows-a-real-placement regression.
+- `src/game/Flowchart.tsx` (modified): +`FlowchartSlots`/`FlowchartSlotState` types, +the optional
+  `slots` prop threaded through every node component, +`EmphasisBox` (the spotlight wrapper, a
+  plain `<div>` when `slots` is omitted), +`BlankableLabel` (the interactive blank), +the targeted-
+  blank ring/glow fix.
+- `src/game/Flowchart.test.tsx` (modified): +a `slots` describe block — omitted entirely, empty
+  blank, filled blank, wrong blank, click-to-activate, and never-blanks-scaffolding cases.
+- `src/game/blocks.ts` (modified): `shuffleBlocks` now delegates to `seededRandom.ts`; behavior
+  confirmed unchanged (`blocks.test.ts` passes with no edits).
+- `src/routes/Practice.tsx` (modified): `FlowchartExercise` gained the hint-level control; new
+  `FlowchartPuzzle` owns placements, the held card, the targeted blank, and Check.
+- `src/routes/Practice.test.tsx` (modified): the hint-level control's visibility, the AC-9.12
+  9-combination walk, a full real-puzzle solve computed from the real `buildPuzzle`/`flowchartFrom`
+  (not guessed), a wrong-placement case, and the pick-back-up affordance.
+- `scripts/screenshots/practice.spec.ts` (modified): a full keyboard-only puzzle solve, an Escape
+  cancel, AC-9.19's overlap check parameterised over all 3 hint levels plus a partially-filled
+  chart, and 3 new puzzle screenshots (empty, held/spotlighted, checked-and-wrong).
+- `docs/decisions/006-flowchart-blanks-and-select-to-place.md` (new).
+- `docs/GAME.md`, `docs/VISUALS.md`, `docs/DESIGN_RATIONALE.md` (§38), `docs/PLAN_v2.md` (updated
+  — see the diff for the full set of AC annotations, Resume-here, status board, milestone table).
+
+## Uncertain / worth double-checking
+
+- **The targeted-blank ring/glow treatment is a new visual pattern** (a direct style override
+  layered on top of the shared `emphasisVariants`), not something every future "this one thing is
+  the current focus" widget necessarily should copy verbatim — it was the right fix for a small,
+  mostly-empty placeholder specifically. Worth a second look at review before treating it as the
+  new default for anything larger.
+- **Clicking an already-filled blank with nothing held picks the card back up.** This wasn't
+  explicitly asked for in the approved interaction design — added because without it, a learner
+  who misplaces one card has no way to correct it short of placing everything else and being told
+  the whole puzzle is wrong. Flagged in `decisions/006`'s own trade-offs section; worth confirming
+  this is the intended fix-a-mistake affordance rather than a different one.
+- **Running the full Playwright suite (not just `practice.spec.ts`) while verifying this milestone
+  regenerates unrelated screenshots with harmless pixel-level nondeterminism** — nothing in
+  `Compare.tsx`/`ChallengePanel.tsx` was touched this milestone, yet re-running the full suite
+  twice touched a *different* file each time (`compare-search.png` once, `compare-sort.png` the
+  next), confirming it's re-capture jitter (animation timing, font rendering), not a real
+  regression tied to any specific file. The git commands below list files explicitly rather than
+  `git add docs/` for exactly this reason — the owner should run `git status` before committing
+  and expect to see one or two `docs/images/*.png` changes unrelated to this milestone's own
+  screenshots, which can be discarded or committed either way since they're not a regression
+  suite (no committed visual-diffing exists yet — that's milestone 15, per §13's v2 note).
+
+## Screenshots
+
+- `docs/images/practice-flowchart-puzzle-empty.png` — a fresh puzzle at hard hints, nothing filled.
+- `docs/images/practice-flowchart-puzzle-held.png` — one card held, the targeted blank glowing
+  bright against the rest of the dimmed chart (the spotlight fix, before/after visible in git
+  history for this file).
+- `docs/images/practice-flowchart-puzzle-wrong.png` — a checked, deliberately-swapped puzzle: both
+  blanks marked wrong with a red ring and a ⚠ glyph (AC-5.10, never colour alone).
+
+Full test suite (pre-review): 1089/1089 unit tests, 58/58 Playwright tests, typecheck/format/build
+all clean.
+
+## Milestone 14b — code-review fixes (step 9, run before commit)
+
+`/code-review` ran 8 review agents (line-by-line scan, removed-behavior audit, cross-file tracing,
+reuse, simplification, efficiency, altitude, CLAUDE.md conventions) against this milestone's diff.
+Findings verified directly against the actual files (in one case by experiment — adding a new
+`FlowNode` kind and running `tsc` to confirm a claimed gap actually compiles clean) before fixing:
+
+1. **No exhaustiveness check on `FlowNode["kind"]` switches** (altitude). Confirmed by adding a
+   throwaway 8th `FlowNode` kind and running `npm run typecheck`: both `Flowchart.tsx`'s
+   `FlowchartNode` switch and `flowchartBlanks.ts`'s `collectBlankable` switch compiled with zero
+   errors, silently under-handling it. (`stmtToNode` in `flowchartModel.ts`, a different switch
+   over `Stmt["kind"]`, was already safe — its explicit `FlowNode` return type plus a `return` on
+   every branch already makes TypeScript reject a missing case; confirmed by the same experiment
+   against `Stmt`, which *did* error.) This is the same silent-drop failure mode `docs/GAME.md`
+   already records twice for this model before m14a even shipped.
+2. **The rank/tie-break sort comparator was duplicated** between `blankableNodes` and `buildPuzzle`
+   in `flowchartBlanks.ts` (simplification) — a future tie-break change only had to be missed in
+   one to make the two disagree about ranking order.
+3. **No test pins the 25-element cap** (CLAUDE.md conventions) — `blankCount`/`buildPuzzle`/
+   `CardBank` have no ceiling of their own; only the current corpus's measured numbers (max 10)
+   keep the card bank under CLAUDE.md's hard cap.
+4. **A comment justifying `practice.spec.ts`'s `toBeGreaterThan(8)` was dropped** when the test it
+   lived on was refactored into a shared `assertNoOverlap` helper reused across 5 call sites
+   (removed-behavior audit) — the "why 8, why this program" context was lost.
+5. **`heldCardId` and `targetedNodeId` were two separate `useState`s** in `Practice.tsx`'s
+   `FlowchartPuzzle`, updated together by hand at four call sites with no type-level guarantee they
+   stayed in sync (simplification) — a future call site setting one without the other would make
+   the spotlight highlight the wrong node with no compile error. The related `wrongNodeIds` reset
+   was similarly duplicated at both `placements`-mutating call sites.
+6. **A fourth hand-rolled segmented control** — `FlowchartExercise`'s new hint-level picker repeats
+   the exact `role="group"` + `aria-pressed` shape already inlined three times in the same file
+   (reuse).
+
+**Fixes:**
+
+- **#1 — `assertNeverFlowNode(node: never): never`** added to `flowchartModel.ts`, called from a
+  new `default:` branch in both switches. Re-ran the same 8th-kind experiment against the fixed
+  code: both switches now correctly fail to compile until the new kind is handled.
+- **#2 — extracted `sortByRank`**, called from both `blankableNodes` and `buildPuzzle`;
+  `collectBlankable` itself stays in chart order (unchanged), since `buildPuzzle` needs both orders.
+- **#3 — added a test** to `flowchartBlanks.test.ts`'s AC-9.21 block asserting every real corpus
+  program's blankable-node count stays under 25 — a tripwire for a future program, not a production
+  cap the plan never asked for.
+- **#4 — comment restored**, naming `binary-search-medium` specifically as the threshold's basis.
+- **#5 — collapsed into `held: { cardId; targetedNodeId } | null`**, making "a target exists iff a
+  card is held" the type itself rather than a discipline; `wrongNodeIds`'s reset moved into one
+  `mutatePlacements` helper both call sites now route through.
+- **#6 — extracted a local, generic `SegmentedControl<T>`** in `Practice.tsx`; all four controls
+  (concept, difficulty, exercise type, hint level) now render through it.
+
+**Left as documented, not fixed** (verified against the actual code, not just the agents' framing,
+before declining): `CardBank.tsx`'s ~90-line overlap with `BlockList.tsx`'s roving-tabindex
+mechanism (reuse, altitude) — the two widgets have three deliberate divergences (controlled vs.
+private held state, opposite blur semantics, the unmount-refocus effect that only `CardBank` needs)
+that a shared hook would need flags to express; two instances isn't a pattern, revisit at a third,
+same reasoning 14a used to leave double-tokenization documented. The four efficiency findings
+(full-tree re-renders on every keystroke, an unnecessary effect dependency, per-card closure
+churn, two separate `useMemo` passes over `placements`) are real but the ≤25-element cap this
+project already enforces is precisely what makes memoization unnecessary at this scale — the same
+rationale CLAUDE.md states for the cap itself. The targeted-blank ring/glow treatment (altitude)
+staying a one-off rather than a fourth `emphasisVariants` tier is deliberate per `decisions/006`;
+worth revisiting if a second component ever needs the same stronger cue.
+
+New/changed tests: `flowchartBlanks.test.ts` (+1, the 25-cap tripwire). Tests: 1089 → 1090.
+Full suite (post-fix): 1090/1090 unit tests, 58/58 Playwright tests (full suite, re-run twice),
+typecheck/format/build all clean.
+
+## Github Commands for this milestone
+
+Continuing on the same branch as 14a (`milestone-14-flowcharts`), on the 12a/12b and 13a/13b
+precedent — one branch, one merge, per milestone. Includes both the milestone and its review fixes
+in one commit, matching 14a's own precedent (the fixes were never merged separately):
+
+```bash
+git checkout milestone-14-flowcharts
+git add src/game/flowchartBlanks.ts src/game/flowchartBlanks.test.ts \
+  src/game/seededRandom.ts src/game/seededRandom.test.ts \
+  src/game/CardBank.tsx src/game/CardBank.test.tsx \
+  src/game/Flowchart.tsx src/game/Flowchart.test.tsx \
+  src/game/flowchartModel.ts \
+  src/game/blocks.ts \
+  src/routes/Practice.tsx src/routes/Practice.test.tsx \
+  scripts/screenshots/practice.spec.ts \
+  docs/decisions/006-flowchart-blanks-and-select-to-place.md \
+  docs/GAME.md docs/VISUALS.md docs/DESIGN_RATIONALE.md docs/PLAN_v2.md docs/checkpoint_report.md \
+  docs/images/practice-flowchart.png docs/images/practice-flowchart-recursive.png \
+  docs/images/practice-flowchart-nested-loop.png docs/images/practice-flowchart-two-functions.png \
+  docs/images/practice-flowchart-puzzle-empty.png docs/images/practice-flowchart-puzzle-held.png \
+  docs/images/practice-flowchart-puzzle-wrong.png
+git commit -m "Milestone 14b: Flowchart fill-in-the-blanks — derived blanks, the card bank, hint level, plus code-review fixes"
+git push -u origin milestone-14-flowcharts
+```
+
+The first four `docs/images/practice-flowchart*.png` files above are legitimately changed, not
+incidental — `FlowchartExercise` now always renders the hint-level control above the chart, so
+every full-page screenshot of it is taller than 14a's. Files under `docs/images/` for routes this
+milestone never touched (`Compare.tsx`, `ChallengePanel.tsx`) are deliberately left out of this
+list — running the full Playwright suite re-captures them too, with harmless pixel-level
+nondeterminism (confirmed: two full-suite runs during this milestone each touched a *different*
+one of them). Run `git status` before committing; anything under `docs/images/` beyond the 7 files
+listed above is that noise, not a real change, and can be discarded or committed either way.
+
+§9 is now fully closed, so this is a good point to merge the whole of milestone 14 into `main`:
+
+```bash
+git checkout main
+git pull origin main
+git merge --no-ff milestone-14-flowcharts -m "Merge milestone 14: Flowcharts — generation and fill-in-the-blanks"
+git push origin main
+```
+
+## Next
+
+Phase E — ship (milestone 15): ~10 visual snapshots, the 13-step verification walkthrough,
+`docs/PORTING.md`, and the README + demo GIF. This is the last milestone in the plan.
