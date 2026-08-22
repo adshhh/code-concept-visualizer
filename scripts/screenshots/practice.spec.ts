@@ -157,6 +157,136 @@ test.describe("practice route — feedback for a real wrong answer", () => {
   });
 });
 
+test.describe("practice route — flowcharts, generated not authored (m14a, AC-9.13/9.14/9.18)", () => {
+  test("an algorithm concept offers only the flowchart, no exercise-type control to switch away from it", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "exercise type" }),
+    ).toHaveCount(0);
+    await expect(page.getByText(/only offers a flowchart/)).toBeVisible();
+  });
+
+  test("a basic concept can switch from reverse mode to its flowchart", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await expect(
+      page.getByRole("button", { name: "Reverse the code" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await expect(
+      page.locator('li[data-testid^="practice-block-"]'),
+    ).toHaveCount(0);
+  });
+
+  // AC-9.19: no generated node may overlap another. Checked against a real multi-branch program
+  // (if/elif/else inside a while loop — the richest layout this corpus produces) in a real
+  // browser, since jsdom has no real layout pipeline to measure against.
+  test("no flowchart node overlaps another, for a real branching program", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page.getByRole("button", { name: "Medium" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+
+    const nodes = page.locator('[data-testid^="flowchart-node-"]');
+    const count = await nodes.count();
+    // start/end + low/high/mid/while/if/elif/else/3 returns is 10+ nodes — a real check, not a
+    // vacuous pass over an empty or single-node chart.
+    expect(count).toBeGreaterThan(8);
+
+    const boxes: { x: number; y: number; width: number; height: number }[] = [];
+    for (let i = 0; i < count; i++) {
+      const box = await nodes.nth(i).boundingBox();
+      if (!box) throw new Error(`Could not measure flowchart node ${i}`);
+      boxes.push(box);
+    }
+
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]!;
+        const b = boxes[j]!;
+        const overlaps =
+          a.x < b.x + b.width &&
+          a.x + a.width > b.x &&
+          a.y < b.y + b.height &&
+          a.y + a.height > b.y;
+        expect(overlaps, `node ${i} and node ${j} overlap`).toBe(false);
+      }
+    }
+  });
+});
+
+test.describe("practice route — flowchart screenshot for visual self-review", () => {
+  test("screenshot: a generated flowchart with a branch", async ({ page }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "If / else" }).click();
+    await page.getByRole("button", { name: "Medium" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart.png",
+      fullPage: true,
+    });
+  });
+
+  test("screenshot: a recursive algorithm's flowchart", async ({ page }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page.getByRole("button", { name: "Hard" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-recursive.png",
+      fullPage: true,
+    });
+  });
+
+  // bubble-sort-hard is the one corpus program combining a nested loop, a branch, *and* a jump
+  // (break) — worth its own capture since flowchart.test.ts only exercises the jump rendering in
+  // jsdom, never a real browser layout.
+  test("screenshot: a nested-loop algorithm's flowchart, with a break", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Bubble sort" }).click();
+    await page.getByRole("button", { name: "Hard" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-nested-loop.png",
+      fullPage: true,
+    });
+  });
+
+  // Found by code review: an earlier scoping rule charted only "the" function when a program
+  // defined exactly one, and fell back to opaque, unexpanded boxes for any program with two or
+  // more — functions-hard defines two (half, shrink) and was the exact case that regressed.
+  // Captured here so the fix (every def expands to its own labelled region) is visible, not just
+  // asserted.
+  test("screenshot: a two-function program's flowchart, each function expanded", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page.getByRole("button", { name: "Hard" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-two-functions.png",
+      fullPage: true,
+    });
+  });
+});
+
 test.describe("practice route — screenshot for visual self-review", () => {
   test("screenshot: a solved exercise", async ({ page }) => {
     await page.goto("/practice");

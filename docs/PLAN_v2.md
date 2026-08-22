@@ -445,9 +445,74 @@ Three constraints shape every decision:
 > and AC-9.12 remain m14's, per `decisions/004-practice-scope-split.md`. Remaining §9 criteria
 > (18–21, 23) are flowcharts, m14's alone.
 >
-> **Next: milestone 14 (Flowcharts, plus the deferred algorithm Practice programs and AC-9.12)**,
-> per the Build milestones table — the largest remaining item, deliberately sequenced last so it
-> can be cut whole under time pressure (D28) without leaving anything else half-finished.
+> **Milestone 14 is split 14a/14b, on the 11a/b–13a/b precedent (owner decision).** 14a (below) is
+> built and checkpointed. 14b — fill-in-the-blanks, the card bank, drag + keyboard, hint level —
+> is next.
+>
+> **Milestone 14a is built and checkpointed** (see `checkpoint_report.md`). Closes AC-9.18, AC-9.20
+> and fully closes AC-9.11; demonstrates AC-9.13/9.14's flowchart half; partially demonstrates
+> AC-9.19 (no-overlap, proven both structurally and by real `boundingBox()` measurement — the
+> hint-level half is m14b's). `src/subset/tree.ts` builds a statement tree as an **additive second
+> pass** over the tokenizer — `parser.ts`, gating every program that reaches the execution engine,
+> is untouched. `src/game/flowchartModel.ts` derives a nested diagram model from that tree, checked
+> against all 32 `tests/fixtures/accepted/` programs (AC-9.18, on programs never tuned for a
+> flowchart) rather than only the hand-picked corpus; `src/game/Flowchart.tsx` renders it read-only
+> via nested CSS flex columns (no graph-layout library installed or needed) — the fill-in-the-blanks
+> exercise itself is m14b's.
+>
+> **Every `def` expands in place — no scope to pick** (owner decision, corrected by `/code-review`
+> before merge — see `decisions/005-statement-tree-and-derived-scope.md`): `flowchartFrom` always
+> charts the whole module body, with each `def` rendering as its own labelled region containing its
+> own body. A first version tried to *narrow* the chart to "the" function when a program defined
+> exactly one, which review found silently dropped real content — a driving loop, a second
+> function — for 3 of the corpus's 6 `def`-containing programs. Always charting everything removes
+> the rule rather than refining it; D35's *outcome* is still unchanged, only the mechanism, which
+> fits D34's "nothing hand-authored beyond the program" argument better than a per-concept table
+> would have either way.
+>
+> **A real correction to §9's own text, found by checking the grammar rather than trusting the
+> summary sentence that described it.** "The subset has no exceptions, generators or jumps" is
+> false — `break`/`continue` are accepted, pinned since milestone 2's own fixture suite. The
+> flowchart renders them as labelled exit nodes rather than mis-drawing a jump edge; corrected
+> inline in §9 and recorded in `docs/GAME.md`.
+>
+> **The 6 remaining D27 programs are authored and real-engine verified**: `binary-search-` and
+> `bubble-sort-{easy,medium,hard}.py`, chosen so each level's *flowchart* differs (single pass →
+> full nested loops → early-exit `swapped` flag with a real `break`, for bubble sort; loop-until-
+> found → return-index-or-`-1` → recursive, for binary search) — all 24 D27 programs now exist.
+> `/practice` gained a third segmented control, **exercise type**, offering only the types a
+> concept actually has (both, for the 6 basics; flowchart only, for the 2 algorithms) — a control
+> offering a type that does nothing would be, in `decisions/004`'s own words, "a lie in the
+> product." AC-9.14's own corpus-shape test moved from "only 6 concepts exist" to what the
+> criterion actually claims — "reverse mode is offered on exactly the 6 basics" — since 2 more
+> real, flowchart-only concepts now legitimately exist (finding 3).
+>
+> **Three real bugs, none of them in the flowchart's own logic, all caught before shipping.** A
+> header-text extraction bug (line-range slicing can't isolate a header from a body sharing one
+> physical line, `while True: pass`) was caught by a test written for exactly that shorthand before
+> it ever reached a corpus program. A `FlowNode` type bug (`kind: "process" | "io"` as one member
+> instead of two, silently breaking `Extract<>` into `never`) was caught by the type checker the
+> moment a component was typed against it. A filesystem bug — `src/game/flowchart.ts` and
+> `src/game/Flowchart.tsx` collide on this machine's case-insensitive volume, a pairing no other
+> module in this codebase repeats — was caught by a genuinely confusing `undefined`-component
+> render and fixed by renaming the model module to `flowchartModel.ts`. Full detail in
+> `DESIGN_RATIONALE.md` §37.
+>
+> **One visual bug, found only by looking**: a nested `if`/`elif`/`else` chart's first render drew
+> a disconnected floating tick after each branch's arms, meant to signal convergence but connecting
+> to nothing a viewer could follow. Removed — the enclosing sequence's own connector already
+> supplies "this continues" wherever a branch sits — rather than fixed forward, on the same
+> honesty argument as the jump-rendering correction above.
+>
+> **Independent call worth a second look at review:** `docs/VISUALS.md` was **not** modified this
+> milestone, despite the 14a plan listing it — its own header scopes it to `src/player/`'s value
+> shapes and motion gestures, and the flowchart is a static, non-interactive `src/game/` diagram
+> with no player-side visual or gesture to document there. Documented instead in `docs/GAME.md`'s
+> new Flowcharts section, which already carried the equivalent per-milestone design detail for
+> reverse mode.
+>
+> **Next: milestone 14b (fill-in-the-blanks, the card bank, drag + keyboard, hint level)**, closing
+> AC-9.12, AC-9.19 in full, and AC-9.21 — per the Build milestones table.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -554,7 +619,7 @@ one checkpoint = one branch = one merge.**
 | 11                            | Tier 2 — Detailed instrumentation                                                                                                   | §3 (T2)                            | **D4/D38**: only after a complete, demoable T1 product exists                                                                                                                                                                                                           |
 | 12                            | Game layer — Explore · **linear search as code** · **mastery ring**                                                                 | §9                                 | Needs the event vocabulary finalised in #11. **v2:** linear search (D36) has no lesson card, so #7–9 would never write it — but compare-the-algorithms needs it here. AC-9.22 (mastery ring, `localStorage`) is pinned here rather than left ambiguous across #12–14. **v2 split (owner decision, on the 11a/11b precedent): 12a = the challenge view inside a lesson, closing AC-9.1–9.6/9.10/9.22; 12b = compare-the-algorithms + linear search, closing AC-9.7–9.9. Both done — see checkpoint_report.md. §9 (Explore) fully closed** |
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
-| 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design |
+| 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, drag + keyboard) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21. 14a done — see `checkpoint_report.md` and `decisions/005-statement-tree-and-derived-scope.md`.** |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
 | 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
 
@@ -1180,9 +1245,31 @@ diagram is built by walking the same structure the validator already produces. S
 split and rejoin · loop with a back-arrow. It therefore works for **any** program, including the
 user's own.
 
+> **v2 correction (m14a):** the subset **does** have one jump — `break`/`continue` are accepted
+> (`parser.ts`, pinned by `tests/fixtures/accepted/09_while_break_continue.py`), so "no jumps" is
+> false as written. A nested-layout flowchart cannot draw a jump as an ordinary edge; `break`/
+> `continue` render as labelled exit nodes instead ("leave the loop" / "next iteration"), with no
+> drawn jump edge — a stated limitation, not a silent mis-drawing. See `docs/GAME.md`.
+>
+> **v2 correction (m14a):** "the diagram is built by walking the same structure the validator
+> already produces" was already corrected once, by `decisions/004-practice-scope-split.md` — the
+> validator (`src/subset/parser.ts`) produces no reusable structure at all, only a pass/fail
+> verdict. m14a builds `src/subset/tree.ts`, an **additive second pass** over the same token stream
+> that `parser.ts` itself is left untouched by, so m2's fixture contract carries no new risk.
+
 **Scope per concept (D35):** what the flowchart covers is a small per-concept setting — for a loop,
 one iteration; for bubble sort, the overall algorithm. A branch _inside_ that scope renders as a
 diamond with both arms, rather than splitting into two separate flowcharts.
+
+> **v2 correction (m14a, owner decision, refined by `/code-review` before merge):** every `def`
+> expands in place — the module body is always charted, and each function renders as its own
+> labelled region containing its own body, rather than a scope being picked per program. (An
+> interim version tried to chart only "the" function when a program defined exactly one; review
+> found this silently dropped a driving loop or a second function for 3 of the corpus's 6
+> `def`-containing programs, so the narrowing was removed rather than refined.) D35's *outcome* is
+> unchanged (one scope per concept, a branch renders as one diamond with both arms) — only the
+> mechanism moves from a hand-written table to derivation, which fits D34 better. See
+> `decisions/005`.
 
 Cards start pre-filled in inverse proportion to the **hint level**, which is independent of program
 difficulty (D32). This is the largest single item in the section; sequenced last so it can be cut
@@ -1190,8 +1277,12 @@ whole if time runs short.
 
 **Acceptance criteria**
 
-> **v2, m12a — criteria 1–6, 10, 22 closed** (see `checkpoint_report.md`, `docs/GAME.md`).
-> Criteria 7–9, 11–21, 23 belong to compare-the-algorithms/Practice/flowcharts and are unstarted.
+> **v2 — updated through m14a** (see `checkpoint_report.md`, `docs/GAME.md` for the per-milestone
+> detail; each criterion below also carries its own inline annotation). **Closed:** 1–11, 13
+> (partial — reverse-mode and flowchart-generation halves; the pre-fill half is m14b's), 14–18, 20,
+> 22. **Open, all m14b's:** 12 (hint level), 19 (partial — the hint-level half), 21. **23** holds
+> by construction — flowcharts are the last §9 feature milestone being built, per D28 — rather than
+> being something the code itself demonstrates.
 
 1. `docs/GAME.md` documents the surprisingness heuristic used to rank prediction moments.
    > **m12a:** done — includes real measured numbers (45 comparisons, 21 raw flips, 4 clearing
@@ -1253,6 +1344,9 @@ whole if time runs short.
     > **m14**, which now owns them in the Build milestones table. This criterion is therefore
     > **partially closed at m13a and fully closed only at m14** — and if D28 cuts flowcharts whole,
     > those 6 were correctly never written. See `decisions/004-practice-scope-split.md`.
+    > **m14a: fully closed.** `binary-search-{easy,medium,hard}.py` and
+    > `bubble-sort-{easy,medium,hard}.py` authored and real-engine verified in
+    > `registry.test.ts` — all 24 programs now exist and run.
 12. Program difficulty and hint level are **independently selectable** (D32); choosing hard + easy
     hints works and is not a special case.
     > **v2 re-sequencing (m13a, owner decision): this criterion moves to m14.** D32 defines hint
@@ -1267,9 +1361,17 @@ whole if time runs short.
     > blocks from a program's own lines, `src/game/reverseMode.ts` checks an attempt by running it
     > and comparing output, and `getExpectedOutput` is a committed real-engine snapshot, never
     > typed. The flowchart half is m14's.
+    > **m14a:** done for the flowchart's own generation — `src/game/flowchartModel.ts` derives
+    > every node from `src/subset/tree.ts`, itself sliced verbatim from source text, never typed.
+    > The pre-fill choice is m14b's, once hint level exists to compute it from.
 14. Reverse mode exists on the 6 basics only, not on algorithms (D33).
     > **m13a:** done — `src/practice/`'s 18 programs are exactly the 6 basics × 3 levels;
     > `registry.test.ts` asserts the concept list directly.
+    > **m14a:** still holds at 24 programs. The corpus's own invariant test moved from "only 6
+    > concepts exist" to the criterion's actual claim — "reverse mode is offered on exactly the 6
+    > basics" — since 2 more concepts (flowchart-only) now legitimately exist. `registry.test.ts`
+    > and `Practice.test.tsx` both assert this directly; see finding 3 in `docs/GAME.md`'s
+    > Flowcharts section.
 15. Reverse mode validates by running the user's assembled code through the same `run()` entry point
     as everything else — verified by test, not assumed.
     > **m13b:** done — `Practice.tsx`'s `handleCheck` calls the real `run()`, the identical
@@ -1291,9 +1393,28 @@ whole if time runs short.
     > to follow.
 18. A flowchart is generated correctly for a subset-valid program **the system has never seen before**
     — proving generation, not authoring.
+    > **m14a:** done — `flowchartModel.test.ts` runs `flowchartFrom` over all 32 programs in
+    > `tests/fixtures/accepted/` (the milestone-2 fixture suite, none of it written with a
+    > flowchart in mind): a non-empty chart, no thrown error, no duplicate node id, for every one.
 19. Flowchart layout has no overlapping nodes and clearly routed loop-back arrows, at every hint level.
+    > **v2 correction (m14a):** the subset is not jump-free — `break`/`continue` are accepted
+    > (`tests/fixtures/accepted/09_while_break_continue.py`) — so a loop-back arrow alone can't
+    > honestly cover every control-flow exit; `break`/`continue` render as labelled exit nodes
+    > instead of a mis-drawn edge. See `docs/GAME.md`'s Flowcharts section and
+    > `decisions/005-statement-tree-and-derived-scope.md`.
+    > **m14a: no-overlap half done.** Structural, not coincidental — every construct renders as
+    > its own nested CSS flex column, so overlap is impossible by construction rather than
+    > something to test for; `practice.spec.ts` also confirms it with real `boundingBox()` pairs
+    > against a real branching program (AC-9.19's own "no overlapping nodes"), in addition to the
+    > jsdom sweep over all 32 fixtures. The loop-back visual is a bracket + a `▲` glyph, not a
+    > drawn curved arrow — an owner call worth a second look at review. "At every hint level" is
+    > m14b's, once hint level exists.
 20. A branch inside the flowchart's scope renders as a single diamond with both arms, not as two
     separate flowcharts (D35).
+    > **m14a:** done — an `elif` chain desugars into nested branches (each `elif` is "the else
+    > arm is itself another if"), so an `if`/`elif`/`else` chain is one diamond per test, nested,
+    > never a second top-level chart. `flowchartModel.test.ts` and `Flowchart.test.tsx` both pin
+    > this against `if-else-medium.py`'s real 3-way branch.
 21. Pre-filled cards scale inversely with hint level.
 22. Mastery ring per D25: fills at ~5 predictions answered with 80%+ accuracy, `localStorage` only.
     > **m12a:** done — `mastery.ts`, one namespaced key, wrapped against a throwing

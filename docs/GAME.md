@@ -396,6 +396,108 @@ and `architecture.test.ts` forbids `player/` importing `engine/`. `Workspace.tes
 14-test suite passes unchanged after the move, confirming it was a pure extraction, not a
 rewrite — the same discipline the 12b code-review round used for `recordingFrom`.
 
+## Flowcharts (14a, AC-9.13/9.14/9.18/9.20, fully closes AC-9.11)
+
+`src/subset/tree.ts` builds a statement tree as an **additive second pass** over the tokenizer's
+own INDENT/DEDENT/NEWLINE output — `src/subset/parser.ts`, which gates every program that reaches
+the execution engine, is untouched. `src/game/flowchartModel.ts` derives a nested `FlowNode[]`
+model from that tree; `src/game/Flowchart.tsx` renders it read-only (the fill-in-the-blanks
+exercise itself, plus hint level, is m14b). Full reasoning in
+`docs/decisions/005-statement-tree-and-derived-scope.md` and `DESIGN_RATIONALE.md` §37.
+
+### §9 corrected again: the subset is not jump-free
+
+"the subset has no exceptions, generators or jumps, so control flow is always cleanly nested" is
+false as written — `break`/`continue` are accepted (`parser.ts:153-155`,
+`tests/fixtures/accepted/09_while_break_continue.py`). A nested-CSS-column layout (chosen so
+AC-9.19's "no overlapping nodes" holds structurally rather than by testing coordinates) has no
+routed space to draw a jump edge in, so `break`/`continue` render as labelled exit nodes ("leave
+the loop", "next iteration") instead of a mis-drawn edge — a stated limitation, not a silent one.
+`bubble-sort-hard.py` was authored with a real `swapped`-flag early exit specifically so this path
+is exercised by the corpus, not only by a fixture.
+
+### Every def expands in place — no scope to pick (D35's mechanism, not its outcome)
+
+`flowchartFrom` always charts the whole module body under one Start/End; a `def` renders as its
+own labelled `"function"`-kind region containing its own body, expanded in place alongside
+whatever else sits at the same level — never a separate scope to choose and never an opaque box.
+
+**This corrects an earlier version of this same milestone**, found by `/code-review` before
+merge: a first design tried to *narrow* the chart to "the" function when a program defined exactly
+one, on the reasoning that D35 as literally worded ("for a loop, one iteration; for bubble sort,
+the overall algorithm") is answerable from the program's own structure without a per-concept
+table. It was — but the narrowing itself was wrong. Checking all 6 `def`-containing corpus
+programs directly: `functions-hard` (two functions) rendered as two opaque, unexpanded boxes with
+no visible control flow at all; `functions-medium` and `recursion-hard` (one function each) each
+lost their own top-level driving loop. Only 3 of 6 were actually fine. Always charting everything
+removes the rule rather than refining it — no program loses anything, and the code is simpler for
+having no `defs.length === 1` branch to maintain. Full account in `DESIGN_RATIONALE.md` §37's
+follow-up entry and `decisions/005`'s own correction note.
+
+**The gap that let it ship**: nothing tested `flowchartFrom` against the real 24-program corpus —
+only the general fixture sweep (below) and synthetic snippets. `flowchartModel.test.ts` now also
+runs every real Practice program through an independent oracle built from the statement tree
+itself (not the chart) — if the tree contains a `for`/`while`/`if` anywhere, including inside a
+function, the chart must contain a corresponding node. Run against the pre-fix code, this fails on
+exactly the 3 programs found by inspection.
+
+### AC-9.18, proven against 32 programs the derivation was never tuned on
+
+`flowchartModel.test.ts` runs `flowchartFrom` over every file in `tests/fixtures/accepted/` — the
+milestone-2 fixture suite, none of it written with a flowchart in mind — and asserts a non-empty
+chart with no thrown error and no duplicate node id, for all 32. This is AC-9.18's "generated
+correctly for a program the system has never seen before" taken literally, not just satisfied by
+the hand-picked corpus.
+
+### AC-9.19, checked in a real browser against real bounding boxes
+
+`practice.spec.ts` renders `binary-search-medium`'s flowchart (an `if`/`elif`/`else` inside a
+`while` loop — the richest branch layout in this corpus) and pairwise-compares every
+`[data-testid^="flowchart-node-"]` element's real `boundingBox()`. jsdom has no layout engine, so
+this is checked where it can actually be measured, the same discipline `practice.spec.ts`'s
+pointer-drag test already established for framer-motion.
+
+### Two extraction bugs, caught before either shipped
+
+The header-text extraction that turns a statement's tokens into its displayed label sliced by
+*line number*, which breaks for the one shorthand where a suite shares its header's own physical
+line (`while True: pass` — the same shape `28_single_line_suites.py` pins). A hand-written test for
+exactly this shorthand caught it immediately; the fix adds a small bracket/string-aware column
+scanner for the one case line-slicing can't distinguish. Separately, `FlowNode`'s process/io
+variant was first written as a single member with `kind: "process" | "io"` rather than two
+discriminated members — `Extract<FlowNode, { kind: "process" }>` silently resolves to `never`
+against a union field like that, which the type checker caught the moment a component was typed
+against the extraction. Both are recorded in `DESIGN_RATIONALE.md` §37 alongside a third,
+non-code bug: `src/game/flowchart.ts` (the derivation module) and `src/game/Flowchart.tsx` (the
+renderer) collided on this machine's case-insensitive filesystem — renamed to
+`flowchartModel.ts`, since no other module in this codebase pairs a lowercase logic file with a
+same-named capitalized component.
+
+### A visual bug, found only by looking
+
+A generated `if`/`elif`/`else` chart's first render drew a short, disconnected tick after each
+branch's two arms, meant to signal "these converge" — but a nested `elif` branch and its enclosing
+branch each centred their own tick independently, producing two small floating dashes that
+connected to nothing. The enclosing sequence's own `▼` connector already supplies "this continues"
+wherever a branch sits, so the per-branch tick was pure redundancy; removed rather than fixed
+forward, on the same honesty argument as the jump-rendering limitation above — no drawn line beats
+one that goes nowhere.
+
+### Two smaller findings from the same `/code-review` round
+
+`parseFor` and `parseWhile` in `src/subset/tree.ts` were byte-identical apart from the keyword and
+the returned `kind` — merged into one `parseLoop(keyword)`, removing a real divergence hazard (a
+future header-handling fix applied to one and forgotten in the other). And two comments/test
+descriptions in `src/practice/registry.ts`/`registry.test.ts` still said "18 programs" after the
+corpus grew to 24 earlier in the same diff — `Practice.tsx`'s equivalent comment had been updated
+correctly, so this was a miss, not a pattern.
+
+One finding was left as documented rather than fixed: `flowchartFrom` tokenizes its source twice
+(once inside `validate()`, once inside `buildTree()`). Real waste, but sharing tokens would mean
+widening `validate()`'s own API for a caller outside `src/subset/` — more cost than a redundant lex
+pass over a ≤100-line program is worth today. A comment on `flowchartFrom` names the trigger to
+revisit (a hotter call path, e.g. live validation-as-you-type).
+
 ## Files
 
 **12a:** `src/game/lineRuns.ts` · `runInfo.ts` · `moments.ts` · `questions.ts` · `counters.ts` ·
@@ -428,3 +530,16 @@ divergence tests; lives outside `src/game/` for the same reason `algorithms.test
 (+`getExpectedOutput`) · `src/Workspace.tsx` (imports the extracted `deriveFeedback`, no
 behaviour change) · `App.tsx`/`Landing.tsx` (the `/practice` route and its link) ·
 `docs/VISUALS.md` (the keyboard-operability pattern, in Accessibility).
+
+**14a:** `src/subset/tree.ts` + `tree.test.ts` (new — the statement tree, additive over the
+tokenizer) · `src/game/flowchartModel.ts` + `flowchartModel.test.ts` (new — tree → diagram model,
+checked against all 32 `tests/fixtures/accepted/` programs for AC-9.18) · `src/game/Flowchart.tsx`
++ `Flowchart.test.tsx` (new — the read-only renderer) ·
+`src/practice/programs/{binary-search,bubble-sort}-{easy,medium,hard}.py` (new, 6 — D27's
+remaining programs) · `src/practice/types.ts` (+`ExerciseType`, `PracticeConcept.exercises`) ·
+`src/practice/registry.ts` (+2 concepts) · `src/practice/registry.test.ts` (18→24 programs,
+6→8 concepts, the reverse-vs-flowchart invariant relocated per finding 3) · `src/routes/Practice.tsx`
++ `Practice.test.tsx` (the exercise-type control, `FlowchartExercise`) ·
+`scripts/screenshots/practice.spec.ts` (+flowchart render, the AC-9.19 overlap check, 3
+screenshots) · `tests/fixtures/practice/expected-output.json` (snapshot, +6) ·
+`docs/decisions/005-statement-tree-and-derived-scope.md` (new).

@@ -16,31 +16,56 @@ import {
   type Block,
 } from "../game/blocks";
 import { checkAttempt, type Attempt } from "../game/reverseMode";
+import { flowchartFrom } from "../game/flowchartModel";
+import { Flowchart } from "../game/Flowchart";
 import {
   PRACTICE_CONCEPTS,
   PRACTICE_LEVELS,
   getExpectedOutput,
   programsForConcept,
 } from "../practice/registry";
-import type { PracticeLevel, PracticeProgram } from "../practice/types";
+import type {
+  ExerciseType,
+  PracticeLevel,
+  PracticeProgram,
+} from "../practice/types";
 
-/** §9's Practice half, reverse mode (D34): given a program's expected output, drag its own
- * shuffled lines back into an order that produces it. Validation runs the assembled arrangement
- * through the same `run()` everything else uses (AC-9.15) — no per-exercise answer key is ever
- * authored, only the 18 programs in `src/practice/` are (13a).
+const EXERCISE_TYPE_LABEL: Record<ExerciseType, string> = {
+  reverse: "Reverse the code",
+  flowchart: "Flowchart",
+};
+
+/** §9's Practice half. Reverse mode (D34): given a program's expected output, drag its own
+ * shuffled lines back into an order that produces it — validated by running the assembled
+ * arrangement through the same `run()` everything else uses (AC-9.15), no per-exercise answer
+ * key ever authored (13a/13b). Flowchart (m14a, read-only so far — the fill-in-the-blanks half
+ * is m14b): a diagram generated from the program's own statement tree (D31/AC-9.13), never
+ * authored (`src/game/flowchartModel.ts`).
  *
- * One page, two segmented controls (concept × difficulty), owner's decision — matching
- * `Compare.tsx`'s own pairing toggle rather than a separate index route, and consistent with
- * D16's no-locking, no-ordering rule for navigation.
+ * One page, three segmented controls (concept × difficulty × exercise type), owner's decision —
+ * matching `Compare.tsx`'s own pairing toggle rather than a separate index route, and consistent
+ * with D16's no-locking, no-ordering rule for navigation. The exercise-type control only offers
+ * types the current concept actually has (D33 bars reverse mode from the 2 algorithms) — a
+ * selector offering a type that does nothing would be, in `decisions/004`'s own words, "a lie in
+ * the product."
  *
- * Closes AC-9.15–9.17; demonstrates AC-9.14 (the corpus is the 6 basics only). Does *not* write
- * to the mastery ring — AC-9.22 counts predictions answered, and a reverse-mode attempt isn't
- * one. */
+ * Closes AC-9.15–9.17, AC-9.18, AC-9.20; demonstrates AC-9.14 (D33: reverse mode is the 6 basics
+ * only, flowcharts are all 8). Does *not* write to the mastery ring — AC-9.22 counts predictions
+ * answered, and neither exercise here is one. */
 export function Practice() {
   const [conceptId, setConceptId] = useState(PRACTICE_CONCEPTS[0]!.id);
   const [level, setLevel] = useState<PracticeLevel>(PRACTICE_LEVELS[0]!);
+  const [exerciseType, setExerciseType] = useState<ExerciseType>("reverse");
 
+  const concept = PRACTICE_CONCEPTS.find((c) => c.id === conceptId)!;
   const program = programsForConcept(conceptId).find((p) => p.level === level);
+  // A concept switch can leave the previously-chosen type unsupported — e.g. moving from a basic
+  // (both types) to an algorithm (flowchart only). Falling back to the concept's first offered
+  // type, rather than trusting `exerciseType` blindly, is what keeps that switch from silently
+  // rendering nothing.
+  const activeExerciseType = concept.exercises.includes(exerciseType)
+    ? exerciseType
+    : concept.exercises[0]!;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -62,19 +87,19 @@ export function Practice() {
           aria-label="concept"
           className="flex flex-wrap overflow-hidden self-start rounded-lg ring-1 ring-slate-700"
         >
-          {PRACTICE_CONCEPTS.map((concept) => (
+          {PRACTICE_CONCEPTS.map((c) => (
             <button
-              key={concept.id}
+              key={c.id}
               type="button"
-              onClick={() => setConceptId(concept.id)}
-              aria-pressed={conceptId === concept.id}
+              onClick={() => setConceptId(c.id)}
+              aria-pressed={conceptId === c.id}
               className={`px-3 py-2 text-sm ${
-                conceptId === concept.id
+                conceptId === c.id
                   ? "bg-slate-700 text-slate-100"
                   : "bg-slate-800 text-slate-400"
               }`}
             >
-              {concept.title}
+              {c.title}
             </button>
           ))}
         </div>
@@ -101,13 +126,71 @@ export function Practice() {
           ))}
         </div>
 
-        {/* Remounts on every concept/difficulty switch — the same `key={id}` reset precedent as
-         * `App.tsx`'s `LessonRoute`. A fresh exercise gets React's own clean slate (arrangement,
-         * result, in-flight check) instead of a dozen hand-reset pieces of state, and any
-         * `run()` call still in flight from the exercise just left becomes a harmless no-op
-         * against an unmounted component rather than landing on the wrong exercise. */}
-        {program && <PracticeExercise key={program.id} program={program} />}
+        {concept.exercises.length > 1 ? (
+          <div
+            role="group"
+            aria-label="exercise type"
+            className="flex overflow-hidden self-start rounded-lg ring-1 ring-slate-700"
+          >
+            {concept.exercises.map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setExerciseType(type)}
+                aria-pressed={activeExerciseType === type}
+                className={`px-3 py-2 text-sm ${
+                  activeExerciseType === type
+                    ? "bg-slate-700 text-slate-100"
+                    : "bg-slate-800 text-slate-400"
+                }`}
+              >
+                {EXERCISE_TYPE_LABEL[type]}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">
+            {concept.title} only offers a flowchart — reassembling an algorithm
+            from shuffled lines tests memory, not understanding.
+          </p>
+        )}
+
+        {/* Remounts on every concept/difficulty/exercise-type switch — the same `key={id}` reset
+         * precedent as `App.tsx`'s `LessonRoute`. A fresh exercise gets React's own clean slate
+         * (arrangement, result, in-flight check) instead of a dozen hand-reset pieces of state,
+         * and any `run()` call still in flight from the exercise just left becomes a harmless
+         * no-op against an unmounted component rather than landing on the wrong exercise. */}
+        {program && activeExerciseType === "reverse" && (
+          <PracticeExercise key={program.id} program={program} />
+        )}
+        {program && activeExerciseType === "flowchart" && (
+          <FlowchartExercise key={program.id} program={program} />
+        )}
       </div>
+    </div>
+  );
+}
+
+/** Read-only at m14a — the fill-in-the-blanks half (blanks, cards, hint level) is m14b. Nothing
+ * here is hand-authored (D34/AC-9.13): `flowchartFrom` derives the whole diagram from the
+ * program's own source. */
+function FlowchartExercise({ program }: { program: PracticeProgram }) {
+  const chart = useMemo(() => flowchartFrom(program.source), [program]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-slate-500">
+        Generated from this program — nothing here is hand-authored (D34).
+      </p>
+      {chart ? (
+        <div className="rounded-lg bg-slate-900/60 p-4 ring-1 ring-slate-800">
+          <Flowchart nodes={chart} />
+        </div>
+      ) : (
+        <p className="rounded-lg bg-red-950/60 px-4 py-2 text-sm text-red-300 ring-1 ring-red-900">
+          Couldn't generate a flowchart for this program.
+        </p>
+      )}
     </div>
   );
 }
