@@ -45,17 +45,43 @@ function frame(overrides: Partial<Frame> = {}): Frame {
   };
 }
 
-describe("Practice — only the 6 basics are offered (AC-9.14/D33)", () => {
-  it("shows exactly the 6 concepts named by D27, no algorithms", () => {
+describe("Practice — reverse mode is the 6 basics only, flowcharts are all 8 (AC-9.14/D33, m14a finding 3)", () => {
+  it("shows all 8 concepts named by D27, including the 2 algorithms", () => {
     renderPractice();
     const group = screen.getByRole("group", { name: "concept" });
     const titles = PRACTICE_CONCEPTS.map((c) => c.title);
     for (const title of titles) {
       expect(screen.getByRole("button", { name: title })).toBeInTheDocument();
     }
-    expect(group.querySelectorAll("button")).toHaveLength(6);
-    expect(screen.queryByText(/binary search/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/bubble sort/i)).not.toBeInTheDocument();
+    expect(group.querySelectorAll("button")).toHaveLength(8);
+    expect(
+      screen.getByRole("button", { name: "Binary search" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Bubble sort" }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers both exercise types for a basic, and only a flowchart for an algorithm", async () => {
+    const user = userEvent.setup();
+    renderPractice();
+    // for-loops (the default) is a basic: both types offered, reverse mode active by default.
+    expect(
+      screen.getByRole("group", { name: "exercise type" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reverse the code" }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("button", { name: "Binary search" }));
+
+    // No exercise-type group for an algorithm — there is only one type, so a selector controlling
+    // it would be a dead control (decisions/004's own reasoning for m13's hint-level deferral).
+    expect(
+      screen.queryByRole("group", { name: "exercise type" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/only offers a flowchart/)).toBeInTheDocument();
+    expect(screen.getByTestId("flowchart")).toBeInTheDocument();
   });
 });
 

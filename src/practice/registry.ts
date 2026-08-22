@@ -3,23 +3,33 @@ import type { PracticeConcept, PracticeLevel, PracticeProgram } from "./types";
 // committed trace/output JSON straight out of `tests/fixtures/`, not duplicated into src/.
 import expectedOutputJson from "../../tests/fixtures/practice/expected-output.json";
 
-/** The 6 basics named by D27, and the only concepts reverse mode is allowed to cover (D33:
- * reassembling an algorithm from shuffled lines tests memory, not understanding). Binary search
- * and bubble sort get flowcharts at m14 instead — `docs/decisions/004-practice-scope-split.md`. */
+/** D27's 8 concepts. The 6 basics offer both exercise types; binary search and bubble sort are
+ * flowchart-only (D33: reassembling an algorithm from shuffled lines tests memory, not
+ * understanding) — see `docs/decisions/004-practice-scope-split.md`. */
 export const PRACTICE_CONCEPTS: PracticeConcept[] = [
-  { id: "for-loops", title: "For loops" },
-  { id: "index-loops", title: "Index loops" },
-  { id: "if-else", title: "If / else" },
-  { id: "while-loops", title: "While loops" },
-  { id: "functions", title: "Functions" },
-  { id: "recursion", title: "Recursion" },
+  { id: "for-loops", title: "For loops", exercises: ["reverse", "flowchart"] },
+  {
+    id: "index-loops",
+    title: "Index loops",
+    exercises: ["reverse", "flowchart"],
+  },
+  { id: "if-else", title: "If / else", exercises: ["reverse", "flowchart"] },
+  {
+    id: "while-loops",
+    title: "While loops",
+    exercises: ["reverse", "flowchart"],
+  },
+  { id: "functions", title: "Functions", exercises: ["reverse", "flowchart"] },
+  { id: "recursion", title: "Recursion", exercises: ["reverse", "flowchart"] },
+  { id: "binary-search", title: "Binary search", exercises: ["flowchart"] },
+  { id: "bubble-sort", title: "Bubble sort", exercises: ["flowchart"] },
 ];
 
 export const PRACTICE_LEVELS: PracticeLevel[] = ["easy", "medium", "hard"];
 
-/** Globbed rather than 18 hand-written `?raw` imports — the glob precedent is
+/** Globbed rather than 24 hand-written `?raw` imports — the glob precedent is
  * `src/lessons/recordings.ts`. A glob can silently return fewer files than expected, so
- * `registry.test.ts` asserts all 18 expected ids resolve; a typo'd filename fails a test instead
+ * `registry.test.ts` asserts all 24 expected ids resolve; a typo'd filename fails a test instead
  * of quietly shrinking the corpus. */
 const SOURCES = import.meta.glob("./programs/*.py", {
   query: "?raw",
