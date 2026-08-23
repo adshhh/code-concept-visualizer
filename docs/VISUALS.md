@@ -225,3 +225,33 @@ proportions — the code-pane column is a placeholder (`§8`, milestone 6), the 
 is `Picture.tsx` at the right proportion. The chip strip above, collections below, print
 output drawer at the bottom, and the call-stack rail on the right all match §5's layout
 description.
+
+## Visual regression baselines (AC-12.3, D17, m15a)
+
+`scripts/screenshots/visual.spec.ts` is a different kind of artifact from every screenshot
+above. Those are one-off captures for a human to look at; this is a committed
+`toHaveScreenshot()` suite that fails the run when a real pixel changes. D17 caps it at ten
+views, deliberately: broader screenshot testing generates constant false alarms over sub-pixel
+font rendering and gets ignored, which is worse than not having the suite at all.
+
+**What the ten pin:** landing page · Mode A lesson mid-run · Mode B lesson mid-run · a swap in
+progress · a comparison in progress · call stack at depth 3 · a dict · a nested list · a
+runtime error state · a Challenge mode prompt.
+
+**Local-only, by design.** These baselines are macOS-rendered and CI (D18) never runs
+Playwright — running them on a different OS would be exactly the sub-pixel false-alarm problem
+D17 exists to avoid, not a real check.
+
+**The whole suite runs under `reducedMotion: "reduce"`** (`test.use` in the file), which makes
+`MotionRoot`'s existing reduced-motion support collapse every Framer Motion transition —
+including the spotlight dimming above — to its instant end state. This isn't a workaround that
+hides real content: the spotlight rule still applies and still shows in every baseline (see
+each screenshot's dimmed-vs-bright boxes), just without the spring physics settling in between,
+which otherwise never quite reaches an exact pixel at rest.
+
+**Updating a baseline honestly** follows §12's own hard rule for recorded traces: a changed
+snapshot is never silently re-recorded. Before running `npx playwright test
+scripts/screenshots/visual.spec.ts --update-snapshots`, look at the failure's own diff image
+first (`test-results/.../*-diff.png`) and confirm the change is the *intended* consequence of
+whatever was just built — not a regression the suite just caught. Record what changed and why
+in the checkpoint, the same as any other intentional change to committed evidence.

@@ -51,6 +51,7 @@ export function CardBank({
   const [announcement, setAnnouncement] = useState("");
   const itemRefs = useRef(new Map<string, HTMLButtonElement>());
   const prevCardIdsRef = useRef(new Set(cards.map((card) => card.id)));
+  const emptyMessageRef = useRef<HTMLParagraphElement | null>(null);
 
   function focusCard(id: string) {
     itemRefs.current.get(id)?.focus();
@@ -63,17 +64,43 @@ export function CardBank({
   // Refocuses whatever is now first only when a card actually *left* — never on an unrelated
   // re-render, e.g. `disabled` toggling — so this can't fight a pick-up that never intended to
   // move focus away from the card the learner just grabbed.
+  //
+  // `cards[0]` is falsy on the very last placement (found by code review: the guard originally
+  // stopped there, so the last card placed still dropped focus to `<body>` exactly like the bug
+  // this effect exists to prevent, just one placement later). With no card left to focus, the
+  // "All cards placed" message itself is the next sensible landing spot — a `tabIndex={-1}`
+  // status text, the standard pattern for "nothing interactive remains here."
   useEffect(() => {
     const currentIds = new Set(cards.map((card) => card.id));
     const aCardLeft = [...prevCardIdsRef.current].some(
       (id) => !currentIds.has(id),
     );
     prevCardIdsRef.current = currentIds;
-    if (aCardLeft && heldId === null && cards[0]) {
+    if (!aCardLeft || heldId !== null) return;
+    if (cards[0]) {
       setFocusedId(cards[0].id);
       focusCard(cards[0].id);
+    } else {
+      emptyMessageRef.current?.focus();
     }
   }, [cards, heldId]);
+
+  // The one path `heldId` can change through *without* this component's own click/keydown
+  // handler already having moved focus here itself: `Flowchart`'s own blank reclaiming a
+  // placed card back into the bank (`Practice.tsx`'s `handleSlotActivate`), which sets `held`
+  // from outside while focus is still sitting on the flowchart's own button. For every
+  // internally-driven pick-up, the browser has already focused this exact button by the time
+  // this runs (a click focuses the element it clicks, and a keydown can only fire on an
+  // already-focused one), so the check below is a no-op there — it only does anything for the
+  // external case, which is exactly where arrow-key navigation would otherwise go dead until the
+  // learner discovered they had to Tab away and find the now-held card by hand (found by code
+  // review: `decisions/006`'s own "identical keyboard path" promise didn't actually hold for a
+  // reclaim specifically).
+  useEffect(() => {
+    if (heldId === null) return;
+    const button = itemRefs.current.get(heldId);
+    if (button && document.activeElement !== button) button.focus();
+  }, [heldId]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, id: string) {
     if (disabled) return;
@@ -134,7 +161,11 @@ export function CardBank({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs text-slate-500">
+      <p
+        ref={emptyMessageRef}
+        tabIndex={-1}
+        className="text-xs text-slate-500 outline-none"
+      >
         {cards.length === 0
           ? "All cards placed — press Check."
           : "Focus a card and press Space to pick it up, then choose a blank with the arrow keys."}

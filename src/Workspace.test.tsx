@@ -59,11 +59,15 @@ function renderWorkspace(path = "/lesson/01-first-loop") {
   );
 }
 
-describe("Workspace — AC-8.4, opens pre-filled, never blank", () => {
-  it("shows the starter code and a 'press Run' picture before any run", () => {
+describe("Workspace — AC-8.4/AC-14.5, opens pre-filled and already animating", () => {
+  it("shows the starter code and the lesson's own recording already playing, before any run", () => {
     renderWorkspace();
-    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
-    expect(screen.getByText("no run yet")).toBeInTheDocument();
+    // AC-14.5: real motion on open, before the engine has even started loading — not the old
+    // "press Run to see this" dead state, and not a static first frame either (the mount effect
+    // has already called playback.play()).
+    expect(screen.queryByText("press Run to see this")).not.toBeInTheDocument();
+    expect(screen.getByText(/^step 1 of \d+$/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeInTheDocument();
   });
 });
 
@@ -93,7 +97,10 @@ describe("Workspace — Reset to example", () => {
     const user = userEvent.setup();
     renderWorkspace();
     await user.click(screen.getByRole("button", { name: "Reset to example" }));
-    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
+    // AC-14.5: since nothing was edited, the preview was already showing before the click and
+    // stays showing after it — "inert" now means the animation, not the old "press Run" dead
+    // state.
+    expect(screen.getByText(/^step 1 of \d+$/)).toBeInTheDocument();
   });
 });
 
@@ -158,7 +165,8 @@ describe("Workspace — AC-4 (§4), Mode A and Mode B invoke the identical run()
     // AC-2 (§4): source renders, but the only editable thing is the data input.
     expect(screen.getByText("Sorted list to search")).toBeInTheDocument();
     expect(screen.getByText("Target value")).toBeInTheDocument();
-    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
+    // AC-14.5: Mode B gets the same preview-on-open treatment as Mode A.
+    expect(screen.getByText(/^step 1 of \d+$/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Run" }));
     await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
@@ -309,11 +317,15 @@ describe("Workspace — AC-2.7, the engine failing to load falls back to the shi
     const user = userEvent.setup();
     renderWorkspace();
 
+    // AC-14.5: the preview is already showing the lesson's example before Run is ever clicked —
+    // engine availability isn't even checked yet at this point (that check is lazy, see below),
+    // so there's nothing distinguishing this from a normal open.
+    expect(screen.getByText(/^step 1 of \d+$/)).toBeInTheDocument();
+
     // Found by code review: checking on mount meant every lesson-page visit silently started a
     // real Pyodide download even for a visitor who never clicks Run. The check is now lazy — it
     // only happens once Run is actually attempted — so this test drives that first attempt
     // itself rather than just waiting for it to happen on its own.
-    expect(screen.getByText("press Run to see this")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Run" }));
 
     await waitFor(() =>

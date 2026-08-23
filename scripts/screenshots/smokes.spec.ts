@@ -9,12 +9,15 @@ import { join } from "node:path";
 // (the production build), same as the screenshot suite, so these smokes exercise what
 // actually ships.
 test.describe("click-through smokes (AC-12.4)", () => {
-  test("1. a lesson loads with the starter code visible, nothing blank", async ({
+  test("1. a lesson loads with the starter code visible, already animating (AC-14.5)", async ({
     page,
   }) => {
     await page.goto("/lesson/01-first-loop");
     await expect(page.getByText("for number in range(5):")).toBeVisible();
-    await expect(page.getByText("press Run to see this")).toBeVisible();
+    // AC-14.5: the lesson's own shipped recording plays on open, before Run is ever clicked and
+    // before Pyodide has loaded — never the old "press Run to see this" dead state.
+    await expect(page.getByText(/^step 1 of \d+$/)).toBeVisible();
+    await expect(page.getByText("press Run to see this")).not.toBeVisible();
   });
 
   test("2. Run renders real picture state", async ({ page }) => {
@@ -189,7 +192,10 @@ test("AC-2.7: a lesson page falls back to its shipped recording when the engine 
   await page.route("**/pyodide/**", (route) => route.abort());
   await page.goto("/lesson/01-first-loop");
 
-  await expect(page.getByText("press Run to see this")).toBeVisible();
+  // AC-14.5: the preview is already showing this lesson's example before Run is ever clicked —
+  // engine availability isn't checked yet at this point (that check is lazy, on first Run), so
+  // there's nothing distinguishing this from a normal open with Pyodide reachable.
+  await expect(page.getByText(/^step 1 of \d+$/)).toBeVisible();
   await page.getByRole("button", { name: "Run" }).click();
 
   await expect(

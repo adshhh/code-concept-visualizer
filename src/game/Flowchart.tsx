@@ -125,6 +125,14 @@ function FlowchartNode({
 const NODE_LABEL_CLASS =
   "max-w-xs font-mono text-sm whitespace-pre-wrap break-words";
 
+// `FunctionNode` and `LoopNode` both draw their body inside the same left-side bracket (found by
+// code review: hard-coded as an identical class string in each) — a `border-l/t/b` box, never
+// `ring`, since a ring can't draw a partial outline. Shared here so the two can't drift apart the
+// way a spotlight/emphasis tweak already had to be fixed twice in this same file (§9's own
+// silent-drop history, docs/GAME.md).
+const NESTED_BODY_CLASS =
+  "mt-2 border-t-2 border-b-2 border-l-2 border-slate-600 py-3 pr-3 pl-5";
+
 /** CLAUDE.md's spotlight rule, applied uniformly to every node kind (the hard rule: "this
  * applies to every renderer, not just some") — not only the ones that can be blanked. Renders a
  * plain `<div>` when `slots` is absent, so 14a's read-only render carries zero framer-motion
@@ -390,7 +398,7 @@ function FunctionNode({
         </span>
         {node.label}
       </EmphasisBox>
-      <div className="mt-2 border-t-2 border-b-2 border-l-2 border-slate-600 py-3 pr-3 pl-5">
+      <div className={NESTED_BODY_CLASS}>
         <div className="flex flex-col items-center gap-0">
           <NodeSequence nodes={node.body} slots={slots} />
         </div>
@@ -419,7 +427,7 @@ function LoopNode({
       >
         <BlankableLabel node={node} slots={slots} />
       </EmphasisBox>
-      <div className="relative mt-2 border-t-2 border-b-2 border-l-2 border-slate-600 py-3 pr-3 pl-5">
+      <div className={`relative ${NESTED_BODY_CLASS}`}>
         <span
           aria-hidden="true"
           className="absolute top-1/2 -left-2 -translate-y-1/2 text-amber-400"

@@ -1741,6 +1741,81 @@ its own regression test asserting `document.activeElement` is never `document.bo
 literally could not have been written without first asking "what does a real learner's next
 keypress actually land on," rather than "does the state look right."
 
+## 39. Milestone 15a: a criterion that read like a checklist item and turned out to be a feature, and a spring that never quite stops moving
+
+Reading milestone 15's own row in the Build milestones table suggested a documentation-and-ship
+milestone: visual snapshots, a verification walkthrough, a README. Reading §11 and §14 against the
+actual tree instead of against that summary found one line that wasn't documentation at all —
+"lessons therefore animate immediately on open, before the engine has loaded" (AC-14.5) — sitting
+unbuilt. `Workspace.tsx` still opened every lesson to the static "press Run to see this" placeholder
+until this milestone; nothing before it had ever been asked to make a lesson animate on arrival,
+only to make it *not crash* when the engine couldn't load (AC-2.7, m10). Two acceptance criteria
+that read almost the same in the plan's prose turned out to describe genuinely different code paths
+once the actual `Workspace.tsx` was open.
+
+**Generalizing a fallback into a preview, without losing what made the fallback correct.** AC-2.7's
+existing `fallbackRecording` already had the one property AC-14.5 needed — a lesson's own shipped
+recording, standing in for a run that hasn't happened — so the instinct was to just widen its
+trigger condition from "engine unavailable" to "nothing run yet." That would have been a real
+regression: `fallbackRecording` deliberately ignores whatever the learner typed, because *running
+their own code isn't possible either way*, while a plain "hasn't run yet" preview has to disappear
+the instant the source diverges from the example — otherwise stepping away from the starter code
+would leave a stale animation on screen where AC-7.3's "press Run to see this" is supposed to be.
+The two needed to stay genuinely separate concepts (`previewRecording`, gated on the source still
+matching; `fallbackRecording`, gated only on engine availability) even though, in the common case
+where nothing has been edited, they resolve to the literal same object — which is also what makes
+switching between "previewing" and "falling back" never restart or flicker the animation: there's
+nothing to switch, `displayRecording` was already pointing at that object.
+
+**A one-line mount effect, correct by an argument that took longer to state than to verify.** The
+autoplay itself is `useEffect(() => { if (previewRecording) playback.play(); }, [])` — empty
+dependency array, no ref, no "latest values" indirection of the kind the existing keyboard-shortcut
+effect needs. That's only safe because `LessonRoute`'s own `key={id}` (App.tsx, decided at m10)
+already remounts `Workspace` fresh on every lesson change, so "mount once" and "once per lesson
+open" are the same event — a fact that was already true before this milestone and just happened to
+be exactly what AC-14.5 needed, rather than something added for it.
+
+### A screenshot suite whose first real bug was in the test, not the app
+
+Building the ~10-snapshot baseline suite (AC-12.3, D17) meant solving a problem none of this
+project's other four screenshot specs have: the landing page loops forever (§11's own "the landing
+animation does loop, unlike lessons" — deliberate, a showcase). Every other capture in this
+directory targets one settled frame; this one had no settled frame to wait for. `page.clock`
+supplied the missing determinism cleanly — faking `usePlayback`'s own `setInterval` after
+`page.clock.install()` means advancing a fixed virtual amount always lands on the same step,
+confirmed by two runs producing byte-identical PNGs.
+
+What clock-faking didn't solve, and at first looked like it had, was *when to actually take the
+screenshot*. The first version paired the clock advance with a fixed real-time `waitForTimeout` —
+passed clean in isolation, then landed on a stale, empty "step 1" frame the moment it ran
+back-to-back with the other nine tests in the same suite. The fixed wait wasn't wrong about *which*
+step the app would settle on; it was wrong to assume a constant slice of real wall-clock time is
+enough for React and Framer Motion to finish painting that step, regardless of what else the machine
+happens to be doing at that exact moment. The fix was to stop guessing a duration and wait on the
+content itself — `expect(page.getByText(/^step 4 —/)).toBeVisible()`, which Playwright retries in
+real time for as long as it actually takes.
+
+Fixing that surfaced a second, unrelated source of the same symptom: `Playwright`'s own
+snapshot-stability check — which takes two screenshots moments apart and requires them to
+match — kept failing to converge on some scenarios even after the step text was confirmed on
+screen. The cause was `emphasisVariants`' spring transitions (the same shared variant §38 already
+found under-visible on a different shape of content): a spring settles asymptotically, not at an
+exact rest value, so two captures a few milliseconds apart could still differ by a sub-pixel amount
+indefinitely. `MotionRoot`'s `reducedMotion="user"` already existed to collapse exactly this class
+of transition to an instant state change — turning it on for this one test file (`test.use({
+reducedMotion: "reduce" })`) removed the jitter at its source, for every scenario in the suite at
+once, rather than adding a longer wait to each one that happened to need it. The remaining,
+irreducible noise — sub-pixel font/cursor rendering, confirmed by hand on the one scenario with a
+real focused text cursor — is exactly the class of false alarm D17 caps this suite at ten specifically
+to tolerate, absorbed with a small `maxDiffPixelRatio` rather than chased away entirely.
+
+Read together, both fixes are the same lesson from two different angles: a screenshot test's
+flakiness is data about the thing being screenshotted, not noise to wait away with a bigger number.
+The first fake-clock experiment that "worked" on the first try was actually the one that later
+revealed the real gap — and it was reading the failure closely enough to reproduce it deliberately
+(running the same test alone, then back-to-back with the others) rather than just adding a longer
+timeout, that found the fix that generalizes instead of the one that happens to pass once.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

@@ -224,6 +224,60 @@ describe("CardBank — focus follows a real placement (found while tracing the e
     ).toHaveFocus();
   });
 
+  it("focuses the 'All cards placed' message on the very last placement, not <body> (found by code review)", async () => {
+    const user = userEvent.setup();
+    render(
+      <ControlledCardBank
+        initial={[{ id: "c0", text: "x > 0" }]}
+        onPlace={() => {}}
+        onCancel={() => {}}
+        removeOnPlace
+      />,
+    );
+
+    const only = screen.getByRole("button", { name: "Card: x > 0" });
+    only.focus();
+    await user.keyboard(" "); // pick up
+    await user.keyboard(" "); // place — the bank is now empty
+
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(document.activeElement).not.toBe(document.body);
+    expect(screen.getByText("All cards placed — press Check.")).toHaveFocus();
+  });
+
+  it("focuses the reclaimed card when heldId changes from outside CardBank's own handlers (found by code review — a flowchart blank reclaiming a placed card, not this component's own click/keydown)", () => {
+    const onPickUp = vi.fn();
+    const { rerender } = render(
+      <CardBank
+        cards={CARDS}
+        heldId={null}
+        onPickUp={onPickUp}
+        onNavigate={() => {}}
+        onPlace={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+    // Simulates focus sitting elsewhere (a flowchart blank button, in the real app) when the
+    // parent sets `heldId` in response to that other widget's own click/keydown — never a pick-up
+    // this component itself initiated.
+    document.body.focus();
+
+    rerender(
+      <CardBank
+        cards={CARDS}
+        heldId="c1"
+        onPickUp={onPickUp}
+        onNavigate={() => {}}
+        onPlace={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Card: print(x)" }),
+    ).toHaveFocus();
+  });
+
   it("does nothing when a re-render happens for an unrelated reason (no card actually left)", async () => {
     const onPickUp = vi.fn();
     const { rerender } = render(

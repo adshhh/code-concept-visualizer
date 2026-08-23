@@ -3416,3 +3416,326 @@ git push origin main
 
 Phase E — ship (milestone 15): ~10 visual snapshots, the 13-step verification walkthrough,
 `docs/PORTING.md`, and the README + demo GIF. This is the last milestone in the plan.
+
+# Milestone 15a Completed — the last code: lessons that animate on open, and the ~10 visual snapshots
+
+Milestone 15's own row in the Build milestones table summarizes it as documentation-and-ship —
+visual snapshots, a verification walkthrough, a README. Reading §11 and §14 against the actual
+tree instead of against that summary found one real gap hiding inside it: AC-14.5 ("lessons
+therefore animate immediately on open, before the engine has loaded") was unbuilt product code.
+Every lesson opened to the static "press Run to see this" placeholder regardless of whether the
+engine could load at all — nothing before this milestone had ever been asked to make a lesson
+animate on arrival, only to keep working when the engine failed (AC-2.7, m10). Per owner decision,
+milestone 15 splits into 15a (this entry — the last code) and 15b (shipping), on the 11a/b–14a/b
+precedent, on one shared branch (`milestone-15`).
+
+**15a closes AC-14.5, delivers AC-12.3's ~10-snapshot visual-regression suite, and closes the
+final checks AC-2.7 (structural half)/AC-14.2/AC-14.3 name for m15.**
+
+`Workspace.tsx` gained a `previewRecording`: the lesson's own shipped recording, shown whenever
+nothing has run yet and the source on screen still matches the example's own, auto-playing once on
+mount and stopping at Replay (AC-7.4's no-auto-loop rule holds — this is not the landing page's own
+looping showcase). Editing the code, or changing a Mode B input, drops it back to "press Run to see
+this" immediately, with no new staleness concept. `scripts/screenshots/visual.spec.ts` is a new,
+separate, committed `toHaveScreenshot()` baseline suite — pinning exactly the ten views AC-12.3
+names — kept apart from the four existing capture specs, which stay uncompared checkpoint evidence.
+
+## Why
+
+**`previewRecording` and AC-2.7's own `fallbackRecording` stay two distinct concepts, even though
+they usually resolve to the same object.** The obvious shortcut was to widen `fallbackRecording`'s
+existing trigger (engine unavailable) to also cover "nothing run yet." That would have been a real
+regression: `fallbackRecording` deliberately ignores whatever the learner typed, because running
+their own code isn't possible either way, while a plain preview has to disappear the instant the
+source diverges from the example, or AC-7.3's "press Run to see this" would never show again after
+one edit. Both stayed separate — `previewRecording` gated on `result === null &&
+effectiveSource === lessonRecording.source`; `fallbackRecording` gated only on `engineUnavailable`
+— composed as `recording ?? fallbackRecording ?? previewRecording`. In the common, unedited case
+they're the literal same object, which is also why switching between "previewing" and "falling
+back" never restarts or flickers the animation — there's nothing to switch.
+
+**The autoplay effect is one line with an empty dependency array, and that's provably correct, not
+an oversight.** `useEffect(() => { if (previewRecording) playback.play(); }, [])` relies on
+`LessonRoute`'s own `key={id}` (App.tsx, decided at m10) already remounting `Workspace` fresh on
+every lesson change — so "on mount" and "on lesson open" are already the same event, with nothing
+to react to later. `previewRecording` is also already correct on the very first render (both
+`result` and `effectiveSource` start from their real initial values), so there's no "wait for it to
+resolve" case either.
+
+**`visual.spec.ts` is deliberately a different kind of test from the other four screenshot specs in
+this directory.** `picture.spec.ts`/`challenge.spec.ts`/`compare.spec.ts`/`practice.spec.ts` write
+uncompared PNGs for a human to look at — useful for the owner's review and this milestone's own
+self-review, but a capture nothing diffs against cannot catch "the boxes overlap now," which is
+AC-12.3/D17's entire stated purpose (m14b found two full-suite runs of those capture specs each
+silently rewrite a *different* unrelated PNG — fine for a capture, not for a baseline). The new
+suite runs `npx playwright test` locally only, never in CI (D18 never runs Playwright) — these
+baselines are macOS-rendered, and cross-OS sub-pixel font rendering is exactly the false-alarm
+failure mode D17 caps this suite at ten specifically to avoid.
+
+**Proven to actually catch a regression, not just proven to pass.** Per step 4 of the plan, a value
+box's padding (`Chip.tsx`, `px-3 py-2` → `px-8 py-6`) was deliberately changed and the app rebuilt:
+5 of the 10 baselines failed visibly with a clear pixel-count diff. Reverting and rebuilding brought
+all 10 back to green. A snapshot suite that has never been watched fail on purpose is not known to
+work.
+
+## Two flakiness bugs, both found by running the new suite repeatedly rather than trusting one green pass
+
+**A fixed real-time wait after a fake-clock advance doesn't scale with machine load.** The landing
+page loops forever (§11 — the one place in the app that intentionally loops), so pinning one frame
+of it needed `page.clock` to fake `usePlayback`'s own `setInterval`: three faked 1000ms ticks always
+land on the same step (confirmed — two isolated runs produced byte-identical PNGs). The first
+version paired that clock advance with a fixed `page.waitForTimeout(300)` for React to paint the
+result — passed clean when run alone, then landed on a stale, empty "step 1" frame the moment it
+ran back-to-back with the other nine tests in the suite, because 300ms of real time doesn't
+guarantee the same amount of actual work gets done regardless of what else the machine is doing.
+Fixed by waiting on the resolved step's own text (`expect(page.getByText(/^step 4 —/)).toBeVisible()`)
+instead of a duration — Playwright retries this in real time for as long as it actually takes.
+
+**A spring that never quite reaches rest made Playwright's own stability check never converge.**
+Even after the step text was confirmed correct, some scenarios kept failing to produce a stable
+screenshot: `emphasisVariants`' spring transitions (the same shared variant §38 already found
+under-visible on a different shape of content) settle asymptotically, not at an exact pixel, so two
+captures a few milliseconds apart could still differ by a sub-pixel amount indefinitely. `MotionRoot`'s
+existing `reducedMotion="user"` support — built for exactly this class of transition — is now turned
+on for the whole suite via `test.use({ reducedMotion: "reduce" })`, collapsing every Framer Motion
+transition to its instant end state at once rather than chasing the jitter test by test. Confirmed
+this doesn't hide the spotlight rule itself: every baseline still shows the correct dimmed-vs-bright
+state, just without the spring settling in between. The remaining irreducible noise — sub-pixel
+font/cursor rendering, confirmed by hand on the one scenario with a real focused text cursor — is
+absorbed with a small `maxDiffPixelRatio: 0.02` (`playwright.config.ts`), the same class of false
+alarm D17's own ten-view cap exists to tolerate.
+
+Full narrative in `DESIGN_RATIONALE.md` §39.
+
+## Final checks this milestone closes (m15's own "final check" annotations in PLAN_v2.md)
+
+- **AC-14.2** (the player-must-not-import-engine rule): re-ran the deliberate-violation experiment
+  — a real `../engine/run` import added to `src/player/Picture.tsx` makes `architecture.test.ts`
+  fail with a message naming the offending file; removing it passes again. The guard still holds.
+- **AC-14.3** ("each shipped recording is byte-identical to the committed test snapshot"): confirmed
+  structurally satisfied rather than re-verified by a comparison — `src/lessons/recordings.ts` globs
+  the exact same `tests/fixtures/traces/lessons/*.json` files `registry.test.ts` already validates
+  against the real engine (D23); there is no second copy that could drift.
+- **AC-2.1** (main thread never blocked >50ms): the architectural guarantee is unchanged (Worker
+  isolation, untouched this milestone). The felt/measured half — opening the real deployed site and
+  confirming responsiveness in Chrome DevTools' Performance tab — needs a human in a real browser,
+  same as AC-11.5's 10-second test. **Flagged owner-only, not silently marked done.**
+
+## Files Created/Modified
+
+- `src/Workspace.tsx` (modified): `previewRecording` (AC-14.5), the distinction from
+  `fallbackRecording`, the one-shot mount-effect autoplay, `showPicture` updated to include the
+  preview.
+- `src/Workspace.test.tsx` (modified): four existing tests updated for the new default state (a
+  lesson now opens already animating, not blank) — AC-8.4's own test, the Reset-to-example test, the
+  Mode A/B parity test, and the AC-2.7 fallback test, which now confirms the preview is showing
+  *before* Run is ever clicked, since engine availability isn't checked until then.
+- `scripts/screenshots/smokes.spec.ts` (modified): the same three assertions updated in a real
+  browser — test 1 now asserts real motion on open, and the AC-2.7 test asserts the preview is
+  already showing before Run is clicked.
+- `scripts/screenshots/visual.spec.ts` (new): the ~10-snapshot AC-12.3 baseline suite —
+  `freezeLandingAutoplay` (page.clock), `pauseLessonAtStep` (deterministic stepping via Reset + step
+  →, since AC-14.5 means there's no longer a "press Run" state to step forward from), and one test
+  per required view.
+- `scripts/screenshots/visual.spec.ts-snapshots/` (new): the 10 committed baseline PNGs.
+- `playwright.config.ts` (modified): a global `expect.toHaveScreenshot.maxDiffPixelRatio` for the
+  new suite's sub-pixel tolerance.
+- `docs/VISUALS.md`, `docs/DESIGN_RATIONALE.md` (§39), `docs/PLAN_v2.md` (AC-2.1/AC-12.3/AC-14.2/
+  AC-14.3/AC-14.5 annotations, the milestone table's 15a/15b split, Resume-here) — see the diff for
+  the full set.
+
+## Uncertain / worth double-checking
+
+- **Autoplay on open is the single most visible change since the landing page shipped.** It's the
+  literal reading of AC-14.5 and §11, and screenshot self-review read it as "the page is alive," not
+  "the page is busy" — but it changes the first thing every visitor to every lesson sees. Worth a
+  look at the real preview URL before treating it as settled; the documented fallback (pausing at
+  step 1 instead of playing through) is a small, isolated change if it reads differently in practice.
+- **`page.clock` combined with Framer Motion needed two independent fixes to stabilize**, both
+  found only by running the suite repeatedly rather than trusting a single green pass. It's possible
+  a third, rarer flakiness source exists that four consecutive stress-test runs didn't happen to
+  surface — worth re-running `npx playwright test scripts/screenshots/visual.spec.ts` a few times
+  after any future change near `Workspace.tsx`, `Landing.tsx`, or `variants.ts`.
+- **AC-2.1's felt/measured check and the walkthrough's own DevTools step are not run here** — flagged
+  explicitly as owner-only above and in `PLAN_v2.md`, not silently marked done.
+- **Running the full Playwright suite regenerates a couple of unrelated screenshots with harmless
+  pixel-level nondeterminism**, the same jitter documented at every recent milestone
+  (`challenge-result-wrong.png`, `compare-search.png`, `compare-sort.png` this time) — confirmed by
+  running it four times back to back and watching the exact set of touched files shift each time.
+  Run `git status` before committing; anything under `docs/images/` outside this milestone's own
+  files is that noise, not a real change.
+
+## Screenshots
+
+The ten new committed baselines (`scripts/screenshots/visual.spec.ts-snapshots/*-darwin.png`), each
+read by eye before being committed:
+
+- `landing-page-darwin.png` — the landing page, frozen at step 4 of the looping bubble-sort demo.
+- `lesson-mode-a-mid-run-darwin.png` — "Your first loop," paused at step 3 of 11.
+- `lesson-mode-b-mid-run-darwin.png` — "Binary search," paused at step 5 of 20, `low`/`high`/`mid`
+  visible.
+- `a-swap-in-progress-darwin.png` / `a-comparison-in-progress-darwin.png` — the same bubble-sort
+  fixture/step pairs `picture.spec.ts` already established, now pinned as a regression baseline.
+- `call-stack-at-depth-3-darwin.png` — exactly 3 stacked call cards (a new fixture/step pairing,
+  found by reading `11_recursion_factorial.json`'s own `callStack` lengths directly).
+- `a-dict-darwin.png` / `a-nested-list-darwin.png` — reused from `picture.spec.ts`.
+- `runtime-error-state-darwin.png` — a real engine run of `index_error.py`, the red ring and
+  beginner-language error message both visible.
+- `challenge-mode-prompt-darwin.png` — the question card, its connector line, and the picture pane
+  together, reusing `challenge.spec.ts`'s own swap-after-quiet fixture/step.
+
+Full test suite (pre-review): 1090/1090 unit tests (1 skipped), 68/68 Playwright tests (58 existing
++ 10 new, full suite run four times back to back to confirm stability), typecheck/format/build all
+clean.
+
+## Milestone 15a — code-review fixes (run before commit)
+
+`/code-review` ran 8 review agents (line-by-line scan, removed-behavior audit, cross-file tracing,
+reuse, simplification, efficiency, altitude, CLAUDE.md conventions) against the full branch diff —
+which, since milestone 14 isn't merged into `main` yet, covers 14a/14b's own already-shipped code as
+well as 15a's. Every finding below was verified directly against the actual files (in two cases by
+deliberately reverting the fix and re-running the exact test that should catch its absence) before
+deciding whether to fix it.
+
+**Fixed — two real keyboard-accessibility regressions in already-shipped m14b code, both
+confirmed by reading `CardBank.tsx`/`Flowchart.tsx`/`Practice.tsx` directly, not just the agents'
+own framing:**
+
+1. **The very last card placed still dropped focus to `<body>`** (line-by-line scan). m14b's own
+   focus-restoration effect (`CardBank.tsx`) guards on `cards[0]` to find the next card to focus —
+   which is `undefined` on the placement that empties the bank entirely, so the exact bug that
+   effect exists to prevent still happened, one placement later than the regression test covered
+   (`CardBank.test.tsx`'s own case only ever goes from 3 cards to 2). Confirmed by temporarily
+   reverting the guard and re-running the suite: a new test asserting focus lands on the "All
+   cards placed" message failed exactly as predicted, then passed once restored. Fixed by
+   focusing that message (`tabIndex={-1}`) when no card remains — the standard pattern for
+   "nothing interactive is left here."
+2. **Reclaiming a filled blank via keyboard left the arrow keys dead** (cross-file tracer).
+   `BlankableLabel` (`Flowchart.tsx`) is a plain `<button onClick>` with no `onKeyDown` — so
+   pressing Enter/Space on a filled blank fires `handleSlotActivate`'s reclaim path correctly, but
+   never moves DOM focus off that button. The card reappears in the bank marked "held," but the
+   arrow keys `CardBank`'s own hint text promises ("choose a blank with the arrow keys") land on
+   the flowchart's button, which has no handler for them — dead until the learner discovers they
+   must Tab away and find the held card by hand. `decisions/006`'s "identical keyboard path"
+   promise didn't actually hold for this one specific interaction. Confirmed the same way as #1:
+   a new test failed without the fix, passed with it. Fixed with a second effect in `CardBank.tsx`
+   that moves focus to the held card whenever `heldId` changes from *outside* the component's own
+   click/keydown handlers (which, for every other pick-up, has already focused the right button by
+   the time this effect runs — the check is a no-op there and only does something for a reclaim).
+   Both fixes came with real-browser regression tests: `practice.spec.ts`'s existing keyboard-solve
+   test no longer needs to fake-focus the Check button by hand (it now asserts focus arrived there
+   naturally via Tab), and a new test solves the puzzle by deliberately placing a card in the wrong
+   blank first, reclaiming it via keyboard, and confirming the arrow key immediately reaches the
+   held card.
+
+**Fixed — two small, zero-risk deduplications, safe enough to do inline rather than defer:**
+
+3. **`FunctionNode`/`LoopNode` (`Flowchart.tsx`) hard-coded the identical nested-body bracket
+   class string** (simplification) — extracted to one `NESTED_BODY_CLASS` constant.
+4. **`PRACTICE_CONCEPTS` (`registry.ts`) repeated `["reverse", "flowchart"]` six times**
+   (simplification) — extracted to one `BOTH` constant, so the two flowchart-only entries now read
+   as the actual exception instead of blending into a wall of identical literals.
+
+**Documented, not changed** — `flowchartModel.ts`'s `buildBranch` allocates node ids in evaluation
+order (the whole `no`/elif chain, then this branch's own id, then `yes`), not the chart's visual
+reading order (altitude/line-by-line scan, confirmed by reading the function). Reordering the three
+`id()` calls to match reading order would renumber every existing node, including the ids
+`practice.spec.ts`'s own screenshot tests already hardcode — a real behavior change with no reported
+bug behind it, so this is left as an explanatory comment on the allocator rather than "fixed" to
+look tidier.
+
+**Left as previously decided, reaffirmed rather than re-litigated:**
+
+- **The CLAUDE.md 25-element cap has no runtime enforcement in `flowchartBlanks.ts`/`CardBank.tsx`**
+  (CLAUDE.md conventions) — already raised and declined at m14b's own review, with a test tripwire
+  (`flowchartBlanks.test.ts`) added specifically because a production cap the plan never asked for
+  would be scope creep while the real corpus stays nowhere near 25. No new information this time.
+- **`flowchartModel.ts` tokenizes twice** (`validate()` and `buildTree()`) (efficiency) — already
+  self-documented in the code's own comment as a deliberate trade-off, mitigated by `useMemo` at
+  the one real call site; revisit only if flowchart derivation ever moves onto a hotter path.
+- **`CardBank.tsx`/`BlockList.tsx` share ~90 lines of roving-tabindex mechanics** (reuse) — already
+  raised and declined at m14b's own review (three deliberate divergences: controlled vs. private
+  held state, opposite blur semantics, the unmount-refocus effect only `CardBank` needs); two
+  instances still isn't a pattern.
+
+**Reported, deliberately not fixed this pass — pre-existing m14a/14b behavior, each a genuine
+product-decision question rather than a broken state, out of scope for a milestone-15 review to
+decide unilaterally:**
+
+- **Placing a held card onto an already-filled blank silently overwrites it** (line-by-line scan)
+  — `handleSlotActivate`'s `held !== null` branch places unconditionally; the old card correctly
+  reappears in the bank (no data loss), but with no confirmation. m14b's own checkpoint documented
+  only the "nothing held, reclaim an empty-handed mistake" affordance, not this one. Plausibly a
+  desirable "swap" shortcut rather than a bug — worth a deliberate design call, not an
+  agent-prompted one.
+- **Clicking a different, unheld card while one is already held silently switches which is held**
+  (line-by-line scan) — same reasoning; likely reasonable mouse behavior, but with no cancellation
+  announcement for the card that was let go.
+- **A concept switch that forces the flowchart-only fallback doesn't write back to `exerciseType`
+  state** (cross-file tracer) — so a later switch to a basic concept can silently show reverse mode
+  again without the exercise-type control having been touched. Arguably correct "remembers your
+  last explicit choice, resumes it when available again" behavior rather than a bug; flagged for
+  the owner's own read rather than decided here.
+- **`tree.ts`/`parser.ts` (m14a) independently reimplement the same token-cursor primitives, and
+  `tree.ts`'s `parseIf`/`parseLoop`/`parseDef` (m14a) repeat an identical header-extraction
+  sequence four times** (reuse, simplification) — both real, both pre-existing m14a code untouched
+  by 15a's own diff, both carry real (if modest) regression risk to touch this late without a
+  dedicated review cycle of their own. Worth a future pass, not a code-review-triggered refactor of
+  a different milestone's validator/parser internals.
+- **`Flowchart.tsx`'s `TerminalNode`/`ProcessNode`/`IoNode`/`JumpNode` are four near-identical
+  small components** (simplification) — real, low-risk, but four instances is still readable;
+  worth collapsing at a fifth rather than now.
+
+New/changed tests: `CardBank.test.tsx` (+2: last-card focus, external-reclaim focus),
+`practice.spec.ts` (+1 new keyboard test, 1 existing test tightened to assert real focus instead of
+faking it). Tests: 1090 → 1092. Full suite (post-fix): 1092/1092 unit tests, 69/69 Playwright tests
+(full suite, re-run twice), typecheck/format/build all clean.
+
+## Github Commands for this milestone
+
+Continuing on `milestone-15` (already created, one branch for both 15a and 15b — same shape as
+every split milestone since 11a/11b). Includes both the milestone and its review fixes in one
+commit, matching every prior split milestone's own precedent:
+
+```bash
+git checkout milestone-15
+git add src/Workspace.tsx src/Workspace.test.tsx \
+  src/game/CardBank.tsx src/game/CardBank.test.tsx \
+  src/game/Flowchart.tsx src/game/flowchartModel.ts \
+  src/practice/registry.ts \
+  scripts/screenshots/smokes.spec.ts scripts/screenshots/practice.spec.ts \
+  scripts/screenshots/visual.spec.ts scripts/screenshots/visual.spec.ts-snapshots \
+  playwright.config.ts \
+  docs/VISUALS.md docs/DESIGN_RATIONALE.md docs/PLAN_v2.md docs/checkpoint_report.md
+git commit -m "Milestone 15a: lessons that animate on open (AC-14.5), plus the ~10-snapshot visual regression suite (AC-12.3), plus code-review fixes"
+git push -u origin milestone-15
+```
+
+Run `git status` first — anything under `docs/images/` beyond what's listed above is Playwright
+re-capture nondeterminism (confirmed across four consecutive full-suite runs touching a different
+file each time), not a real change from this milestone, and can be discarded or committed either
+way.
+
+**Do not merge yet** — 15b (shipping) continues on this same branch, and the whole of milestone 15
+merges once, after 15b, matching the 11a/11b–14a/14b precedent.
+
+**Prerequisite for 15b, not for this commit:** milestone 14 is not yet merged into `main` — `main`
+is still at `28e9e9c` (the merge of milestone 13), one commit before 14a. Netlify deploys production
+from `main` (D19), and 15b's own verification (AC-12.9, the 13-step walkthrough) needs the real
+production URL to reflect everything through 14b. Merge 14 before starting 15b:
+
+```bash
+git checkout main
+git pull origin main
+git merge --no-ff milestone-14-flowcharts -m "Merge milestone 14: Flowcharts — generation and fill-in-the-blanks"
+git push origin main
+```
+
+## Next
+
+Milestone 15b — shipping: `docs/PORTING.md` (§14's six required topics), the README overhaul plus a
+~6-second auto-playing demo GIF under 5MB (owner decision: ffmpeg, Playwright-recorded WebM →
+palette-optimised two-pass convert), production verification on the real deployed URL, and the full
+13-step verification walkthrough — with AC-11.5 (three real people) and the walkthrough's own DevTools
+step marked owner-only rather than silently ticked. This is the last milestone in the plan; once
+15b's own checkpoint lands, v1 is done.

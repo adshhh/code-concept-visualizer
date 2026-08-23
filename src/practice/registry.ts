@@ -1,26 +1,29 @@
-import type { PracticeConcept, PracticeLevel, PracticeProgram } from "./types";
+import type {
+  ExerciseType,
+  PracticeConcept,
+  PracticeLevel,
+  PracticeProgram,
+} from "./types";
 // Same import precedent as `src/lessons/recordings.ts`: real production code importing
 // committed trace/output JSON straight out of `tests/fixtures/`, not duplicated into src/.
 import expectedOutputJson from "../../tests/fixtures/practice/expected-output.json";
+
+// The real invariant D33 states is "every concept gets both exercise types except these two
+// named algorithms" — named here once so the two flowchart-only entries below read as the actual
+// exception, rather than the same `["reverse", "flowchart"]` literal repeated six times with a
+// reader left to diff all eight lines to notice which ones differ (found by code review).
+const BOTH: ExerciseType[] = ["reverse", "flowchart"];
 
 /** D27's 8 concepts. The 6 basics offer both exercise types; binary search and bubble sort are
  * flowchart-only (D33: reassembling an algorithm from shuffled lines tests memory, not
  * understanding) — see `docs/decisions/004-practice-scope-split.md`. */
 export const PRACTICE_CONCEPTS: PracticeConcept[] = [
-  { id: "for-loops", title: "For loops", exercises: ["reverse", "flowchart"] },
-  {
-    id: "index-loops",
-    title: "Index loops",
-    exercises: ["reverse", "flowchart"],
-  },
-  { id: "if-else", title: "If / else", exercises: ["reverse", "flowchart"] },
-  {
-    id: "while-loops",
-    title: "While loops",
-    exercises: ["reverse", "flowchart"],
-  },
-  { id: "functions", title: "Functions", exercises: ["reverse", "flowchart"] },
-  { id: "recursion", title: "Recursion", exercises: ["reverse", "flowchart"] },
+  { id: "for-loops", title: "For loops", exercises: BOTH },
+  { id: "index-loops", title: "Index loops", exercises: BOTH },
+  { id: "if-else", title: "If / else", exercises: BOTH },
+  { id: "while-loops", title: "While loops", exercises: BOTH },
+  { id: "functions", title: "Functions", exercises: BOTH },
+  { id: "recursion", title: "Recursion", exercises: BOTH },
   { id: "binary-search", title: "Binary search", exercises: ["flowchart"] },
   { id: "bubble-sort", title: "Bubble sort", exercises: ["flowchart"] },
 ];

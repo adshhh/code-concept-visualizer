@@ -115,15 +115,25 @@ export function Workspace() {
   const hasResult = result !== null && !isStale;
   const feedback = useMemo(() => deriveFeedback(result), [result]);
   const recording = useMemo(() => recordingFrom(result), [result]);
+  const lessonRecording = getLessonRecording(activeLesson.id);
+  // AC-14.5: shown whenever nothing has been run yet and the source on screen still matches the
+  // example's own — reusing the exact `recording.source === lesson.starterCode` invariant
+  // `recordings.test.ts` already pins (D23) rather than a second hand-written "is this edited"
+  // flag, so an edit (or, for Mode B, a changed input value) drops it immediately, with no new
+  // staleness concept. Also doubles as the guard against autoplaying past a `?fixture=&step=`
+  // deep link: devPreload seeds `result` from the fixture itself (never null), so this is already
+  // `undefined` whenever one is active, with nothing extra to check.
+  const previewRecording =
+    result === null && effectiveSource === lessonRecording?.source
+      ? lessonRecording
+      : undefined;
   // AC-2.7: once the engine is confirmed unavailable, Run can never produce a real `recording`
-  // (it's disabled below) — the lesson's own shipped recording (the exact same committed trace
-  // `registry.test.ts` already checks against the real engine, per D23) stands in for it, so
-  // the page still animates, steps, and scrubs instead of just showing an error and nothing
-  // else.
-  const fallbackRecording = engineUnavailable
-    ? getLessonRecording(activeLesson.id)
-    : undefined;
-  const displayRecording = recording ?? fallbackRecording;
+  // (it's disabled below) — the lesson's own shipped recording stands in for it regardless of
+  // whatever the learner typed, unlike `previewRecording` above, which drops the instant the
+  // source diverges. In the common case (source untouched) the two are literally the same
+  // object, so switching from "previewing" to "falling back" never resets or restarts playback.
+  const fallbackRecording = engineUnavailable ? lessonRecording : undefined;
+  const displayRecording = recording ?? fallbackRecording ?? previewRecording;
   const frameCount = displayRecording?.frames.length ?? 0;
   const playback = usePlayback(frameCount, devPreload?.step ?? 0);
   // Always called (hooks can't be conditional) — `enabled` is what actually keeps a plain-view
@@ -139,7 +149,9 @@ export function Workspace() {
   const challengeRowRef = useRef<HTMLDivElement | null>(null);
 
   const showPicture =
-    (hasResult && recording !== undefined) || !!fallbackRecording;
+    (hasResult && recording !== undefined) ||
+    !!fallbackRecording ||
+    !!previewRecording;
   const currentFrame = showPicture
     ? displayRecording?.frames[playback.step]
     : undefined;
@@ -147,6 +159,17 @@ export function Workspace() {
   // not an error state, so it never rings anything red regardless of playback position.
   const isFailingStep =
     hasResult && recording !== undefined && playback.step === frameCount - 1;
+
+  // AC-14.5: the lesson's own recording auto-plays once, immediately on open — real motion
+  // before the engine has even started loading, never a loop (that's Landing's own showcase
+  // behavior, per §11, not a lesson's — AC-7.4 forbids it here). Deliberately mount-once ([]):
+  // `LessonRoute`'s own `key={id}` (App.tsx) already remounts Workspace fresh per lesson, so
+  // there's no "did the lesson change" case to track separately, and `previewRecording` is
+  // already resolved correctly on this very first render (both `result` and `effectiveSource`
+  // start from their real initial values, not placeholders) — nothing to wait for.
+  useEffect(() => {
+    if (previewRecording) playback.play();
+  }, []);
 
   async function handleRun() {
     setRunning(true);
