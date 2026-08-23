@@ -163,6 +163,16 @@ function ifToBranch(stmt: IfStmt, id: () => string): FlowNode {
   );
 }
 
+// Node ids are allocated in *evaluation* order, not the chart's visual/reading order (found by
+// code review): `no` below is computed — walking the whole elif/else chain, allocating every id
+// in it — before this branch's own `id()` call, which itself runs before `yes`'s. A reader
+// tracing numeric ids top-to-bottom against the rendered chart will see them jump around
+// accordingly. Nothing in this file or `flowchartBlanks.ts` relies on id order meaning anything
+// (both walk the actual `yes`/`no` tree structure), and reordering these three id() calls to
+// match reading order would renumber every existing node — including the ids
+// `practice.spec.ts`'s screenshot tests already hardcode (`flowchart-slot-n3`/`n4`, found by
+// inspecting real output) — so this is left as a documented fact about the allocator, not
+// "fixed" to look tidier.
 function buildBranch(
   test: string,
   line: number,

@@ -546,8 +546,45 @@ Three constraints shape every decision:
 > single item in the plan and D28's designated cut-whole boundary, is complete without needing to
 > be cut.
 >
-> **Next: milestone 15 (Phase E — ship)**: ~10 visual snapshots, the 13-step verification
-> walkthrough, `docs/PORTING.md`, and the README + demo GIF — per the Build milestones table.
+> **Milestone 15a is built and checkpointed** (see `checkpoint_report.md`). Reading §11/§14 against
+> the actual tree — not against milestone 15's own summary in the Build milestones table — found
+> that AC-14.5 ("lessons animate immediately on open") was unbuilt product code sitting inside what
+> otherwise reads as a pure documentation-and-ship milestone: `Workspace.tsx` opened every lesson to
+> the static "press Run to see this" placeholder regardless of engine state. Per owner decision,
+> milestone 15 now splits into 15a (the last code) and 15b (shipping), on the 11a/b–14a/b precedent.
+>
+> **15a closes AC-14.5**, the final checks for **AC-2.7's structural half, AC-14.2, and AC-14.3**,
+> and **delivers AC-12.3's ~10-snapshot visual-regression suite**. `Workspace.tsx` gained a
+> `previewRecording` — the lesson's own shipped recording, shown whenever nothing has run yet and
+> the source on screen still matches the example's own — autoplaying once on mount and stopping at
+> Replay (AC-7.4's no-auto-loop rule holds). Kept genuinely distinct from AC-2.7's own
+> `fallbackRecording` (which must ignore whatever the learner typed, since running it isn't possible
+> either way), even though the two resolve to the same object in the common unedited case — which is
+> also why switching between "previewing" and "falling back" never restarts the animation.
+> `scripts/screenshots/visual.spec.ts` is the new committed baseline suite, deliberately separate
+> from the four existing uncompared capture specs; proven to actually catch a regression (a
+> deliberate `Chip.tsx` padding change failed 5 of 10 baselines, then passed clean once reverted).
+>
+> **One real flakiness bug, found by running the new suite back-to-back rather than trusting one
+> green pass.** The landing page loops forever, so pinning it needed `page.clock` to fake its
+> `setInterval`; a fixed real-time wait after the clock advance passed in isolation but landed on a
+> stale frame once run alongside the other nine tests, because that wait doesn't scale with machine
+> load. Fixed by waiting on the step text itself instead of a duration. A second, unrelated
+> flakiness source (Framer Motion's spring transitions settle asymptotically, never at an exact
+> pixel) was removed by running the whole suite under `reducedMotion: "reduce"` — `MotionRoot`
+> already supports this for exactly this reason. Full detail in `DESIGN_RATIONALE.md` §39.
+>
+> **Next: milestone 15b (Phase E — ship, continued)**: `docs/PORTING.md`, the README + demo GIF,
+> production verification on the real deployed Netlify URL, and the 13-step verification
+> walkthrough. **Prerequisite the owner must run first:** milestone 14 is not yet merged into
+> `main` — Netlify deploys production from `main` (D19), and 15b's own verification needs the real
+> production URL to reflect everything through 14b.
+>
+> **Two checks flagged owner-only rather than silently marked done, per this plan's existing
+> precedent for AC-11.5's 10-second test:** AC-2.1's felt/measured half ("open the real site, run a
+> program, confirm the page stays responsive in Chrome DevTools") needs a human in a real browser;
+> the architectural guarantee itself is unchanged and still holds by construction. Neither is
+> something this agent can perform from its own environment.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -656,7 +693,7 @@ one checkpoint = one branch = one merge.**
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
 | 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, select-then-place + keyboard — a `v2 correction (m14b)` on §9's own "drag" wording, see `decisions/006`) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21, fully closing AC-9.13. **Both done — see `checkpoint_report.md`, `decisions/005-statement-tree-and-derived-scope.md`, `decisions/006-flowchart-blanks-and-select-to-place.md`. §9 (Game layer) fully closed.** |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
-| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1                                                         |
+| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1. **v2 finding (m15 audit):** the milestone table's own summary reads as documentation-only, but §11/AC-14.5 ("lessons animate immediately on open") was unbuilt product code, not a verification step — found by reading §14 against the actual tree rather than against this row. **v2 split (owner decision, on the 11a/b–14a/b precedent): 15a = the last code — AC-14.5's preview-on-open, the ~10-snapshot `visual.spec.ts` baseline suite (AC-12.3), and the final checks AC-2.1/AC-14.2/AC-14.3 name. 15b = shipping — `docs/PORTING.md`, the README + demo GIF, production verification on the real deployed URL, the 13-step walkthrough, the final v1 checkpoint. 15a done — see `checkpoint_report.md` and `DESIGN_RATIONALE.md` §39.** |
 
 **Cuttable under time pressure, in this order** (per existing decisions): merge sort (stretch) →
 flowcharts (#14, D28) → Mode B lessons (#9, D14). Nothing else is cut before quality is.
@@ -829,6 +866,12 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > temporary dev harness (§13 visual/manual check), architecturally guaranteed by construction
    > (Worker isolation means the main thread structurally cannot be blocked by what runs inside
    > one). Final check at m15.
+   > **m15a note:** the architectural guarantee is unchanged and still holds by construction —
+   > nothing under `src/engine/` gained a way to run outside the Worker. The felt/measured half
+   > ("open the deployed site, run a real program, confirm the page stays responsive in Chrome
+   > DevTools' Performance tab") is a real-browser, human-judgment check the agent cannot perform
+   > from this environment, same as AC-2.3's start-up timing and AC-11.5's 10-second test —
+   > **owner-only, flagged here rather than marked done.**
 2. The landing page reaches first contentful paint **without waiting on Pyodide**. Only the editor
    panel shows a loading state.
    > **v2 re-sequencing:** this criterion names a landing page (m10) and an editor panel (m6),
@@ -1646,7 +1689,15 @@ screenshot cannot convey motion, which is the entire premise of the project.
    failures rather than silent drift. **→ m4**
 3. Ten visual snapshots exist, covering: landing page · Mode A lesson mid-run · Mode B lesson
    mid-run · a swap in progress · a comparison in progress · call stack at depth 3 · a dict · a nested
-   list · a runtime error state · a Challenge mode prompt. **→ m15**
+   list · a runtime error state · a Challenge mode prompt. **→ m15a**
+   _(**Delivered at m15a.** `scripts/screenshots/visual.spec.ts`, a committed `toHaveScreenshot()`
+   suite — deliberately separate from the four existing capture specs, which are uncompared
+   checkpoint evidence, not regression tests. Local-only (D18's CI never runs Playwright), under
+   `reducedMotion: "reduce"` to remove Framer Motion spring-settling jitter at its source, with a
+   small `maxDiffPixelRatio` for the sub-pixel font/cursor noise D17 caps this suite at ten
+   specifically to tolerate. Proven to actually catch a regression: a deliberate padding change to
+   `Chip.tsx` failed 5 of the 10 baselines visibly, then passed clean again once reverted. See
+   `docs/VISUALS.md` and `DESIGN_RATIONALE.md` §39.)_
 4. Five click-through smoke tests pass against a real browser. **→ m6** _(v2: previously unowned;
    m6 is the first demoable build, so it is the first point at which a click-through is possible.
    **Delivered at m6 (2026-08-13):** since lessons don't exist until m7, the 5 smokes target the
@@ -1657,10 +1708,10 @@ screenshot cannot convey motion, which is the entire premise of the project.
 6. CI runs install → typecheck → test → build on every push and is green on `main`. **→ m1**
 7. Every milestone branch produces a working preview URL **before** the owner is asked to review it.
    **→ m1** _(precondition for reviewing every later milestone.)_
-8. README exists with an auto-playing demo GIF under ~5 MB. **→ m15** _(v2: previously unowned. The
+8. README exists with an auto-playing demo GIF under ~5 MB. **→ m15b** _(v2: previously unowned. The
    README itself is stubbed in m1, since AC-2.3 writes start-up times into it at m3.)_
 9. The deployed production site loads and every lesson works **on the real URL**, not just locally.
-   **→ m15**
+   **→ m15b**
 
 ---
 
@@ -1823,17 +1874,33 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 
 **Acceptance criteria**
 
-1. `docs/PORTING.md` exists and covers all six topics above.
+1. `docs/PORTING.md` exists and covers all six topics above. **→ m15b.**
 2. An automated import rule prevents any player module from importing the engine. Deliberately adding
    such an import fails the check visibly.
-   _(v2: established in **m1**, not here — see the note under the milestone table. m15 still does the
-   final verification.)_
+   _(v2: established in **m1**, not here — see the note under the milestone table.
+   **Final verification at m15a:** the deliberate-violation experiment was re-run — adding a real
+   `../engine/run` import to `src/player/Picture.tsx` makes `architecture.test.ts` fail with a
+   clear message naming the offending file; removing it passes again. The guard still holds.)_
 3. All 11 lessons ship a saved recording; each is byte-identical to the committed test snapshot for
    that lesson's default input.
+   _(**Structurally satisfied, confirmed at m15a — not a comparison to re-run.**
+   `src/lessons/recordings.ts` globs the exact same `tests/fixtures/traces/lessons/*.json` files
+   `registry.test.ts` already validates the real engine against (D23) — there is no second copy
+   that could drift, so "byte-identical" is true by construction rather than something a test
+   compares after the fact.)_
 4. **With the Python engine blocked entirely** (simulate by blocking the Pyodide request), the site
    still loads and every lesson still animates, steps, scrubs, and runs its quizzes. Only "Run your
    own code" is unavailable, and it says so clearly rather than failing silently.
 5. Lessons animate immediately on open, before the engine has finished loading.
+   _(**Built at m15a**, not merely verified — this was the one genuine code gap the m1 audit found
+   sitting inside an otherwise-documentation-shaped milestone: before m15a, a lesson opened to a
+   static "press Run to see this" placeholder regardless of engine state. `Workspace.tsx` now
+   derives a `previewRecording` — the lesson's own shipped recording, shown whenever nothing has
+   run yet and the source on screen still matches the example's own — and autoplays it once, on
+   mount, stopping at Replay per AC-7.4's no-auto-loop rule. Verified in a real browser with
+   `**/pyodide/**` blocked (`smokes.spec.ts`'s AC-2.7 test) and via the new
+   `visual.spec.ts`/`Workspace.test.tsx` cases. See the m15a checkpoint and
+   `DESIGN_RATIONALE.md` §39.)_
 
 ---
 

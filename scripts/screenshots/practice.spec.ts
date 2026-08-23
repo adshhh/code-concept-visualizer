@@ -297,12 +297,68 @@ test.describe("practice route — flowchart fill-in-the-blanks, keyboard-only (m
 
     await bank.getByRole("button", { name: "Card: print(double(4))" }).focus();
     await page.keyboard.press(" "); // pick up — only one blank left, targeted automatically
-    await page.keyboard.press(" "); // place — correct
+    await page.keyboard.press(" "); // place — correct, and the last card in the bank
 
+    // Found by code review: this used to have to `.focus()` the Check button by hand here,
+    // because the very last placement dropped keyboard focus to `<body>` instead of anywhere on
+    // the page. Fixed by moving focus to the bank's own "all placed" message — confirmed by
+    // Tabbing from there, the same as a real keyboard-only learner would, rather than jumping
+    // straight to Check.
     await expect(page.getByText(/All cards placed/)).toBeVisible();
-    await page.getByRole("button", { name: "Check" }).focus();
+    await expect(page.getByText(/All cards placed/)).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name: "Check" })).toBeFocused();
     await page.keyboard.press("Enter");
 
+    await expect(page.getByTestId("flowchart-feedback")).toContainText(
+      "That's it — every blank matches the program.",
+    );
+  });
+
+  // Found by code review: reclaiming a filled blank (the documented "fix a mistake" affordance)
+  // moved the card back into the bank and marked it held, but never moved keyboard focus off the
+  // flowchart's own blank button — so the arrow keys the bank's own hint text promises
+  // ("choose a blank with the arrow keys") did nothing until the learner discovered they had to
+  // Tab away and find the now-held card by hand. This solves the puzzle correctly, deliberately
+  // the "wrong way round" first, to exercise that exact repair path with no mouse events at all.
+  test("reclaiming a filled blank via keyboard moves focus to the held card, so arrow keys work immediately", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+
+    const bank = page.getByRole("list", { name: "card bank" });
+    // Deliberately the wrong blank: places print(double(7)) into the first empty blank
+    // (print(double(4))'s own), so there's a real mistake to reclaim and correct below.
+    await bank.getByRole("button", { name: "Card: print(double(7))" }).focus();
+    await page.keyboard.press(" ");
+    await page.keyboard.press(" ");
+
+    const filledBlank = page.getByRole("button", { name: /^Filled with/ });
+    await filledBlank.focus();
+    await page.keyboard.press("Enter"); // native button activation — reclaims the card
+
+    const reclaimedCard = bank.getByRole("button", {
+      name: "Card: print(double(7))",
+    });
+    await expect(reclaimedCard).toHaveAttribute("aria-pressed", "true");
+    await expect(reclaimedCard).toBeFocused();
+
+    // Proves the arrow key actually reached CardBank's own handler, not the flowchart button
+    // focus never left — moving the target and placing lands the card in the *other* blank.
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press(" ");
+    await bank.getByRole("button", { name: "Card: print(double(4))" }).focus();
+    await page.keyboard.press(" ");
+    await page.keyboard.press(" ");
+
+    await expect(page.getByText(/All cards placed/)).toBeVisible();
+    await page.getByRole("button", { name: "Check" }).click();
     await expect(page.getByTestId("flowchart-feedback")).toContainText(
       "That's it — every blank matches the program.",
     );
