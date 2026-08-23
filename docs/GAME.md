@@ -396,6 +396,194 @@ and `architecture.test.ts` forbids `player/` importing `engine/`. `Workspace.tes
 14-test suite passes unchanged after the move, confirming it was a pure extraction, not a
 rewrite — the same discipline the 12b code-review round used for `recordingFrom`.
 
+## Flowcharts (14a, AC-9.13/9.14/9.18/9.20, fully closes AC-9.11)
+
+`src/subset/tree.ts` builds a statement tree as an **additive second pass** over the tokenizer's
+own INDENT/DEDENT/NEWLINE output — `src/subset/parser.ts`, which gates every program that reaches
+the execution engine, is untouched. `src/game/flowchartModel.ts` derives a nested `FlowNode[]`
+model from that tree; `src/game/Flowchart.tsx` renders it read-only (the fill-in-the-blanks
+exercise itself, plus hint level, is m14b). Full reasoning in
+`docs/decisions/005-statement-tree-and-derived-scope.md` and `DESIGN_RATIONALE.md` §37.
+
+### §9 corrected again: the subset is not jump-free
+
+"the subset has no exceptions, generators or jumps, so control flow is always cleanly nested" is
+false as written — `break`/`continue` are accepted (`parser.ts:153-155`,
+`tests/fixtures/accepted/09_while_break_continue.py`). A nested-CSS-column layout (chosen so
+AC-9.19's "no overlapping nodes" holds structurally rather than by testing coordinates) has no
+routed space to draw a jump edge in, so `break`/`continue` render as labelled exit nodes ("leave
+the loop", "next iteration") instead of a mis-drawn edge — a stated limitation, not a silent one.
+`bubble-sort-hard.py` was authored with a real `swapped`-flag early exit specifically so this path
+is exercised by the corpus, not only by a fixture.
+
+### Every def expands in place — no scope to pick (D35's mechanism, not its outcome)
+
+`flowchartFrom` always charts the whole module body under one Start/End; a `def` renders as its
+own labelled `"function"`-kind region containing its own body, expanded in place alongside
+whatever else sits at the same level — never a separate scope to choose and never an opaque box.
+
+**This corrects an earlier version of this same milestone**, found by `/code-review` before
+merge: a first design tried to *narrow* the chart to "the" function when a program defined exactly
+one, on the reasoning that D35 as literally worded ("for a loop, one iteration; for bubble sort,
+the overall algorithm") is answerable from the program's own structure without a per-concept
+table. It was — but the narrowing itself was wrong. Checking all 6 `def`-containing corpus
+programs directly: `functions-hard` (two functions) rendered as two opaque, unexpanded boxes with
+no visible control flow at all; `functions-medium` and `recursion-hard` (one function each) each
+lost their own top-level driving loop. Only 3 of 6 were actually fine. Always charting everything
+removes the rule rather than refining it — no program loses anything, and the code is simpler for
+having no `defs.length === 1` branch to maintain. Full account in `DESIGN_RATIONALE.md` §37's
+follow-up entry and `decisions/005`'s own correction note.
+
+**The gap that let it ship**: nothing tested `flowchartFrom` against the real 24-program corpus —
+only the general fixture sweep (below) and synthetic snippets. `flowchartModel.test.ts` now also
+runs every real Practice program through an independent oracle built from the statement tree
+itself (not the chart) — if the tree contains a `for`/`while`/`if` anywhere, including inside a
+function, the chart must contain a corresponding node. Run against the pre-fix code, this fails on
+exactly the 3 programs found by inspection.
+
+### AC-9.18, proven against 32 programs the derivation was never tuned on
+
+`flowchartModel.test.ts` runs `flowchartFrom` over every file in `tests/fixtures/accepted/` — the
+milestone-2 fixture suite, none of it written with a flowchart in mind — and asserts a non-empty
+chart with no thrown error and no duplicate node id, for all 32. This is AC-9.18's "generated
+correctly for a program the system has never seen before" taken literally, not just satisfied by
+the hand-picked corpus.
+
+### AC-9.19, checked in a real browser against real bounding boxes
+
+`practice.spec.ts` renders `binary-search-medium`'s flowchart (an `if`/`elif`/`else` inside a
+`while` loop — the richest branch layout in this corpus) and pairwise-compares every
+`[data-testid^="flowchart-node-"]` element's real `boundingBox()`. jsdom has no layout engine, so
+this is checked where it can actually be measured, the same discipline `practice.spec.ts`'s
+pointer-drag test already established for framer-motion.
+
+### Two extraction bugs, caught before either shipped
+
+The header-text extraction that turns a statement's tokens into its displayed label sliced by
+*line number*, which breaks for the one shorthand where a suite shares its header's own physical
+line (`while True: pass` — the same shape `28_single_line_suites.py` pins). A hand-written test for
+exactly this shorthand caught it immediately; the fix adds a small bracket/string-aware column
+scanner for the one case line-slicing can't distinguish. Separately, `FlowNode`'s process/io
+variant was first written as a single member with `kind: "process" | "io"` rather than two
+discriminated members — `Extract<FlowNode, { kind: "process" }>` silently resolves to `never`
+against a union field like that, which the type checker caught the moment a component was typed
+against the extraction. Both are recorded in `DESIGN_RATIONALE.md` §37 alongside a third,
+non-code bug: `src/game/flowchart.ts` (the derivation module) and `src/game/Flowchart.tsx` (the
+renderer) collided on this machine's case-insensitive filesystem — renamed to
+`flowchartModel.ts`, since no other module in this codebase pairs a lowercase logic file with a
+same-named capitalized component.
+
+### A visual bug, found only by looking
+
+A generated `if`/`elif`/`else` chart's first render drew a short, disconnected tick after each
+branch's two arms, meant to signal "these converge" — but a nested `elif` branch and its enclosing
+branch each centred their own tick independently, producing two small floating dashes that
+connected to nothing. The enclosing sequence's own `▼` connector already supplies "this continues"
+wherever a branch sits, so the per-branch tick was pure redundancy; removed rather than fixed
+forward, on the same honesty argument as the jump-rendering limitation above — no drawn line beats
+one that goes nowhere.
+
+### Two smaller findings from the same `/code-review` round
+
+`parseFor` and `parseWhile` in `src/subset/tree.ts` were byte-identical apart from the keyword and
+the returned `kind` — merged into one `parseLoop(keyword)`, removing a real divergence hazard (a
+future header-handling fix applied to one and forgotten in the other). And two comments/test
+descriptions in `src/practice/registry.ts`/`registry.test.ts` still said "18 programs" after the
+corpus grew to 24 earlier in the same diff — `Practice.tsx`'s equivalent comment had been updated
+correctly, so this was a miss, not a pattern.
+
+One finding was left as documented rather than fixed: `flowchartFrom` tokenizes its source twice
+(once inside `validate()`, once inside `buildTree()`). Real waste, but sharing tokens would mean
+widening `validate()`'s own API for a caller outside `src/subset/` — more cost than a redundant lex
+pass over a ≤100-line program is worth today. A comment on `flowchartFrom` names the trigger to
+revisit (a hotter call path, e.g. live validation-as-you-type).
+
+## Flowcharts: fill-in-the-blanks (14b, closes AC-9.12/9.19/9.21, fully closes AC-9.13)
+
+14a's read-only diagram becomes the actual exercise §9 describes. `src/game/flowchartBlanks.ts`
+derives, from the chart alone, which nodes are blanked and what the shuffled card bank holds;
+`src/game/CardBank.tsx` is the bank widget; `src/game/Flowchart.tsx` gained an optional `slots`
+prop that turns some labels into interactive blanks without changing anything about 14a's
+read-only render when that prop is omitted. Full reasoning in
+`docs/decisions/006-flowchart-blanks-and-select-to-place.md` and `DESIGN_RATIONALE.md` §38.
+
+### §9 corrected again: it's select-then-place, not drag
+
+"drag cards to complete the flowchart" describes an interaction this layout can't do honestly. A
+bank→blank drag needs real drop-target hit-testing against blanks that live inside nested flex
+columns which **reflow every time a slot fills** — an empty dashed placeholder and a filled label
+are different widths, so every blank's bounding box would need re-measuring after each placement.
+The exercise instead uses select-then-place: click a card to pick it up, click a blank to place
+it; on keyboard, Space picks up, arrows move the target between blanks, Space places, Escape
+cancels — one mechanic, identical for mouse and keyboard, rather than two paths that can diverge.
+See `decisions/006`.
+
+### Which nodes blank, measured against the real corpus before the ratios were fixed
+
+Blanks are ranked by teaching value — `branch` first, then `loop`, then `io`, then `process`;
+`terminal`, `jump` and a `def`'s own signature are never blankable. Hint level is a *proportion*
+of the chart (easy ≈2/3 pre-filled, medium ≈1/3, hard none), not a fixed count, because the
+corpus's own blankable-node totals range from 2 to 10 — a fixed count would be trivial on one end
+and impossible on the other. Measured directly from `flowchartFrom` + `blankableNodes` before
+`blankCount`'s ratios were written (`flowchartBlanks.test.ts`'s own AC-9.21 block re-asserts these
+numbers on every run, so this table can't silently drift out of date):
+
+| Program | Blankable nodes | Program | Blankable nodes |
+| --- | --- | --- | --- |
+| for-loops-easy | 4 | recursion-easy | 4 |
+| for-loops-medium | 5 | recursion-medium | 2 |
+| for-loops-hard | 7 | recursion-hard | 3 |
+| index-loops-easy | 4 | binary-search-easy | 8 |
+| index-loops-medium | 6 | binary-search-medium | 9 |
+| index-loops-hard | 7 | binary-search-hard | 5 |
+| if-else-easy | 4 | bubble-sort-easy | 5 |
+| if-else-medium | 7 | bubble-sort-medium | 7 |
+| if-else-hard | 7 | bubble-sort-hard | 10 |
+| while-loops-easy | 4 | functions-easy | 2 |
+| while-loops-medium | 6 | functions-medium | 3 |
+| while-loops-hard | 7 | functions-hard | 3 |
+
+**AC-9.21's honest form**: pre-filled count is non-increasing across levels for every program, and
+strictly decreasing wherever the chart is large enough to distinguish them. `functions-easy` and
+`recursion-medium` — the corpus's only 2-node charts — correctly tie medium and hard at 0
+pre-filled; every program with 3 or more blankable nodes strictly decreases at every step. This is
+the same "measure first, then write the rule against the real numbers" discipline
+`decisions/003`'s pre-milestone audit already commits every milestone to.
+
+### The card bank: exactly N cards for N blanks, no distractors
+
+D32 says "how many cards start pre-filled," not "how large the bank is" — so the bank holds
+exactly the blanked labels, shuffled, never a larger pool with generated near-misses. **Stated
+limitation**: on a small chart the last card is always free by elimination once every other card
+has an obvious home. Accepted rather than patched with mutated-label distractors, which would
+themselves be a second hand-tuned artifact per program — exactly what D34 argues against.
+
+### A visual bug, found only by looking
+
+Screenshot self-review (the same discipline that caught 14a's rejoin-tick and case-collision
+bugs) found that a tiny dashed placeholder barely moves under the shared `emphasisVariants`
+scale/brightness treatment (`NumberList.tsx`'s own 12%-scale, 15%-brightness bump, which reads
+clearly on a filled value box) — the targeted blank read no differently from any other empty one,
+which fails CLAUDE.md's hard rule ("drawn large and bright... applies to every renderer") even
+though the *rest* of the chart correctly dimmed. Fixed with a direct ring-and-glow treatment on
+the targeted blank's own button, layered on top of the existing dim treatment elsewhere, so the
+one node currently being placed now reads unmistakably as "this one" against a visibly receded
+chart. See `decisions/006`'s own trade-offs section and the before/after screenshots.
+
+### Two smaller findings from tracing the exact keyboard sequence before writing the Playwright test
+
+Tracing the real keyboard sequence for `practice.spec.ts`'s full solve (not just reading the code)
+surfaced a real focus-loss bug: a placed card's own button unmounts the instant it leaves the
+bank, and without intervention the browser drops focus to `<body>` — a keyboard-only learner would
+lose their place in the page after every single placement. `CardBank.tsx` now refocuses whatever
+card is now first whenever one actually leaves the bank (never on an unrelated re-render, so it
+can't fight a pick-up mid-gesture); a regression test proves the browser is never left focused on
+`<body>` after a placement.
+
+Separately, an empty card bank (every card placed) rendered as a visible, empty bordered box below
+the "All cards placed" message — harmless but easy to mistake for a rendering glitch. The bank's
+own container now renders only when it has cards to show.
+
 ## Files
 
 **12a:** `src/game/lineRuns.ts` · `runInfo.ts` · `moments.ts` · `questions.ts` · `counters.ts` ·
@@ -428,3 +616,29 @@ divergence tests; lives outside `src/game/` for the same reason `algorithms.test
 (+`getExpectedOutput`) · `src/Workspace.tsx` (imports the extracted `deriveFeedback`, no
 behaviour change) · `App.tsx`/`Landing.tsx` (the `/practice` route and its link) ·
 `docs/VISUALS.md` (the keyboard-operability pattern, in Accessibility).
+
+**14a:** `src/subset/tree.ts` + `tree.test.ts` (new — the statement tree, additive over the
+tokenizer) · `src/game/flowchartModel.ts` + `flowchartModel.test.ts` (new — tree → diagram model,
+checked against all 32 `tests/fixtures/accepted/` programs for AC-9.18) · `src/game/Flowchart.tsx`
++ `Flowchart.test.tsx` (new — the read-only renderer) ·
+`src/practice/programs/{binary-search,bubble-sort}-{easy,medium,hard}.py` (new, 6 — D27's
+remaining programs) · `src/practice/types.ts` (+`ExerciseType`, `PracticeConcept.exercises`) ·
+`src/practice/registry.ts` (+2 concepts) · `src/practice/registry.test.ts` (18→24 programs,
+6→8 concepts, the reverse-vs-flowchart invariant relocated per finding 3) · `src/routes/Practice.tsx`
++ `Practice.test.tsx` (the exercise-type control, `FlowchartExercise`) ·
+`scripts/screenshots/practice.spec.ts` (+flowchart render, the AC-9.19 overlap check, 3
+screenshots) · `tests/fixtures/practice/expected-output.json` (snapshot, +6) ·
+`docs/decisions/005-statement-tree-and-derived-scope.md` (new).
+
+**14b:** `src/game/flowchartBlanks.ts` + `flowchartBlanks.test.ts` (new — which nodes blank, the
+card bank, `checkPuzzle`, the AC-9.21 measurement over all 24 corpus programs) ·
+`src/game/seededRandom.ts` + `seededRandom.test.ts` (new — the PRNG extracted out of `blocks.ts`'s
+own `shuffleBlocks`, shared with the new card bank's shuffle) · `src/game/CardBank.tsx` +
+`CardBank.test.tsx` (new — the select-then-place bank widget, plus the focus-follows-placement
+regression) · `src/game/Flowchart.tsx` + `Flowchart.test.tsx` (+the optional `slots` prop, the
+spotlight, the targeted-blank ring fix) · `src/game/blocks.ts` (`shuffleBlocks` now delegates to
+`seededRandom.ts`, same behaviour) · `src/routes/Practice.tsx` + `Practice.test.tsx`
+(`FlowchartExercise` gains the hint-level control; the new `FlowchartPuzzle` owns placement state)
+· `scripts/screenshots/practice.spec.ts` (+the keyboard-only puzzle solve, AC-9.19 at all 3 hint
+levels and on a partially-filled chart, 3 puzzle screenshots) ·
+`docs/decisions/006-flowchart-blanks-and-select-to-place.md` (new).

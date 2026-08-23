@@ -157,6 +157,338 @@ test.describe("practice route — feedback for a real wrong answer", () => {
   });
 });
 
+test.describe("practice route — flowcharts, generated not authored (m14a, AC-9.13/9.14/9.18)", () => {
+  test("an algorithm concept offers only the flowchart, no exercise-type control to switch away from it", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await expect(
+      page.getByRole("group", { name: "exercise type" }),
+    ).toHaveCount(0);
+    await expect(page.getByText(/only offers a flowchart/)).toBeVisible();
+  });
+
+  test("a basic concept can switch from reverse mode to its flowchart", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await expect(
+      page.getByRole("button", { name: "Reverse the code" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await expect(
+      page.locator('li[data-testid^="practice-block-"]'),
+    ).toHaveCount(0);
+  });
+
+  // AC-9.19: no generated node may overlap another, "at every hint level" (m14a proved this for
+  // one read-only state only and deferred the rest here). Checked against a real multi-branch
+  // program (if/elif/else inside a while loop — the richest layout this corpus produces) in a
+  // real browser, since jsdom has no real layout pipeline to measure against — and against a
+  // partially-filled chart too, since a filled slot is a different size than an empty one.
+  async function assertNoOverlap(page: import("@playwright/test").Page) {
+    const nodes = page.locator('[data-testid^="flowchart-node-"]');
+    const count = await nodes.count();
+    // Tied specifically to binary-search-medium, every call site's own program: start/end +
+    // low/high/mid/while/if/elif/else/3 returns is 10+ nodes — a real check, not a vacuous pass
+    // over an empty or single-node chart. Pointing this helper at a different or smaller program
+    // would need this threshold revisited (found by code review: the comment justifying "8" was
+    // dropped when this became a shared helper).
+    expect(count).toBeGreaterThan(8);
+
+    const boxes: { x: number; y: number; width: number; height: number }[] = [];
+    for (let i = 0; i < count; i++) {
+      const box = await nodes.nth(i).boundingBox();
+      if (!box) throw new Error(`Could not measure flowchart node ${i}`);
+      boxes.push(box);
+    }
+
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]!;
+        const b = boxes[j]!;
+        const overlaps =
+          a.x < b.x + b.width &&
+          a.x + a.width > b.x &&
+          a.y < b.y + b.height &&
+          a.y + a.height > b.y;
+        expect(overlaps, `node ${i} and node ${j} overlap`).toBe(false);
+      }
+    }
+  }
+
+  for (const hint of ["Easy", "Medium", "Hard"] as const) {
+    test(`no flowchart node overlaps another at ${hint} hints, empty puzzle`, async ({
+      page,
+    }) => {
+      await page.goto("/practice");
+      await page.getByRole("button", { name: "Binary search" }).click();
+      await page
+        .getByRole("group", { name: "difficulty" })
+        .getByRole("button", { name: "Medium" })
+        .click();
+      await expect(page.getByTestId("flowchart")).toBeVisible();
+      await page
+        .getByRole("group", { name: "hint level" })
+        .getByRole("button", { name: hint, exact: false })
+        .click();
+      await assertNoOverlap(page);
+    });
+  }
+
+  test("no flowchart node overlaps another once some blanks are filled", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Medium" })
+      .click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+
+    // Place whatever the first bank card actually is into whichever blank is currently targeted
+    // after picking it up — real derived content, not a value pinned in advance, since this test
+    // only cares about layout, not correctness.
+    const firstCard = page
+      .getByRole("list", { name: "card bank" })
+      .getByRole("button")
+      .first();
+    await firstCard.click();
+    const targetedSlot = page
+      .locator('[data-testid^="flowchart-slot-"]')
+      .first();
+    await targetedSlot.click();
+
+    await assertNoOverlap(page);
+  });
+});
+
+test.describe("practice route — flowchart fill-in-the-blanks, keyboard-only (m14b, AC-9.12/9.13/9.21)", () => {
+  // functions-easy's flowchart has exactly 2 blankable nodes (both `print(double(...))` calls —
+  // its `return n * 2` is a terminal, never blankable) — computed once directly from the real,
+  // imported `flowchartFrom`/`buildPuzzle` before writing this file, not guessed: at the "hard"
+  // hint level (all blanks empty, seed `functions-easy#hard`), the blanks are
+  // [print(double(4)), print(double(7))] in chart order and the shuffled bank is
+  // [print(double(7)), print(double(4))] — so the first bank card's own text is the *second*
+  // blank's answer, not the first's.
+  test("solves the puzzle with no mouse events at all", async ({ page }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+
+    const bank = page.getByRole("list", { name: "card bank" });
+    await bank.getByRole("button", { name: "Card: print(double(7))" }).focus();
+    await page.keyboard.press(" "); // pick up — targets the first empty blank, print(double(4))
+    await page.keyboard.press("ArrowDown"); // move the target to print(double(7))'s own blank
+    await page.keyboard.press(" "); // place — correct
+
+    await bank.getByRole("button", { name: "Card: print(double(4))" }).focus();
+    await page.keyboard.press(" "); // pick up — only one blank left, targeted automatically
+    await page.keyboard.press(" "); // place — correct
+
+    await expect(page.getByText(/All cards placed/)).toBeVisible();
+    await page.getByRole("button", { name: "Check" }).focus();
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByTestId("flowchart-feedback")).toContainText(
+      "That's it — every blank matches the program.",
+    );
+  });
+
+  test("Escape returns a held card to the bank without placing it", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+
+    const card = page
+      .getByRole("list", { name: "card bank" })
+      .getByRole("button", { name: "Card: print(double(7))" });
+    await card.focus();
+    await page.keyboard.press(" ");
+    await page.keyboard.press("Escape");
+
+    await expect(card).toBeVisible();
+    await expect(card).toHaveAttribute("aria-pressed", "false");
+  });
+});
+
+test.describe("practice route — flowchart screenshot for visual self-review", () => {
+  test("screenshot: a generated flowchart with a branch", async ({ page }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "If / else" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Medium" })
+      .click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart.png",
+      fullPage: true,
+    });
+  });
+
+  test("screenshot: a recursive algorithm's flowchart", async ({ page }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Hard" })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-recursive.png",
+      fullPage: true,
+    });
+  });
+
+  // bubble-sort-hard is the one corpus program combining a nested loop, a branch, *and* a jump
+  // (break) — worth its own capture since flowchart.test.ts only exercises the jump rendering in
+  // jsdom, never a real browser layout.
+  test("screenshot: a nested-loop algorithm's flowchart, with a break", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Bubble sort" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Hard" })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-nested-loop.png",
+      fullPage: true,
+    });
+  });
+
+  // Found by code review: an earlier scoping rule charted only "the" function when a program
+  // defined exactly one, and fell back to opaque, unexpanded boxes for any program with two or
+  // more — functions-hard defines two (half, shrink) and was the exact case that regressed.
+  // Captured here so the fix (every def expands to its own labelled region) is visible, not just
+  // asserted.
+  test("screenshot: a two-function program's flowchart, each function expanded", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Hard" })
+      .click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-two-functions.png",
+      fullPage: true,
+    });
+  });
+
+  test("screenshot: a fresh fill-in-the-blanks puzzle at hard hints, nothing filled yet", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Medium" })
+      .click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-puzzle-empty.png",
+      fullPage: true,
+    });
+  });
+
+  test("screenshot: the puzzle mid-solve — one card held, the spotlight on its targeted blank", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Binary search" }).click();
+    await page
+      .getByRole("group", { name: "difficulty" })
+      .getByRole("button", { name: "Medium" })
+      .click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+
+    await page
+      .getByRole("list", { name: "card bank" })
+      .getByRole("button")
+      .first()
+      .click();
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-puzzle-held.png",
+      fullPage: true,
+    });
+  });
+
+  test("screenshot: a checked puzzle with a wrong blank marked", async ({
+    page,
+  }) => {
+    await page.goto("/practice");
+    await page.getByRole("button", { name: "Functions" }).click();
+    await page.getByRole("button", { name: "Flowchart" }).click();
+    await page
+      .getByRole("group", { name: "hint level" })
+      .getByRole("button", { name: "Hard", exact: false })
+      .click();
+    await expect(page.getByTestId("flowchart")).toBeVisible();
+
+    // Deliberately swapped, same real puzzle traced for the keyboard-only spec above (blanks
+    // n3 = print(double(4)), n4 = print(double(7)), by real node id) — each blank gets the
+    // *other* one's card, guaranteeing both read as wrong at Check. Targets each blank by its
+    // own node id explicitly, not `.first()` twice — the first placement doesn't remove n3's
+    // slot from the DOM, so a second `.first()` would just overwrite it instead of reaching n4.
+    const bank = page.getByRole("list", { name: "card bank" });
+    await bank.getByRole("button", { name: "Card: print(double(7))" }).click();
+    await page.getByTestId("flowchart-slot-n3").click();
+    await bank.getByRole("button", { name: "Card: print(double(4))" }).click();
+    await page.getByTestId("flowchart-slot-n4").click();
+    await page.getByRole("button", { name: "Check" }).click();
+    await expect(page.getByTestId("flowchart-feedback")).toContainText(
+      /still wrong/,
+    );
+
+    await page.waitForTimeout(300);
+    await page.screenshot({
+      path: "docs/images/practice-flowchart-puzzle-wrong.png",
+      fullPage: true,
+    });
+  });
+});
+
 test.describe("practice route — screenshot for visual self-review", () => {
   test("screenshot: a solved exercise", async ({ page }) => {
     await page.goto("/practice");

@@ -1537,6 +1537,210 @@ isolation would have caught either, since the class names were correct — copie
 Compare.tsx. Only a real screenshot, of a *small* program specifically, showed it. Fixed with the
 one class Compare.tsx's own outer card supplies that Practice's first draft dropped.
 
+## 37. Milestone 14a: a tree beside the parser instead of inside it, a scope computed instead of tabulated, and a case collision this Mac's own filesystem produced
+
+`decisions/004` told m14 it would need "a real tree" without saying what shape. The shape that
+came out — `src/subset/tree.ts`'s statement tree — was picked for a reason that only became
+obvious while writing it: a flowchart node's label is the author's own source text, sliced
+verbatim from the lines a statement's tokens span, never re-rendered from tokens. An expression
+AST would have been built and then immediately serialised back to the same text it started as, for
+zero benefit — the corpus's own labels (`i == len(nums)`, `nums[j] > nums[j + 1]`) only need to be
+found and bounded, not parsed down to their own grammar. Full reasoning, including why this stays
+additive over `tokenize()`'s output rather than touching `parser.ts` at all, in
+`decisions/005-statement-tree-and-derived-scope.md`.
+
+**§9's own claim about the subset was wrong, and the fixture suite already proved it.**
+"the subset has no exceptions, generators or jumps" is false as written — `parser.ts:153-155`
+accepts `break`/`continue`, and `tests/fixtures/accepted/09_while_break_continue.py` has pinned
+this since milestone 2. Nobody had reason to notice until a flowchart renderer needed every
+control-flow shape the subset actually permits, not the ones a summary sentence claimed. The
+honest fix wasn't to route a jump edge through a nested-flex-column layout that has no coordinate
+space to draw one in — it's to render `break`/`continue` as labelled exit nodes ("leave the loop",
+"next iteration") and say so in the docs, which is what `decisions/005` and the corpus's own
+`bubble-sort-hard.py` (built with a real `swapped`-flag early exit, deliberately, so this path
+isn't only exercised by a fixture) both do.
+
+**D35's scope rule turned out to already be answerable from the program itself.** "For a loop, one
+iteration; for bubble sort, the overall algorithm" reads, on a second pass, as a restatement of "if
+there's one function, that's the interesting part" — which the program already says, structurally.
+Authoring a per-concept table would have been an eighth (now, at 24 programs, a ninth-per-program)
+piece of hand-maintained content the moment D27 grows, with nothing to keep it in sync with what a
+program actually contains. `flowchartFrom` reads it off instead: exactly one top-level `def` means
+chart that function's body under Start/End labelled from its own signature; anything else charts
+the module body, and a `def` encountered there renders as a single unexpanded node rather than
+guessing which function the learner meant. D35's outcome didn't change — the mechanism did, and
+that's a small enough thing that no section reopens for it (`decisions/005` records it anyway,
+since it touches a locked decision's *how*, not just a scheduling note).
+
+**A real bug in the extraction technique, found by the hook's own test run, not by inspection.**
+The statement tree slices a header's text by *line number* — from a statement's first token's line
+to its terminating token's line — which is exactly wrong for the one Python shorthand where a
+suite shares its header's physical line (`while True: pass`, the same shape
+`28_single_line_suites.py` exists to pin). Line-range slicing grabbed the whole line, body
+included, and `stripHeader`'s trailing-`:` check silently failed to find a colon at the end because
+`pass` was still there. Two tests written up front — including one for exactly this shorthand —
+caught it immediately, before any of the four call sites that needed the fix had shipped. The fix
+adds a small standalone character scanner (bracket- and string-aware, mirroring the technique
+`splitTopLevel` already uses on tokens) that finds the header-terminating `:` by column when the
+line-level check can't distinguish "header" from "body" text on a shared line.
+
+**A second real bug, from this Mac's own filesystem rather than the code.** `src/game/flowchart.ts`
+(the derivation module) and `src/game/Flowchart.tsx` (the renderer) are two files whose names
+differ only in case — a pairing nowhere else in this codebase repeats (`blocks.ts` has no
+`Blocks.tsx`; `reverseMode.ts` has no `ReverseMode.tsx`). On this machine's case-insensitive APFS
+volume, that collision made TypeScript and Vite resolve `./flowchart` and `./Flowchart` to
+whichever file the case-insensitive lookup happened to prefer, not the one each import actually
+named — surfacing first as `<Flowchart nodes={chart} />` rendering as `undefined`, a genuinely
+confusing failure with no obvious link to a filename until the case-insensitive-collision
+hypothesis was tested directly (`ls` showing all four files present and distinct was the tell that
+ruled out a literal overwrite). Renamed the model module to `flowchartModel.ts` — distinct from
+`Flowchart.tsx` under any case-folding — rather than working around the collision, since the
+collision itself was the bug, not something to route past.
+
+**A third bug the type checker caught the moment it had the chance.** `FlowNode`'s process/io
+variant was first written as one member with `kind: "process" | "io"` — a union *inside* one
+object type, not two separate discriminated members. `Extract<FlowNode, { kind: "process" }>`
+against that shape resolves to `never`, since a type whose `kind` field might be `"io"` isn't
+assignable to one that requires `"process"` — so every component typed against the narrowed
+extraction failed to compile, and the `switch` in `FlowchartNode` narrowed to nothing on those two
+branches. Splitting the union into two proper members (`{ kind: "process"; ... }` and `{ kind:
+"io"; ... }`) fixed both the compile error and, not incidentally, the whole reason discriminated
+unions exist: letting `switch (node.kind)` and `Extract<>` actually discriminate.
+
+**A visual bug found only by looking, matching the pattern every recent milestone has hit at least
+once.** The first render of a nested `if`/`elif`/`else` chart drew a short, disconnected vertical
+tick after *each* branch's two arms — meant to signal "these converge and continue," but since a
+nested `elif` branch and its enclosing branch each drew their own independently-centred tick, the
+result was two small floating dashes near each other that connected to nothing a viewer could
+follow, reading as a broken line rather than a deliberate one. The fix was subtractive: the
+enclosing `NodeSequence`'s own connector — the same `▼` arrow every other sibling transition
+already uses — already supplies "this continues" wherever a branch sits in a larger sequence, so
+the per-branch tick was pure redundancy, not a missing feature with a partial implementation. Removed
+rather than fixed forward, on the same honesty argument as the jump-rendering finding above: no
+drawn line is better than one that goes nowhere.
+
+### A follow-up: `/code-review`, run before merge, found the scope rule itself was the bug
+
+Four review agents examined the diff from different angles — reuse, altitude/conventions,
+removed-behavior, and cross-file caller safety — and two of them independently found the same
+thing by actually reading the shipped corpus rather than trusting the design rationale above: the
+"exactly one top-level function" scope rule silently dropped real content, and this wasn't a rare
+edge case. Checking all six `def`-containing programs directly: `functions-hard` (two functions)
+rendered as two opaque, unexpanded boxes with no visible control flow at all — the worst case, a
+concept's own "hard" exercise showing nothing hard about it. `functions-medium` and
+`recursion-hard` (one function each) each lost their own top-level driving loop — `recursion-hard`
+specifically loses the reason its output has 6 lines instead of 1. Only 3 of the 6 were actually
+fine. A rule that degrades on half the real content it was built for isn't a narrow heuristic with
+an edge case; it's the wrong rule.
+
+The fix removes the scope concept entirely rather than patching it — `flowchartFrom` now always
+charts the whole module body, and a `def` becomes a `"function"`-kind node: a labelled region
+containing its own body, expanded in place, alongside whatever else sits at the same level. Every
+one of the three degraded programs now shows everything: `functions-hard`'s loop and its call into
+`half`, `functions-medium`'s and `recursion-hard`'s own driving loops, and — a bonus neither
+scoped version could show — the call site itself, so a learner sees the function *and* where it's
+called from. The code also got simpler: the `defs.length === 1` branch is gone, and
+`flowchartFrom` is four lines shorter than the version it replaced. This is the second time this
+milestone that removing a rule outperformed refining it (the disconnected rejoin-tick fix above
+was the first) — in both cases, the honest read of "what is this actually accomplishing" was "less
+than the code implementing it costs."
+
+**The gap that let it ship**: nothing tested `flowchartFrom` against the real 24-program corpus —
+`flowchartModel.test.ts` exercised the general fixture suite (AC-9.18) and hand-written synthetic
+snippets, never the actual programs reachable through `Practice.tsx`. The regression test added
+alongside the fix closes exactly this gap, and does it without duplicating the bug it's checking
+for: it builds an independent oracle from the statement tree directly (walking `Stmt[]` for any
+`for`/`while`/`if`, at any depth including inside a function) and asserts the chart contains a
+corresponding node whenever the tree does, for every one of the 24 real programs. Run against the
+pre-fix code, this test fails on exactly the 3 programs found by inspection — proof the assertion
+is the right one, not a coincidence.
+
+Two smaller findings from the same review round: `parseFor` and `parseWhile` in `src/subset/tree.ts`
+were byte-identical apart from the keyword and the returned `kind` — merged into one
+`parseLoop(keyword)`. And two comments/test descriptions still said "18 programs" after the corpus
+grew to 24 earlier in the same diff — `Practice.tsx`'s equivalent comment had been updated
+correctly, so these two were a miss, not a pattern, and a two-line fix. One finding was deliberately
+left as documented rather than fixed: `flowchartFrom` tokenizes its source twice (once inside
+`validate()`, once inside `buildTree()`) — real waste, but fixing it means widening `validate()`'s
+own API for a caller outside `src/subset/`, which costs more than a redundant lex pass over a
+≤100-line program costs today. Recorded as a comment naming the trigger to revisit (a hotter call
+path, e.g. live validation-as-you-type) rather than spent now.
+
+## 38. Milestone 14b: a spotlight that computed correctly and still didn't read, and a drag that was never going to work
+
+§9 describes the flowchart exercise in one sentence — "drag cards to complete the flowchart" —
+and the plan for this milestone spent real time on the actual shape of that sentence before
+writing any code, because it turned out not to describe a buildable interaction as literally
+stated.
+
+**Why "drag" was the wrong verb, decided before implementation, not discovered by building it and
+having it fail.** 13b's `BlockList.tsx` drag is a `Reorder.Group` — cards trade places *within one
+list*, and framer-motion's own layout math handles where everything ends up with no separate drop
+target to compute. Placing a card into a specific flowchart blank is a different problem: the
+blanks live inside nested flex columns that **reflow every time one fills**, since an empty dashed
+placeholder and a filled label are different widths. A real pointer drag would need to hit-test
+against every blank's bounding box, and that box moves the instant any *other* blank changes
+state. Rather than build that and find out it was fragile, the plan chose select-then-place up
+front — click a card, click a blank — with an identical keyboard path (`decisions/006`). One
+mechanic that behaves the same for a mouse, a touchscreen, and a keyboard beats a real drag
+gesture plus a separately-maintained keyboard affordance that can quietly drift out of sync with
+it, which is exactly the shape of bug this project has already paid for once (13b's own drag/
+keyboard pair needed to be built as two paths precisely because framer-motion's `Reorder` ships no
+keyboard support at all).
+
+**A hint-level rule that would have been wrong if written on assumption instead of measurement.**
+D32 wants hint level to control "how many cards start pre-filled," and the obvious way to hit that
+is a fixed count per level — three pre-filled at medium, say. Measuring the real 24-program corpus
+first (`docs/GAME.md`'s own table) showed why that would have failed silently: blankable-node
+counts range from 2 (`functions-easy`) to 10 (`bubble-sort-hard`). A fixed count of 3 is trivial on
+the 10-node chart and literally impossible on the 2-node one. The shipped rule is proportional —
+roughly 2/3, 1/3, none pre-filled — which is a direct consequence of measuring before writing the
+formula, the same `decisions/003` discipline this project has followed since milestone 13. It also
+meant the acceptance criterion itself needed a more honest reading: AC-9.21's "scale inversely"
+can't be *strictly* decreasing on a 2-node chart (medium and hard both correctly round to "nothing
+pre-filled"), so the shipped test asserts non-increasing everywhere and strictly-decreasing only
+where the chart is large enough to show it — a weaker-sounding claim that is actually the true one,
+verified against all 24 programs rather than a handful of hand-picked examples.
+
+### The spotlight that computed correctly and still didn't read
+
+CLAUDE.md's hard rule — "whatever the current step touches is drawn large and bright; everything
+else recedes... this applies to every renderer, not just some" — got implemented the
+straightforward way first: every flowchart node wrapped in a `motion.div` animating to
+`emphasisVariants[emphasis]`, the exact shared variant `NumberList.tsx` and `DictTable.tsx` already
+use for the identical purpose. It typechecked, it passed every test, and the screenshot it produced
+looked almost identical to the unfocused state. `emphasisVariants.primary` is a 12% scale bump and
+a 15% brightness lift — legible on a filled value box with real content and colour to modulate, and
+nearly invisible on a small bordered placeholder that's mostly empty space to begin with. The
+"everything else recedes" half of the rule read perfectly clearly in the same screenshot; only the
+"drawn large and bright" half failed, and only for this one shape.
+
+The fix wasn't to abandon the shared variant — the dimming it produces on every *other* node is
+correct and stays exactly as it was — but to add a second, more assertive treatment specifically to
+the targeted blank's own button: a visible ring, a tinted background, and a soft glow, layered on
+top of the existing emphasis rather than replacing it. Re-screenshotting confirmed the difference
+immediately, the same way the weak version had been immediately visible once actually looked at.
+Recorded in `decisions/006` as a real trade-off rather than a footnote: a shared animation variant
+that works well for one shape of content is not guaranteed to work for every shape, and the way to
+find out is to render it and look, not to trust that "it uses the established pattern" is the same
+claim as "it reads."
+
+### A focus bug that only existed once the exact keystrokes were traced
+
+Writing `practice.spec.ts`'s keyboard-only solve required tracing the actual sequence of key
+presses against the real, seeded puzzle output before writing a single line of the test — the same
+discipline `BlockList.tsx`'s own keyboard test already established. Doing that surfaced a bug the
+component's own unit tests hadn't caught: the moment a card is placed, its button in the bank
+unmounts (the array that produced it just got one shorter), and a browser's default behaviour when
+the focused element disappears is to drop focus to `<body>`. Every unit test up to that point had
+checked the *state* after a placement — the bank shrank, the blank filled — without ever checking
+*where keyboard focus ended up*, because nothing in those tests continued interacting after a
+placement the way an actual multi-blank solve does. The fix (`CardBank.tsx` refocuses whichever
+card is now first, but only when a card actually left, never on an unrelated re-render) came with
+its own regression test asserting `document.activeElement` is never `document.body` — a check that
+literally could not have been written without first asking "what does a real learner's next
+keypress actually land on," rather than "does the state look right."
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

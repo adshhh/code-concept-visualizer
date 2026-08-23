@@ -32,17 +32,31 @@ const EXPECTED_IDS = PRACTICE_CONCEPTS.flatMap((concept) =>
 describe("practice corpus shape (AC-9.11, AC-9.14)", () => {
   // The glob in registry.ts can silently return fewer files than expected — a typo'd filename
   // would quietly shrink the corpus rather than fail. This is the check that makes that loud.
-  it("resolves all 18 expected programs, 6 concepts x 3 levels", () => {
+  it("resolves all 24 expected programs, 8 concepts x 3 levels (D27, fully closed at m14a)", () => {
     expect(PRACTICE_PROGRAMS.map((program) => program.id).sort()).toEqual(
       [...EXPECTED_IDS].sort(),
     );
-    expect(PRACTICE_PROGRAMS).toHaveLength(18);
+    expect(PRACTICE_PROGRAMS).toHaveLength(24);
   });
 
-  // D33: reverse mode covers the 6 basics only. Binary search and bubble sort are m14's, with
-  // flowcharts — docs/decisions/004-practice-scope-split.md.
-  it("covers the 6 basics and no algorithms", () => {
+  // m14a finding 3: the invariant D33 actually states is "reverse mode covers the 6 basics
+  // only" — not "only 6 concepts exist." Binary search and bubble sort are real concepts with
+  // flowchart-only exercises, per docs/decisions/004-practice-scope-split.md.
+  it("offers reverse mode on exactly the 6 basics, and flowcharts on all 8 (D33)", () => {
     expect(PRACTICE_CONCEPTS.map((concept) => concept.id)).toEqual([
+      "for-loops",
+      "index-loops",
+      "if-else",
+      "while-loops",
+      "functions",
+      "recursion",
+      "binary-search",
+      "bubble-sort",
+    ]);
+    const reverseModeConcepts = PRACTICE_CONCEPTS.filter((c) =>
+      c.exercises.includes("reverse"),
+    );
+    expect(reverseModeConcepts.map((c) => c.id)).toEqual([
       "for-loops",
       "index-loops",
       "if-else",
@@ -51,6 +65,7 @@ describe("practice corpus shape (AC-9.11, AC-9.14)", () => {
       "recursion",
     ]);
     for (const concept of PRACTICE_CONCEPTS) {
+      expect(concept.exercises).toContain("flowchart");
       expect(programsForConcept(concept.id)).toHaveLength(3);
     }
   });
@@ -160,7 +175,7 @@ describe.each(PRACTICE_PROGRAMS)(
 // fixture traces and the lesson recordings. 13b reads this file to render an exercise without
 // needing an engine run just to show it.
 describe("expected output, generated not authored", () => {
-  it("matches the committed snapshot for all 18 programs", async () => {
+  it("matches the committed snapshot for all 24 programs", async () => {
     const outputs = Object.fromEntries(
       PRACTICE_PROGRAMS.map((program) => [
         program.id,
