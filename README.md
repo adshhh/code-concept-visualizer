@@ -82,16 +82,21 @@ and the mobile strategy possible. See [`docs/PORTING.md`](docs/PORTING.md).
 
 ## Engine start-up time (AC-2.3)
 
-Pyodide loads lazily, inside a Web Worker, the first time code is actually run — not at page
-load. Cold (empty cache) and warm (cached) numbers can only be measured in a real browser. To
-measure: open the site, open devtools, press Run in a lesson, and read the
-`[engine] Pyodide loaded in …ms` line the worker logs — once with a cleared cache (cold), once on
-a normal reload (warm).
+Pyodide loads lazily, inside a Web Worker, the first time code is actually run — not at page load.
 
-|            | Target   | Measured                                      |
-| ---------- | -------- | --------------------------------------------- |
-| Cold start | none set | _owner to fill in after a real-browser check_ |
-| Warm start | under 1s | _owner to fill in after a real-browser check_ |
+|            | Target   | Measured (median)                        | Verdict        |
+| ---------- | -------- | ---------------------------------------- | -------------- |
+| Cold start | none set | **~1.6 s**                               | recorded       |
+| Warm start | under 1s | **~1.05 s** (~1.2 s in a headed browser) | ❌ **not met** |
 
-The plan sets a target for warm start only. Cold start is recorded because it is worth knowing,
-not because a number was ever promised for it.
+**The warm-start target is missed, by 5–25%.** It is recorded here rather than quietly relaxed —
+[`docs/decisions/007`](docs/decisions/007-warm-start-target-not-met.md) explains why the target,
+not the implementation, is the thing that was wrong: "under 1 second" was set during planning,
+before the engine existed and before anyone had measured what Pyodide costs to boot. The worker
+already runs the minimal configuration (no `loadPackage`, no micropip, stdlib only, self-hosted),
+so what remains is Pyodide's own WebAssembly instantiation.
+
+Measured across three trials per state, each cold run in a fresh browser context and each warm run
+a reload within it. Warm results landed within 12 ms of each other — a CPU-bound cost, with no
+network in it. Full method and the two measurement traps involved are in
+[`docs/VERIFICATION.md`](docs/VERIFICATION.md).

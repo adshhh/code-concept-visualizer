@@ -604,11 +604,17 @@ remain outstanding — see the Resume box below and [`docs/VERIFICATION.md`](VER
 > responsive breakpoint in the entire codebase, and the lesson page's 181px overflow comes from the
 > header control row rather than the code editor (hiding the editor changed nothing).
 >
-> **Four checks are owner-only and are listed as outstanding, not ticked** — AC-11.5's three real
-> people, walkthrough step 12 (the GIF auto-playing on GitHub, which needs the push), AC-2.1's
-> felt/measured half in DevTools, and AC-2.3's two start-up numbers. Each has its exact procedure
-> written out in `docs/VERIFICATION.md` or the README. **v1 is not fully signed off until the owner
-> runs them.**
+> **Post-merge follow-ups (2026-08-25).** Walkthrough **step 12 passed** — the owner confirmed the
+> demo GIF auto-plays on the real GitHub page once 15b was merged, taking the walkthrough to 11 of
+> 13. **AC-2.3 was measured, and its warm-start target is NOT MET** (~1051ms against under-1s) —
+> recorded as a failure rather than relaxed, with `decisions/007` explaining why the target rather
+> than the implementation was the error. See AC-2.3 above and `DESIGN_RATIONALE.md` §41.
+>
+> **Two checks remain owner-only and are listed as outstanding, not ticked** — AC-11.5's three real
+> people (walkthrough step 11; `docs/VERIFICATION.md` now has a table to record their verbatim
+> answers) and AC-2.1's felt/measured half, which has a copy-paste `PerformanceObserver` snippet
+> written out rather than an instruction to eyeball a flame chart. **v1 is not fully signed off
+> until the owner runs them.**
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -917,13 +923,22 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > checkpoint's Uncertain section.
 3. Cold and warm start times measured and recorded in the README. Warm start **under 1 second**.
    _(v2: the README stub is created in m1 so this has somewhere to land.)_
-   > **m15b: the README table is in place and still awaiting the owner's two numbers.** Measuring
-   > this needs a human at a real browser with devtools open — the same category as AC-11.5 and
-   > AC-2.1's felt half, and not something the agent can do from its environment. The table now
-   > states plainly that **no cold-start target was ever set** (only warm-under-1s), so a measured
-   > cold number lands with an honest verdict rather than an invented one. For reference only, a
-   > headless cold load against production logged `[engine] Pyodide loaded in 2037ms` — indicative,
-   > not the measurement this criterion asks for.
+   > **m15b: measured. Cold ~1586ms; warm ~1051ms headless, ~1179ms headed. The warm target is
+   > NOT MET** — missed by 5–25%. Recorded as a failure rather than relaxed to match the result;
+   > this criterion keeps its original text and its original target, and
+   > [`decisions/007`](decisions/007-warm-start-target-not-met.md) sets out why **the target,
+   > not the implementation, was the error**: "under 1 second" was set in Session 0, before the
+   > engine existed and before anyone had measured what Pyodide costs to boot. `worker.ts` already
+   > runs the minimal configuration (no `loadPackage`, no micropip, stdlib only, self-hosted), so
+   > the remaining time is Pyodide's own WebAssembly instantiation. Optimising below it — trimming
+   > the stdlib zip, caching compiled WASM in IndexedDB — was considered and rejected as new scope
+   > at the final milestone for ~50ms.
+   >
+   > **A measurement trap worth carrying forward:** the first hand-taken readings (1787ms, 2302ms)
+   > were both inflated, with the supposed *warm* number slower than the cold one. Reading the
+   > worker's log line requires DevTools open, and that measurably slows WASM instantiation — so
+   > any hand measurement of this number is inflated by the act of measuring it. The figures above
+   > come from Playwright reading the console programmatically instead. See `docs/VERIFICATION.md`.
 4. **Headline test:** pasting `while True: pass` and pressing Run terminates within 3 seconds, shows
    a clear "your code ran too long" message, and leaves the app fully usable — the user can edit and
    re-run **without reloading the page**.

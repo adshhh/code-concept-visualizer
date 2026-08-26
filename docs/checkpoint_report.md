@@ -3915,3 +3915,69 @@ or committed either way.
 **No next milestone — this was the last one.** All 15 milestones are built and all 14 sections are
 closed. v1 is complete except for the four owner-only checks listed above; once those are done and
 the two start-up numbers land in the README, the project is finished as specified.
+
+---
+
+## Milestone 15b — post-merge follow-ups (2026-08-25)
+
+Run after 15b was merged and pushed (`7d80e5f`), closing two of the four owner-only checks.
+
+**Walkthrough step 12 — PASSED.** The owner confirmed on the real GitHub repository page that the
+README's demo GIF renders and auto-plays with no click. The walkthrough is now **11 of 13**, with
+step 11 (three real people, AC-11.5) the only one outstanding.
+
+**AC-2.3 — measured, and the warm-start target is NOT MET.** This is the one acceptance criterion
+v1 ships as a failure.
+
+| | Runs | Median | Target | Verdict |
+| --- | --- | --- | --- | --- |
+| Cold | 1986, 1519, 1586 ms | ~1586 ms | none set | recorded |
+| Warm | 1058, 1046, 1051 ms | **~1051 ms** | under 1 s | ❌ missed |
+| Warm, headed | 1130, 1228 ms | ~1179 ms | under 1 s | ❌ missed |
+
+**How the first numbers were wrong, and how that was caught.** The owner's hand-taken readings were
+1787 ms and 2302 ms, and the owner flagged them as untrustworthy before anything was written down —
+correctly, because the supposed *warm* figure was **slower than the cold one**, which cannot happen
+if the cache is doing anything. The cause: reading `[engine] Pyodide loaded in …ms` requires
+DevTools open, and that measurably slows WASM instantiation. **The procedure written into
+`VERIFICATION.md` earlier the same day had that trap in step 5.** Re-measured with Playwright
+reading the console programmatically; the warm runs then landed within 12 ms of each other, the
+signature of a CPU-bound cost with no network in it. A headed run was checked too, since headless
+is not automatically representative — it was 80–170 ms slower, and both are recorded.
+
+**Why this is recorded as a failure rather than relaxed.** `worker.ts` already runs the minimal
+configuration (`loadPyodide()` with an `indexURL`, no `loadPackage`, no micropip, stdlib only), so
+the remaining ~1 s is Pyodide's own WebAssembly instantiation. "Under 1 second" was set in Session
+0, before the engine existed and before anyone had measured what Pyodide costs to boot — the same
+class of error the m1 audit found seven times, turning up once more at the last opportunity.
+Optimising below the floor (trimming the stdlib zip, caching compiled WASM in IndexedDB) was
+considered and rejected as new scope at the final milestone for ~50 ms. Owner decision: record it
+honestly with a decision entry.
+
+### Files changed in this follow-up
+
+- `docs/decisions/007-warm-start-target-not-met.md` (new): the decision record. States that AC-2.3
+  keeps its original text and target and is simply marked failed — no section reopens.
+- `docs/DESIGN_RATIONALE.md`: §41 — the measurement that changed what it measured, and why the
+  target was relaxed by nobody.
+- `README.md`: the AC-2.3 table now carries real numbers and an explicit ❌ **not met**.
+- `docs/VERIFICATION.md`: step 12 marked passed and dated; AC-2.3 section replaced with the results
+  and both measurement traps; step 11 gained a table for recording three verbatim answers; AC-2.1
+  gained a copy-paste `PerformanceObserver` snippet instead of "eyeball the flame chart".
+- `docs/PLAN_v2.md`: AC-2.3 annotation rewritten to the measured result and the miss; Resume box
+  updated.
+
+### Github commands for this follow-up
+
+```bash
+git add README.md docs/PLAN_v2.md docs/VERIFICATION.md docs/DESIGN_RATIONALE.md \
+  docs/checkpoint_report.md docs/decisions/007-warm-start-target-not-met.md
+git commit -m "Record AC-2.3 warm-start target as not met, with decisions/007; confirm walkthrough step 12"
+git push origin main
+```
+
+### Still outstanding
+
+**AC-11.5 (walkthrough step 11)** — three real people, 10 seconds each, answers recorded verbatim
+in `docs/VERIFICATION.md`'s table. **AC-2.1's felt half** — the `PerformanceObserver` snippet in the
+same file. Both are owner-only. v1 is not fully signed off until they are run.

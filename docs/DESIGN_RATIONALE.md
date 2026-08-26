@@ -1893,6 +1893,68 @@ A porting document is only worth the confidence a reader can place in it. Every 
 came from a browser, and the two corrections above are why that mattered rather than being a
 formality.
 
+## 41. The last criterion: a number that was wrong, measured with a tool that made it wronger
+
+AC-2.3 asked for warm Pyodide start-up under one second. It is the last criterion the project
+closed, and it is the only one that closed as a **failure**.
+
+### The measurement changed the thing it measured
+
+The first two readings, taken by hand in a real browser, were 1787 ms and 2302 ms. The owner's
+reaction was the correct one — *I don't trust these numbers* — and the reason was visible in the
+numbers themselves: the supposed **warm** figure was *slower* than the cold one. A warm start that
+is slower than a cold start means the cache is doing nothing, which either falsifies the whole
+mechanism or falsifies the measurement.
+
+It was the measurement. Reading `[engine] Pyodide loaded in …ms` requires the console to be open,
+and having DevTools open measurably slows WebAssembly instantiation. **The only way to observe this
+number by hand is to inflate it.** The procedure written into `VERIFICATION.md` an hour earlier had
+that trap baked straight into step 5, and it was written confidently.
+
+Re-measured with Playwright reading the console programmatically — three trials, each cold run in a
+fresh context and each warm run a reload inside it — the warm results were 1058, 1046 and 1051 ms.
+A 12 ms spread across three trials, which is itself the finding: that tightness is the signature of
+a CPU-bound operation with no network in it. The cold runs, which do include the download, scattered
+across 1519–1986 ms.
+
+Then one more check, because headless is not automatically representative of what a person sees: a
+headed browser came in 80–170 ms slower on warm start. Both figures are recorded rather than only
+the flattering one.
+
+### The number was fine; the target was the mistake
+
+~1.05 s is not this project's code. `worker.ts` calls `loadPyodide()` with an `indexURL` and nothing
+else — no `loadPackage`, no micropip, stdlib only, self-hosted — which is already minimal and is
+separately pinned by AC-2.5's own structural test. What is left is Pyodide instantiating a
+WebAssembly runtime and CPython starting its standard library.
+
+"Under 1 second" was written in Session 0, **before the engine existed and before anyone had
+measured what Pyodide costs to boot.** It is a round, reasonable-sounding number that was never
+derived from the runtime later chosen. A sub-second warm start was probably never available from
+the moment Pyodide was picked; nobody checked, because at that point there was nothing to check.
+
+This is exactly the class of error the milestone-1 audit found seven times over — a criterion
+written before the thing it constrains was built — and there is something fitting about the final
+milestone turning up one more of them.
+
+### Why it was not quietly relaxed
+
+The tempting move was to change the target to 1.5 seconds. Everything reads green, no one ever
+notices, and the practical difference between 1.00 s and 1.05 s on a *second* run is nothing a user
+can perceive.
+
+It was rejected because **a criterion that gets relaxed the moment it fails is not a criterion.**
+The plan's entire value across fifteen milestones has been that it records what was intended,
+including — especially — where the intent turned out to be wrong. Rewriting AC-2.3 to match the
+measurement would have converted the document from a statement of intent into a transcript of
+events, retroactively, at the very last opportunity to do so.
+
+So AC-2.3 keeps its original text and its original target, is marked **not met** in the plan, the
+README and `VERIFICATION.md`, and `decisions/007` explains why. The README of a portfolio project
+now says, in a table near the bottom, that one of its own acceptance criteria failed. That is the
+right trade: a reader who finds it learns considerably more about how this project was built than
+one who finds fifteen green checkmarks.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

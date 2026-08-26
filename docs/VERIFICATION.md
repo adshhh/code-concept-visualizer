@@ -13,8 +13,9 @@ a **fresh browser context**, so "cold cache" is true by construction rather than
 
 ## Result
 
-**10 of 13 steps pass. 3 are owner-only** and are listed as outstanding rather than ticked — the
-same treatment AC-11.5 has had since it was written.
+**11 of 13 steps pass. Step 11 is the one still outstanding**, listed here rather than ticked — the
+same treatment AC-11.5 has had since it was written. Step 12 was confirmed by the owner on
+2026-08-25, once 15b was merged and pushed.
 
 | # | Step | Where | Result |
 | --- | --- | --- | --- |
@@ -29,14 +30,105 @@ same treatment AC-11.5 has had since it was written.
 | 9 | Challenge mode on bubble sort, ≤5 prompts | production | ✅ exactly 5 |
 | 10 | All 11 lessons open and run on first Run | production | ✅ 11/11 |
 | 11 | 3 real people, 10 seconds each (AC-11.5) | — | ⏳ **owner-only** |
-| 12 | Demo GIF auto-plays on the GitHub repo page | — | ⏳ **owner-only** |
+| 12 | Demo GIF auto-plays on the GitHub repo page | GitHub | ✅ owner-confirmed, 2026-08-25 |
 | 13 | Pyodide blocked → every lesson still animates | production | ✅ 11/11 |
 
-Also outstanding and owner-only: **AC-2.1's felt half** (open the site, run a program, confirm in
-Chrome DevTools' Performance tab that the main thread is never blocked >50ms) and **AC-2.3's
-start-up numbers**. Both need a human at a real browser; neither can be done from the agent's
-environment. The architectural guarantee behind AC-2.1 — Worker isolation — is unchanged and holds
-by construction.
+**One acceptance criterion outside the 13 steps fails: AC-2.3's warm start.** Measured at ~1.05 s
+against a target of under 1 s — recorded as a miss rather than relaxed to fit, with
+[`decisions/007`](decisions/007-warm-start-target-not-met.md) explaining why the target was the
+error. Details in the Owner-only procedures section below.
+
+Still outstanding: **AC-2.1's felt half**, which needs a human at a real browser. Its procedure is
+at the end of this document and its result belongs here when run.
+
+---
+
+## Owner-only procedures
+
+The two checks below can't be automated from the agent's environment. Both take about five minutes.
+
+### AC-2.1 — the main thread is never blocked >50ms
+
+The architectural guarantee is unchanged and holds by construction: Pyodide runs inside a Web
+Worker, and nothing on the main thread can be blocked by what executes inside one. This measures
+the felt version of that.
+
+**The objective way (recommended — gives numbers, not an eyeballed flame chart):**
+
+1. Open <https://code-concept-visualizer.netlify.app/lesson/10-bubble-sort> in Chrome.
+2. Open DevTools (**⌥⌘I**) → **Console**.
+3. Paste this and press Enter. It records every task that blocks the main thread for >50ms — which
+   is exactly what the criterion forbids:
+
+   ```js
+   window.__long = [];
+   new PerformanceObserver((l) =>
+     l.getEntries().forEach((e) => window.__long.push(Math.round(e.duration))),
+   ).observe({ entryTypes: ["longtask"] });
+   console.log("watching for long tasks…");
+   ```
+
+4. Click **Run** in the page and let the animation play through.
+5. Back in the Console, run `window.__long`.
+
+**Passes if** the array is empty, or contains only entries from the page's own initial render
+rather than from the run. The criterion is about *execution* not blocking the main thread — React
+mounting the page is not what it's about, so if you see entries, re-run step 3 onward without
+reloading and press Run again; anything logged on that second pass is genuinely attributable to
+execution.
+
+**The visual way, if you'd rather see it:** DevTools → **Performance** → record (**⌘E**) → press
+Run in the page → stop recording. In the **Main** track, any task over 50ms is drawn with a red
+triangle in its top-right corner. Passing looks like no red triangles during the run.
+
+| Measured | Result |
+| --- | --- |
+| Long tasks during a run | _owner to fill in_ |
+
+### AC-2.3 — cold and warm Pyodide start-up ❌ **target not met**
+
+**Done, 2026-08-25.** Three trials per state against production: each cold run in a fresh browser
+context, each warm run a reload within that same context so the HTTP cache is populated.
+
+|            | Runs                    | Median   | Target   | Verdict |
+| ---------- | ----------------------- | -------- | -------- | ------- |
+| Cold start | 1986, 1519, 1586 ms     | ~1586 ms | none set | recorded |
+| Warm start | 1058, 1046, 1051 ms     | **~1051 ms** | under 1 s | ❌ **missed** |
+| Warm, headed browser | 1130, 1228 ms | ~1179 ms | under 1 s | ❌ **missed** |
+
+**The warm target is missed by 5–25%.** Recorded as a failure rather than relaxed to match —
+see [`decisions/007`](decisions/007-warm-start-target-not-met.md), which sets out why the target
+rather than the implementation was the error, and what was considered and rejected.
+
+The warm runs land within 12 ms of each other. That tightness is itself the finding: it is a
+CPU-bound cost — Pyodide's WebAssembly instantiation plus CPython stdlib startup — with no network
+variance in it, and `worker.ts` already runs the minimal configuration (`loadPyodide()` with an
+`indexURL` and nothing else; no `loadPackage`, no micropip, stdlib only).
+
+#### Two measurement traps, both of which produced wrong numbers first
+
+**1. DevTools inflates the result.** The first readings, taken by hand, were 1787 ms and 2302 ms —
+with the supposed *warm* number **slower** than the cold one, which cannot happen if the cache is
+doing anything. Reading the `[engine] Pyodide loaded in …ms` line requires the console to be open,
+and having DevTools open measurably slows WASM instantiation. **Any hand measurement of this number
+is inflated by the act of measuring it.**
+
+This is why the figures above come from Playwright reading the console programmatically instead.
+If you do want to check by hand, expect roughly a second of DevTools overhead on top.
+
+**2. Headless is the optimistic end.** Headed runs came in 80–170 ms slower on warm start. Both
+are recorded above rather than only the flattering one.
+
+#### If you want to re-measure by hand anyway
+
+The worker logs the line the first time code is actually run in a page session, so each reading
+needs **a fresh page load, then a single press of Run**:
+
+1. Open a lesson, DevTools → **Application** → **Clear site data**.
+2. **Network** tab → tick **Disable cache** → reload → **Console** → press **Run**. That's cold.
+3. Untick **Disable cache** → reload → press **Run**. That's warm.
+
+Treat both as upper bounds, per trap 1.
 
 ---
 
@@ -136,15 +228,31 @@ real Pyodide run on the first press of Run, with no error text.
 ⏳ **Outstanding.** AC-11.5 requires at least 3 people unfamiliar with the project watching the
 landing page for 10 seconds with no explanation, and being able to say what the tool does.
 
-To run it: open <https://code-concept-visualizer.netlify.app> in front of someone, say nothing,
-wait 10 seconds, close it, and ask what they think it does. Record all three answers verbatim —
-including the ones that miss, which are the useful ones.
+**How to run it.** Open <https://code-concept-visualizer.netlify.app> in front of someone. Say
+nothing — no framing, no "this is my project that…", because the criterion is about what the page
+communicates on its own. Wait 10 seconds. Close the tab. Ask: *"What do you think that does?"*
 
-### 12. The GIF on GitHub — owner-only
+Write the answer down **verbatim, before discussing it.** Paraphrasing after a conversation is how
+this test quietly passes itself.
 
-⏳ **Outstanding until 15b is pushed.** Open the repository's GitHub page and confirm
-`docs/images/demo-bubble-sort.gif` renders and auto-plays in the README. GitHub auto-plays GIFs;
-no click should be needed.
+| # | Who (role, not name) | Answer, verbatim | Got it? |
+| --- | --- | --- | --- |
+| 1 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
+| 2 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
+| 3 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
+
+**Passes if** all three can state, in their own words, that it runs code and shows you what it does
+step by step. "Something about sorting" is a *partly* — it means the animation reads but the
+purpose doesn't.
+
+**If someone misses, that is a result, not a failed test run.** The misses are the only part of
+this exercise that can tell you anything you don't already know, so record them as carefully as the
+hits. §11's answer to a miss would be a change to the landing page, not a fourth person.
+
+### 12. The GIF on GitHub — owner-confirmed
+
+✅ **Passed, 2026-08-25.** Confirmed by the owner on the real GitHub repository page after 15b was
+merged and pushed (`7d80e5f`): the README's demo GIF renders and auto-plays with no click.
 
 The file is 1.1 MB, 900×301, 84 frames at 12fps (~7s), well inside D20's ~5 MB budget.
 
