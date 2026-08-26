@@ -3716,8 +3716,12 @@ re-capture nondeterminism (confirmed across four consecutive full-suite runs tou
 file each time), not a real change from this milestone, and can be discarded or committed either
 way.
 
-**Do not merge yet** — 15b (shipping) continues on this same branch, and the whole of milestone 15
-merges once, after 15b, matching the 11a/11b–14a/14b precedent.
+**~~Do not merge yet~~ — superseded, see below.** This originally said 15a and 15b would merge
+together at the end. The owner's own sequencing decision for 15b reversed it: production deploys
+from `main` (D19), and 15b's whole job is verifying **the real production URL**, so `main` had to
+reflect 15a *before* 15b ran rather than after. 15a was therefore merged on its own — which the
+12a/12b pair had already set a precedent for. What actually happened is recorded in the m15b
+section below.
 
 **Prerequisite for 15b, not for this commit:** milestone 14 is not yet merged into `main` — `main`
 is still at `28e9e9c` (the merge of milestone 13), one commit before 14a. Netlify deploys production
@@ -3739,3 +3743,175 @@ palette-optimised two-pass convert), production verification on the real deploye
 13-step verification walkthrough — with AC-11.5 (three real people) and the walkthrough's own DevTools
 step marked owner-only rather than silently ticked. This is the last milestone in the plan; once
 15b's own checkpoint lands, v1 is done.
+
+---
+
+# Milestone 15b Completed
+
+**Phase E — Ship. The last milestone in the plan.**
+
+15b turned a finished system into a presented one. Four deliverables, all traceable to §12 and §14:
+`docs/PORTING.md` (AC-14.1), the README overhaul plus the demo GIF (AC-12.8), production
+verification on the real deployed URL (AC-12.9), and the 13-step verification walkthrough recorded
+in a new `docs/VERIFICATION.md`.
+
+The owner merged first, by their own decision — milestones 14 and 15a both went to `main` before any
+15b work began, so Netlify's production deploy reflected the finished system and the walkthrough
+verified reality rather than a rehearsal. Production was then **confirmed** to be that build by
+building locally and matching asset hashes (`index-BXhADGwp.js`, `index-CyyNKL30.css`) rather than
+assumed to be current.
+
+**What was built**
+
+- **`docs/PORTING.md`** — the mobile handoff, in six named sections: the iPhone/WebKit constraint ·
+  its evidence, with a written procedure for re-checking it later since it is the one claim in the
+  file with a shelf life · D21's pre-recorded "mobile is the museum" strategy, mapped to the six
+  pieces of it that already exist and ship today · the server-backed upgrade path · what ports for
+  free, each named with its real file · and what doesn't survive a phone, with the fix.
+- **README** — rewritten. It had been announcing "milestone 3 of 15 — the visible app starts at
+  milestone 5", listing two of nine source directories, and containing no link to the live site at
+  all. Now opens with the live link and the demo GIF.
+- **`docs/images/demo-bubble-sort.gif`** — 1.1 MB, 900×301, 84 frames at 12fps (~7s), the landing
+  page playing two full compare-then-swap cycles. Built by `scripts/demo/gif.spec.ts` +
+  `scripts/demo/make-gif.sh` (two-pass ffmpeg palette), kept out of the main Playwright run by
+  living in its own directory with its own config.
+- **`docs/VERIFICATION.md`** — the walkthrough's results. 10 of 13 steps pass against real
+  production; 3 are owner-only and listed as outstanding.
+
+## Why
+
+Decisions made independently this milestone:
+
+- **`docs/VERIFICATION.md` as its own file** rather than a table inside this 250 KB report. §12
+  describes a _procedure_ and nothing in the repo recorded that it was ever run. The one document a
+  reviewer most wants to find should not be buried in a running log.
+- **`scripts/demo/` with its own `playwright.demo.config.ts`.** The main config's `testDir` is
+  `./scripts/screenshots`, so a sibling directory is excluded automatically — no grep tags, and the
+  69-test suite never pays for video recording.
+- **The GIF crop is measured, not guessed** — the hero's real geometry at the capture viewport
+  (h1 at y 24–52, hero row 84–308, caption 340–360, content column x 24–1076), recorded in the
+  script so it can be re-derived if the landing layout changes.
+- **PORTING.md proposes the `Compare.tsx` stack but does not implement it.** AC-14.1 asks for a
+  proposal; building it is scope.
+- **§14's "six topics" ambiguity resolved by splitting "the constraint" from "its evidence"** — its
+  own prose lists five bullets while calling them six. Noted in the plan rather than quietly picked.
+
+## Files Created/Modified
+
+- `docs/PORTING.md` (new): the mobile porting handoff. Six sections; every claim about the current
+  app measured in a real 390px browser, with the measurement table and the specific culprits.
+- `docs/VERIFICATION.md` (new): the 13-step walkthrough as run — environment, per-step results,
+  the two findings below, and an explicit list of what this run did _not_ cover.
+- `docs/images/demo-bubble-sort.gif` (new): the README demo GIF.
+- `scripts/demo/gif.spec.ts` (new): the capture. Its header documents why `page.clock` is absent.
+- `scripts/demo/make-gif.sh` (new): two-pass ffmpeg palette convert, with a hard 5 MB gate that
+  fails the script rather than warning.
+- `playwright.demo.config.ts` (new): separate config so the demo capture never joins the main run.
+- `README.md` (rewritten): live link, GIF, what it does, full command table (now including
+  `format:check` and Playwright), all nine source directories, all eight docs, AC-2.3 table.
+- `docs/PLAN_v2.md`: AC-14.1 / AC-12.8 / AC-12.9 / AC-2.3 / AC-11.5 annotations, milestone 15 row,
+  the status line, the Resume box, a pointer from §12's Verification section, and a status-board
+  confirmation that nothing is open at v1.
+- `docs/DESIGN_RATIONALE.md`: §40 — the fake clock, the passing check that meant the feature was
+  broken, and being wrong twice about the mobile layout.
+- `docs/checkpoint_report.md`: this entry, plus a correction to m15a's now-superseded
+  "do not merge yet" note.
+
+## Uncertain / worth double-checking
+
+- **The GIF is a judgment call and the owner should look at it.** It shows two compare-then-swap
+  cycles, not the whole sort — legibility won over completeness after three attempts. If it reads
+  as too slow or too partial, the knobs are `WINDOW_MS` in the spec and `FPS`/`GIF_W` in the script.
+- **Step 4's cold-start number depends on the CDN, not the build.** The median is 603ms, but the
+  first-ever request from a machine can cost ~1577ms while DNS, TLS and the Netlify edge are all
+  cold. A visitor unlucky enough to be first may see the slower figure.
+- **Firefox and Safari are untested.** Nothing in the stack is Chromium-specific, but the honest
+  word is untested, and it is stated as such in `VERIFICATION.md`.
+- **The disabled Run button reads brighter than a typical disabled control** — genuinely
+  `disabled: true` at `opacity: 0.5`, but emerald on near-black still looks fairly saturated. Not a
+  defect (the banner carries the message, which is what AC-2.7 asks) but worth knowing.
+
+## Screenshots
+
+**The demo GIF** — `docs/images/demo-bubble-sort.gif`, 1.1 MB, 900×301, 84 frames at 12fps.
+
+**Walkthrough results, against <https://code-concept-visualizer.netlify.app>:**
+
+```
+step 4  PASS  picture painted, median 603ms across 5 cold contexts (353-618ms); local build 56ms
+step 5  PASS  4 of 4 backward steps byte-identical to the same step on the way forward
+step 6  PASS  guardrail at 103ms - "this program ran more than 2000 steps - there may be a loop
+              that never ends."; edit + re-run without reload produced "step 1 of 7"
+step 7  PASS  "import isn't supported yet - line 1. Everything you need is already available
+              without importing."  no "Traceback" anywhere on the page
+step 8  PASS  9 steps, plain-English explanation present, no raw traceback
+step 9  PASS  exactly 5 prediction prompts, at steps 13, 17, 20, 25, 41 of 43
+step 10 PASS  11/11 lessons opened already animating and completed a real run
+step 13 PASS  11/11 animated, stepped and scrubbed with pyodide requests aborted; Run disabled
+              (verified disabled:true, opacity 0.5) behind a clear banner
+step 11 TODO  owner-only - three real people, 10 seconds each (AC-11.5)
+step 12 TODO  owner-only - the GIF auto-playing on the GitHub repo page (needs the push)
+```
+
+**Local suites:**
+
+```
+npm test             -> Test Files 56 passed | 1 skipped (57)
+                        Tests 1092 passed | 1 skipped (1093)
+npm run typecheck    -> clean
+npm run format:check -> All matched files use Prettier code style!
+npm run build        -> built in 303ms
+npx playwright test  -> 69 passed (31.9s)
+```
+
+**Mobile measurements behind PORTING.md** (390px, iPhone 14/15 CSS width):
+
+```
+/  lesson grid        already responsive, reads well          overflow 0
+/  hero               code pane 80px, picture 222px           overflow 10px
+/lesson/:id           editor 96px, picture pane 206px         overflow 181px
+/compare  (empty)     two 163px panes, tolerable              overflow 0
+/compare  (populated) pictures escape both panes and collide  overflow 213px
+/practice             single column, full width               overflow 0
+```
+
+## Github Commands for this milestone
+
+Continuing on `milestone-15b-ship`:
+
+```bash
+git checkout milestone-15b-ship
+git add README.md playwright.demo.config.ts \
+  scripts/demo/gif.spec.ts scripts/demo/make-gif.sh \
+  docs/PORTING.md docs/VERIFICATION.md docs/images/demo-bubble-sort.gif \
+  docs/PLAN_v2.md docs/DESIGN_RATIONALE.md docs/checkpoint_report.md
+git commit -m "Milestone 15b: ship — PORTING.md, README + demo GIF, and the 13-step v1 verification walkthrough"
+git push -u origin milestone-15b-ship
+```
+
+Then merge to `main`, which also redeploys production with the new README:
+
+```bash
+git checkout main
+git pull origin main
+git merge --no-ff milestone-15b-ship -m "Merge milestone 15b: ship — porting handoff, README + demo GIF, v1 verification"
+git push origin main
+```
+
+Run `git status` first — anything under `docs/images/` beyond the new GIF is Playwright re-capture
+nondeterminism (confirmed across repeated full-suite runs), not a real change, and can be discarded
+or committed either way.
+
+**Then the four owner-only checks**, none of which the agent can perform:
+
+1. Open the GitHub repo page and confirm the GIF auto-plays (walkthrough step 12).
+2. Show the landing page to three people for 10 seconds each and record their answers (AC-11.5).
+3. In Chrome DevTools' Performance tab, run a program on the live site and confirm the main thread
+   is never blocked >50ms (AC-2.1's felt half).
+4. Measure cold and warm Pyodide start-up and send the two numbers for the README (AC-2.3).
+
+## Next
+
+**No next milestone — this was the last one.** All 15 milestones are built and all 14 sections are
+closed. v1 is complete except for the four owner-only checks listed above; once those are done and
+the two start-up numbers land in the README, the project is finished as specified.
