@@ -29,7 +29,8 @@ Three constraints shape every decision:
 3. **The scope contract is a supported Python subset, not a list of concepts.** This is testable: a
    fixture file of accepted and rejected programs, each with specified behavior.
 
-**Status: PLANNING COMPLETE. Session 0 done. Milestone 1 in progress.**
+**Status: v1 COMPLETE. All 15 milestones built, all 14 sections closed.** Four owner-only checks
+remain outstanding — see the Resume box below and [`docs/VERIFICATION.md`](VERIFICATION.md).
 
 > ### ⏸ Resume here
 >
@@ -574,17 +575,40 @@ Three constraints shape every decision:
 > pixel) was removed by running the whole suite under `reducedMotion: "reduce"` — `MotionRoot`
 > already supports this for exactly this reason. Full detail in `DESIGN_RATIONALE.md` §39.
 >
-> **Next: milestone 15b (Phase E — ship, continued)**: `docs/PORTING.md`, the README + demo GIF,
-> production verification on the real deployed Netlify URL, and the 13-step verification
-> walkthrough. **Prerequisite the owner must run first:** milestone 14 is not yet merged into
-> `main` — Netlify deploys production from `main` (D19), and 15b's own verification needs the real
-> production URL to reflect everything through 14b.
+> **Milestone 15b is built and checkpointed — this is the last milestone in the plan.** Milestones
+> 14 and 15a were merged to `main` first (owner decision), so production reflected the finished
+> system before anything was verified against it; production was then confirmed to be that build by
+> matching its asset hashes against a local one, rather than assumed. 15b delivers
+> **[`docs/PORTING.md`](PORTING.md)** (AC-14.1), the **README overhaul + demo GIF** (AC-12.8), and
+> **[`docs/VERIFICATION.md`](VERIFICATION.md)** — the 13-step walkthrough run against the real
+> deployed URL (AC-12.9). **The live site is <https://code-concept-visualizer.netlify.app>**,
+> recorded here because it previously appeared in no file in this repository.
 >
-> **Two checks flagged owner-only rather than silently marked done, per this plan's existing
-> precedent for AC-11.5's 10-second test:** AC-2.1's felt/measured half ("open the real site, run a
-> program, confirm the page stays responsive in Chrome DevTools") needs a human in a real browser;
-> the architectural guarantee itself is unchanged and still holds by construction. Neither is
-> something this agent can perform from its own environment.
+> **10 of 13 walkthrough steps pass against real production.** Highlights: `while True: pass` is
+> caught in 103ms and the app stays usable without a reload; stepping backward renders
+> byte-identical to the way forward; all 11 lessons open already animating and run on the first
+> press of Run; with Pyodide blocked entirely all 11 still animate, step and scrub.
+>
+> **Two findings that only appeared because the checks were re-examined rather than accepted.**
+> The first cold production load measured 1577ms against AC-11.1's 1-second budget — re-measuring
+> across five fresh contexts gave a 603ms median (353–618ms), with the outlier explained as cold
+> DNS/TLS plus a cold CDN edge on the first-ever request; the app's own cost is ~56ms. And
+> Challenge mode's prompt count was first reported as "0 prompts", which *satisfies* "no more than
+> 5" while actually meaning the feature had never engaged — detection had been written against
+> guessed prompt wording. Re-done against the panel's own testid, it raises exactly 5.
+> **A criterion that can be satisfied by the feature being broken needs its measurement checked,
+> not just its result.**
+>
+> **PORTING.md's claims are measured, not asserted** — every statement about the app at phone width
+> came from a real 390px browser. That overturned two assumptions mid-write: the app has exactly one
+> responsive breakpoint in the entire codebase, and the lesson page's 181px overflow comes from the
+> header control row rather than the code editor (hiding the editor changed nothing).
+>
+> **Four checks are owner-only and are listed as outstanding, not ticked** — AC-11.5's three real
+> people, walkthrough step 12 (the GIF auto-playing on GitHub, which needs the push), AC-2.1's
+> felt/measured half in DevTools, and AC-2.3's two start-up numbers. Each has its exact procedure
+> written out in `docs/VERIFICATION.md` or the README. **v1 is not fully signed off until the owner
+> runs them.**
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -603,6 +627,10 @@ list below means nothing is open.
 | Section                           | Status                                   | Reopened by                                                      |
 | --------------------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
 | _(none currently open)_ | | |
+
+**Confirmed at m15b, the final milestone: nothing is open.** No section was reopened during 15b —
+`docs/PORTING.md` and `docs/VERIFICATION.md` are new documents written *from* §14 and §12, not
+changes *to* them. All 14 sections end v1 LOCKED, with §9, §12 and §14 the last to close.
 
 > **§13 was reopened and re-locked during m1** by
 > [`001-living-plan-split.md`](decisions/001-living-plan-split.md): freezing `PLAN.md` invalidated
@@ -693,7 +721,7 @@ one checkpoint = one branch = one merge.**
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
 | 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, select-then-place + keyboard — a `v2 correction (m14b)` on §9's own "drag" wording, see `decisions/006`) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21, fully closing AC-9.13. **Both done — see `checkpoint_report.md`, `decisions/005-statement-tree-and-derived-scope.md`, `decisions/006-flowchart-blanks-and-select-to-place.md`. §9 (Game layer) fully closed.** |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
-| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1. **v2 finding (m15 audit):** the milestone table's own summary reads as documentation-only, but §11/AC-14.5 ("lessons animate immediately on open") was unbuilt product code, not a verification step — found by reading §14 against the actual tree rather than against this row. **v2 split (owner decision, on the 11a/b–14a/b precedent): 15a = the last code — AC-14.5's preview-on-open, the ~10-snapshot `visual.spec.ts` baseline suite (AC-12.3), and the final checks AC-2.1/AC-14.2/AC-14.3 name. 15b = shipping — `docs/PORTING.md`, the README + demo GIF, production verification on the real deployed URL, the 13-step walkthrough, the final v1 checkpoint. 15a done — see `checkpoint_report.md` and `DESIGN_RATIONALE.md` §39.** |
+| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1. **v2 finding (m15 audit):** the milestone table's own summary reads as documentation-only, but §11/AC-14.5 ("lessons animate immediately on open") was unbuilt product code, not a verification step — found by reading §14 against the actual tree rather than against this row. **v2 split (owner decision, on the 11a/b–14a/b precedent): 15a = the last code — AC-14.5's preview-on-open, the ~10-snapshot `visual.spec.ts` baseline suite (AC-12.3), and the final checks AC-2.1/AC-14.2/AC-14.3 name. 15b = shipping — `docs/PORTING.md`, the README + demo GIF, production verification on the real deployed URL, the 13-step walkthrough, the final v1 checkpoint. **Both done — see `checkpoint_report.md`, `DESIGN_RATIONALE.md` §39–§40, `docs/PORTING.md` and `docs/VERIFICATION.md`. §12 and §14 fully closed; 10 of the 13 walkthrough steps pass against real production, the other 3 are owner-only and listed as outstanding rather than ticked.** |
 
 **Cuttable under time pressure, in this order** (per existing decisions): merge sort (stretch) →
 flowcharts (#14, D28) → Mode B lessons (#9, D14). Nothing else is cut before quality is.
@@ -889,6 +917,13 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > checkpoint's Uncertain section.
 3. Cold and warm start times measured and recorded in the README. Warm start **under 1 second**.
    _(v2: the README stub is created in m1 so this has somewhere to land.)_
+   > **m15b: the README table is in place and still awaiting the owner's two numbers.** Measuring
+   > this needs a human at a real browser with devtools open — the same category as AC-11.5 and
+   > AC-2.1's felt half, and not something the agent can do from its environment. The table now
+   > states plainly that **no cold-start target was ever set** (only warm-under-1s), so a measured
+   > cold number lands with an honest verdict rather than an invented one. For reference only, a
+   > headless cold load against production logged `[engine] Pyodide loaded in 2037ms` — indicative,
+   > not the measurement this criterion asks for.
 4. **Headline test:** pasting `while True: pass` and pressing Run terminates within 3 seconds, shows
    a clear "your code ran too long" message, and leaves the app fully usable — the user can edit and
    re-run **without reloading the page**.
@@ -1628,6 +1663,8 @@ thing you built. Cards show name, a small static preview, and a Mode A / Mode B 
    seconds with no explanation and can state what the tool does. Tested on **at least 3 real people**
    before v1 is called done.
    > **Owner-only — not run at m10.** Needs 3 real people; not something the agent can do.
+   > **Still outstanding at m15b**, carried into `docs/VERIFICATION.md` as step 11 with the exact
+   > procedure written out. v1 is not fully signed off until it is run.
 
 ---
 
@@ -1710,8 +1747,21 @@ screenshot cannot convey motion, which is the entire premise of the project.
    **→ m1** _(precondition for reviewing every later milestone.)_
 8. README exists with an auto-playing demo GIF under ~5 MB. **→ m15b** _(v2: previously unowned. The
    README itself is stubbed in m1, since AC-2.3 writes start-up times into it at m3.)_
+   _(**Delivered at m15b.** `docs/images/demo-bubble-sort.gif` — 1.1 MB, 900×301, 84 frames at
+   12fps (~7s), well inside the budget. The landing page playing two full compare-then-swap
+   cycles, captured by `scripts/demo/gif.spec.ts` and converted by `scripts/demo/make-gif.sh`
+   (two-pass ffmpeg palette). Kept out of `npx playwright test` by living in its own `scripts/demo`
+   directory with its own config, so the 69-test suite never pays for video recording. The README
+   itself was rewritten around it — it had been claiming "milestone 3 of 15" and listing two of
+   nine source directories. **The GIF auto-playing on the GitHub page is step 12 of the
+   walkthrough and is owner-only** — it needs the push. See `docs/VERIFICATION.md`.)_
 9. The deployed production site loads and every lesson works **on the real URL**, not just locally.
    **→ m15b**
+   _(**Delivered at m15b.** All 11 lessons opened already animating and completed a real Pyodide
+   run on the first press of Run, against <https://code-concept-visualizer.netlify.app>, each in
+   a fresh browser context. Production was first confirmed to be the current build by matching its
+   asset hashes against a local build, so this tested what actually ships. Full results, including
+   the 8 other production steps, in `docs/VERIFICATION.md`.)_
 
 ---
 
@@ -1875,6 +1925,17 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 **Acceptance criteria**
 
 1. `docs/PORTING.md` exists and covers all six topics above. **→ m15b.**
+   _(**Delivered at m15b.** Written as six explicitly named sections — the constraint · its
+   evidence · the pre-recorded strategy · the server-backed upgrade path · what ports for free ·
+   what doesn't survive a phone and what to do about it. The brief above lists five bullets while
+   calling them six topics; splitting "the constraint and its evidence" is how the count is met,
+   noted rather than quietly resolved. **Every claim about the current app was measured in a real
+   390px browser, not inferred from CSS** — which changed two of them: the app has exactly one
+   responsive breakpoint in the whole codebase (`Landing.tsx:120`), and the lesson page's 181px
+   horizontal overflow comes from the header control row, not from the code editor as first
+   assumed (hiding the editor left the overflow unchanged — measured). §14's named casualty,
+   compare-the-algorithms, is confirmed: at 390px its two panes are 163px and, once populated,
+   the pictures overflow both panes and collide across the boundary.)_
 2. An automated import rule prevents any player module from importing the engine. Deliberately adding
    such an import fails the check visibly.
    _(v2: established in **m1**, not here — see the note under the milestone table.
@@ -1907,6 +1968,11 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 ## Verification — how to confirm v1 is actually done
 
 Run in order. Every step is checkable by the owner without reading code.
+
+> **This walkthrough was run at m15b. The record of that run — what was executed, where, and what
+> actually happened — is [`docs/VERIFICATION.md`](VERIFICATION.md).** 10 of 13 steps pass against
+> the real production deploy; steps 11 and 12, plus AC-2.1's felt half and AC-2.3's two numbers,
+> are **owner-only** and are listed there as outstanding rather than ticked.
 
 1. **`npm test`** — fixture suite, recorded-run snapshots, visual snapshots all green.
 2. **`npm run typecheck && npm run build`** — clean.

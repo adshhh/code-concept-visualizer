@@ -1816,6 +1816,83 @@ revealed the real gap — and it was reading the failure closely enough to repro
 (running the same test alone, then back-to-back with the others) rather than just adding a longer
 timeout, that found the fix that generalizes instead of the one that happens to pass once.
 
+## 40. Milestone 15b: a fake clock that froze the thing it was meant to film, and a passing check that meant the feature was broken
+
+Three things in the last milestone are worth keeping.
+
+### The clock that stopped the animation
+
+The demo GIF had an obvious problem: the landing page's hero recording is 43 frames at one step per
+second, so one natural loop is 43 seconds and D20 asks for about six. The obvious fix was the
+mechanism m15a had already proved worked — `page.clock`, which m15a used to pin the looping landing
+page for its visual baseline. Install a fake clock, drive it faster than real time, fit the whole
+sort into six seconds.
+
+The output was unusable. Every frame caught the value boxes mid-flight: a five-element list
+rendering as six overlapping boxes, old and new positions on screen at once, nothing ever resolving.
+The natural reading was "too fast", so the rate came down — 140ms per step, then 450ms, then 650ms,
+which is longer than the slowest gesture in `motion/variants.ts`. **It made no difference at all**,
+and that was the actual clue. A timing problem responds to timing.
+
+`page.clock` fakes `performance.now()` and `requestAnimationFrame` — which is exactly what Framer
+Motion animates against. While the spec sits in a real-time `waitForTimeout`, the page's animation
+clock is not advancing, so the springs freeze wherever the last `runFor()` left them. Playback steps
+and animation are driven by the *same* faked clock, so no choice of rate can separate them.
+`page.clock` and video capture are fundamentally incompatible in this app.
+
+The interesting part is that this is the same fact m15a had already met from the other side. There,
+`page.clock` plus unsettleable springs made *screenshots* refuse to stabilise, and the fix was
+`reducedMotion: "reduce"` — remove the motion. Here the motion is the entire product, so the tool
+had to go instead. **The same underlying property produced two opposite-looking problems and two
+opposite fixes**, and recognising it the second time took a failure that refused to respond to the
+obvious remedy.
+
+The GIF now uses no fake clock at all. It lets the page animate at its own natural pace and controls
+only *when* recording starts, trimming the pre-roll with ffmpeg's `-sseof` — seek-from-end, which is
+robust against page-load time varying between runs in a way a fixed front trim would not be. Fewer
+steps of the algorithm, every one of them legible. That is the trade the three failed attempts
+bought, and it is the right way round: a GIF of the complete algorithm that nobody can read is worth
+less than a legible GIF of part of it.
+
+### The check that passed because the feature was broken
+
+Walkthrough step 9 asks that Challenge mode raise no more than five prompts on bubble sort. The
+first run reported **zero prompts across 43 steps**, and zero is comfortably no more than five.
+
+Zero was wrong. Prompt detection had been written against guessed wording (`What happens next`),
+which matched nothing, so what the check actually measured was its own selector. The feature was
+working the whole time — re-done against the panel's own `data-testid="challenge-question"`, it
+raises exactly five, at steps 13, 17, 20, 25 and 41.
+
+The lesson generalises past this one step: **a criterion phrased as an upper bound is satisfied by
+the feature not running at all.** "No more than five", "no errors", "under 5MB", "no horizontal
+scroll" — every one of them passes trivially against a broken measurement. The habit worth keeping
+is to ask, of any check that passes comfortably, what a broken version of the thing would have
+scored. If the answer is "also a pass", the measurement needs verifying before the result does.
+The same instinct had already caught something at m15a; this is the sharper example.
+
+### Measuring instead of asserting, and being wrong twice
+
+`docs/PORTING.md` could have been written entirely from reading CSS classes. Instead every claim
+about the app at phone width was measured in a real 390px browser — and that overturned two claims
+that reading the code had already "established".
+
+The first: the working assumption was that several routes were responsive and compare-the-algorithms
+was the exception §14 names. In fact the app has **exactly one responsive breakpoint in the entire
+codebase**, `Landing.tsx:120`'s lesson grid. Everything else is a fixed-percentage split.
+
+The second is the better one. The lesson page overflows horizontally by 181px at 390px, and
+CodeMirror — which lays out to a 367px content width inside a 96px column — was the obvious culprit.
+The recommendation practically wrote itself: drop the editor on mobile, which D21 wants anyway, and
+the overflow goes with it. Testing that by hiding the editor and re-measuring showed the overflow
+**unchanged at 181px**. The real cause was the header control row, 465px of non-wrapping flex, whose
+fix is one `flex-wrap` class. Both are real, and the tidy story — one cause, one fix, conveniently
+aligned with the strategy already chosen — was wrong.
+
+A porting document is only worth the confidence a reader can place in it. Every number in that file
+came from a browser, and the two corrections above are why that mattered rather than being a
+formality.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not
