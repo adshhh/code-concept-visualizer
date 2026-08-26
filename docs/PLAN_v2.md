@@ -29,8 +29,12 @@ Three constraints shape every decision:
 3. **The scope contract is a supported Python subset, not a list of concepts.** This is testable: a
    fixture file of accepted and rejected programs, each with specified behavior.
 
-**Status: v1 COMPLETE. All 15 milestones built, all 14 sections closed.** Four owner-only checks
-remain outstanding — see the Resume box below and [`docs/VERIFICATION.md`](VERIFICATION.md).
+**Status: v1 COMPLETE. All 15 milestones built, all 14 sections closed.** Two criteria do not ship
+green, both deliberately and both recorded rather than relaxed: **AC-2.3's warm-start target is
+missed** (`decisions/007`) and **AC-11.5's 10-second test was retired unfulfilled**
+(`decisions/008`), replaced by an owner review of v1 that seeds v2. One owner-only check remains
+outstanding: **AC-2.1's felt half**. Details in the Resume box below and
+[`docs/VERIFICATION.md`](VERIFICATION.md).
 
 > ### ⏸ Resume here
 >
@@ -610,11 +614,20 @@ remain outstanding — see the Resume box below and [`docs/VERIFICATION.md`](VER
 > recorded as a failure rather than relaxed, with `decisions/007` explaining why the target rather
 > than the implementation was the error. See AC-2.3 above and `DESIGN_RATIONALE.md` §41.
 >
-> **Two checks remain owner-only and are listed as outstanding, not ticked** — AC-11.5's three real
-> people (walkthrough step 11; `docs/VERIFICATION.md` now has a table to record their verbatim
-> answers) and AC-2.1's felt/measured half, which has a copy-paste `PerformanceObserver` snippet
-> written out rather than an instruction to eyeball a flame chart. **v1 is not fully signed off
-> until the owner runs them.**
+> **AC-11.5 is retired unfulfilled (owner decision, `decisions/008`).** The 10-second test was
+> never run; in its place the owner reviews the finished v1 end to end and flags what they find,
+> seeding v2. Recorded as a replacement, not as a pass — it is the one check the builder
+> structurally cannot self-administer, so §11's central claim ships untested against a stranger.
+> §11 reopened and re-locked in the same pass; see the status board.
+>
+> **One check remains owner-only and outstanding: AC-2.1's felt/measured half**, which has a
+> copy-paste `PerformanceObserver` snippet written out in `docs/VERIFICATION.md` rather than an
+> instruction to eyeball a flame chart.
+>
+> **v1 closes with two criteria not green** — AC-2.3 measured and missed, AC-11.5 unrun — both
+> stated plainly in the README, the plan and `VERIFICATION.md` rather than rounded up. See
+> `DESIGN_RATIONALE.md` §41–§42 for why that was the right call at the point where the pressure to
+> round up is strongest.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -634,9 +647,17 @@ list below means nothing is open.
 | --------------------------------- | ---------------------------------------- | ---------------------------------------------------------------- |
 | _(none currently open)_ | | |
 
-**Confirmed at m15b, the final milestone: nothing is open.** No section was reopened during 15b —
-`docs/PORTING.md` and `docs/VERIFICATION.md` are new documents written *from* §14 and §12, not
-changes *to* them. All 14 sections end v1 LOCKED, with §9, §12 and §14 the last to close.
+**Confirmed at m15b: nothing is open.** All 14 sections end v1 LOCKED.
+
+> **§11 was reopened and re-locked after m15b's merge** by
+> [`008-ac-11-5-replaced-by-owner-review.md`](decisions/008-ac-11-5-replaced-by-owner-review.md):
+> the owner retired AC-11.5's 10-second test unfulfilled, replacing it with a self-directed review
+> of the finished v1 that seeds v2. Re-locked in the same pass — AC-11.5 now states plainly that the
+> test was **not performed** and why an owner review cannot substitute for it. AC-11.1–11.4 are
+> unchanged. Second real exercise of the reopening rule, after §13 at m1.
+
+`docs/PORTING.md` and `docs/VERIFICATION.md` did **not** reopen anything — they are new documents
+written _from_ §14 and §12, not changes _to_ them. §9, §12 and §14 were the last sections to close.
 
 > **§13 was reopened and re-locked during m1** by
 > [`001-living-plan-split.md`](decisions/001-living-plan-split.md): freezing `PLAN.md` invalidated
@@ -727,7 +748,7 @@ one checkpoint = one branch = one merge.**
 | 13                            | Game layer — Practice / reverse mode                                                                                                | §9                                 | New content-generation work; different review from #12. **v2 split (owner decision, on the 11a/11b and 12a/12b precedent): 13a = the 18-program corpus + block derivation + answer checking, no UI; 13b = the `/practice` route, drag + keyboard reordering, divergence animation.** Reverse mode covers the 6 basics only (D33), so 13 authors 18 of D27's 24 programs — **the other 6 move to #14, which owns them below**. **Both done — see checkpoint_report.md. Closes AC-9.13 (reverse-mode half)–9.17; demonstrates AC-9.14.** |
 | 14                            | Flowcharts · **the 6 algorithm Practice programs (D27)** · **AC-9.12 (hint level)** · **a real parse tree**                          | §9                                 | **D28**: built last and cut _whole_ — needs its own boundary to actually be cuttable. **v2 re-sequencing (m13a):** three things land here rather than #13, each because #13 has nothing to attach them to — (a) binary search's and bubble sort's 3 levels each, since D33 bars reverse mode from algorithms and flowcharts are their only consumer; (b) **AC-9.12**, since D32 defines hint level as how many _flowchart cards_ start pre-filled and #13 has no cards, so a selector there would control nothing; (c) **§1's validator produces no reusable structure** — `parser.ts` is a recognizer whose methods all return `void`, so §9's "generated by parsing the program (§1 validator already parses it)" overstates what exists and this milestone must build the tree, not inherit it. See `decisions/004-practice-scope-split.md`. If D28 cuts this milestone whole, (a) and (b) go with it by design. **v2 split (owner decision, on the 11a/b–13a/b precedent): 14a = the statement tree (`src/subset/tree.ts`, additive over the tokenizer, `parser.ts` untouched), the tree→diagram derivation, a read-only generated flowchart, and (a) the 6 algorithm programs — closing AC-9.18/9.20, fully closing AC-9.11. 14b = fill-in-the-blanks (blanks, the card bank, select-then-place + keyboard — a `v2 correction (m14b)` on §9's own "drag" wording, see `decisions/006`) and (b) AC-9.12's hint-level selector — closing AC-9.12, AC-9.19 in full, AC-9.21, fully closing AC-9.13. **Both done — see `checkpoint_report.md`, `decisions/005-statement-tree-and-derived-scope.md`, `decisions/006-flowchart-blanks-and-select-to-place.md`. §9 (Game layer) fully closed.** |
 | **Phase E — Ship**            |                                                                                                                                     |                                    |                                                                                                                                                                                                                                                                         |
-| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1. **v2 finding (m15 audit):** the milestone table's own summary reads as documentation-only, but §11/AC-14.5 ("lessons animate immediately on open") was unbuilt product code, not a verification step — found by reading §14 against the actual tree rather than against this row. **v2 split (owner decision, on the 11a/b–14a/b precedent): 15a = the last code — AC-14.5's preview-on-open, the ~10-snapshot `visual.spec.ts` baseline suite (AC-12.3), and the final checks AC-2.1/AC-14.2/AC-14.3 name. 15b = shipping — `docs/PORTING.md`, the README + demo GIF, production verification on the real deployed URL, the 13-step walkthrough, the final v1 checkpoint. **Both done — see `checkpoint_report.md`, `DESIGN_RATIONALE.md` §39–§40, `docs/PORTING.md` and `docs/VERIFICATION.md`. §12 and §14 fully closed; 10 of the 13 walkthrough steps pass against real production, the other 3 are owner-only and listed as outstanding rather than ticked.** |
+| 15                            | ~10 visual snapshots · 13-step verification walkthrough · `docs/PORTING.md` · **README + demo GIF**                                 | §12, §14                           | All require a finished, stable system to document and pin. **v2:** AC-12.8 (README with an auto-playing demo GIF, D20) was promised but owned by no milestone — it lands here, on top of the stub created in #1. **v2 finding (m15 audit):** the milestone table's own summary reads as documentation-only, but §11/AC-14.5 ("lessons animate immediately on open") was unbuilt product code, not a verification step — found by reading §14 against the actual tree rather than against this row. **v2 split (owner decision, on the 11a/b–14a/b precedent): 15a = the last code — AC-14.5's preview-on-open, the ~10-snapshot `visual.spec.ts` baseline suite (AC-12.3), and the final checks AC-2.1/AC-14.2/AC-14.3 name. 15b = shipping — `docs/PORTING.md`, the README + demo GIF, production verification on the real deployed URL, the 13-step walkthrough, the final v1 checkpoint. **Both done — see `checkpoint_report.md`, `DESIGN_RATIONALE.md` §39–§40, `docs/PORTING.md` and `docs/VERIFICATION.md`. §12 and §14 fully closed; 11 of the 13 walkthrough steps pass against real production, with step 11 (AC-11.5's three real people) the only one outstanding. AC-2.3's warm-start target was measured at m15b and **missed** — recorded as failed rather than relaxed, see `decisions/007`.** |
 
 **Cuttable under time pressure, in this order** (per existing decisions): merge sort (stretch) →
 flowcharts (#14, D28) → Mode B lessons (#9, D14). Nothing else is cut before quality is.
@@ -943,6 +964,16 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    a clear "your code ran too long" message, and leaves the app fully usable — the user can edit and
    re-run **without reloading the page**.
 5. Zero third-party Python packages bundled; a committed bundle report proves it.
+   > **m3, restated at m15b: satisfied by a committed _test_, not a committed report.** There is no
+   > bundle-report file in this repository and this criterion's literal wording was never met that
+   > way — noticed during the final v1 sweep, and recorded rather than quietly counted as done.
+   > What exists instead is `src/engine/worker.test.ts`'s "AC-2.5, zero third-party Python
+   > packages" block: a structural assertion that `worker.ts` contains no `loadPackage`/`micropip`
+   > call, plus a runtime assertion added after a code-review finding that checking source text
+   > alone was too weak. **This is strictly stronger than a report** — a committed report is a
+   > snapshot that goes stale silently the moment someone adds a package, whereas the test fails
+   > the build. Kept as-is; the criterion's intent ("prove nothing third-party is bundled") holds,
+   > its named artifact does not exist.
 6. No Python object crosses the worker boundary — only plain serializable data.
 7. _(Added by §14/D21.)_ If the engine fails to load entirely, the site degrades gracefully: every
    lesson still animates from its shipped recording, and only "Run your own code" is unavailable —
@@ -957,6 +988,10 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > Confirmed in a real browser by blocking every `/pyodide/*` request. §14's fuller
    > "every lesson always animates immediately on open" (AC-14.5) is **not** this criterion and
    > stays m15's, per the milestone table.
+   > **Final check done at m15b, on production:** walkthrough step 13 ran this against the real
+   > deployed site rather than a local build — 11/11 lessons degraded exactly as specified. See
+   > AC-14.4 in §14 for the fuller verification (including the quiz layer) and
+   > `docs/VERIFICATION.md` for the run itself.
 
 ---
 
@@ -1678,8 +1713,18 @@ thing you built. Cards show name, a small static preview, and a Mode A / Mode B 
    seconds with no explanation and can state what the tool does. Tested on **at least 3 real people**
    before v1 is called done.
    > **Owner-only — not run at m10.** Needs 3 real people; not something the agent can do.
-   > **Still outstanding at m15b**, carried into `docs/VERIFICATION.md` as step 11 with the exact
-   > procedure written out. v1 is not fully signed off until it is run.
+   > **RETIRED UNFULFILLED at m15b (owner decision) — see
+   > [`decisions/008`](decisions/008-ac-11-5-replaced-by-owner-review.md).** The 10-second test was
+   > never performed. In its place the owner reviews the finished v1 end to end at their own pace
+   > and flags what they find, with the output seeding v2.
+   >
+   > **These are deliberately not recorded as the same thing.** This criterion's value was that it
+   > is the only check in the plan the builder structurally *cannot* run on themselves — a stranger
+   > either can or cannot say what the page does in ten seconds, and someone who built it already
+   > knows. An owner review cannot produce that signal, so §11 ships with **its central claim
+   > untested against a real stranger**: that the landing page is legible in ten seconds, which is
+   > D15's whole justification for animating instantly rather than showing a hero image.
+   > `decisions/008` recommends running it in v2, where it is cheapest to act on.
 
 ---
 
@@ -1967,6 +2012,20 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 4. **With the Python engine blocked entirely** (simulate by blocking the Pyodide request), the site
    still loads and every lesson still animates, steps, scrubs, and runs its quizzes. Only "Run your
    own code" is unavailable, and it says so clearly rather than failing silently.
+   _(**Verified at m15b, against production.** Walkthrough step 13 with every `**/pyodide/**`
+   request aborted: **11/11 lessons** animated on open, stepped, and scrubbed via the range input
+   from their shipped recordings; pressing Run shows "Running your own code isn't available right
+   now — showing this lesson's example instead" behind a genuinely disabled button
+   (`disabled: true`, verified, not merely styled).
+   **The "and runs its quizzes" clause was checked separately** — the walkthrough step alone only
+   covered animate/step/scrub, which would have left a third of this criterion unverified.
+   With the engine blocked and nothing ever run, switching to Challenge view on `10-bubble-sort`
+   still produces the cost guess plus **5 full prediction prompts** across 43 steps. A control run
+   with the engine available gives **identical** prompt counts on all three lessons sampled
+   (bubble sort 5, first-loop 0, recursion 1) — so the quiz layer behaves the same offline as
+   online, which is what this criterion asks. `01-first-loop`'s zero is a property of an 11-step
+   print loop having no moment worth predicting, not an offline defect. See
+   `docs/VERIFICATION.md`.)_
 5. Lessons animate immediately on open, before the engine has finished loading.
    _(**Built at m15a**, not merely verified — this was the one genuine code gap the m1 audit found
    sitting inside an otherwise-documentation-shaped milestone: before m15a, a lesson opened to a
@@ -1985,9 +2044,11 @@ not survive a phone screen side-by-side** — propose the stacked alternative.
 Run in order. Every step is checkable by the owner without reading code.
 
 > **This walkthrough was run at m15b. The record of that run — what was executed, where, and what
-> actually happened — is [`docs/VERIFICATION.md`](VERIFICATION.md).** 10 of 13 steps pass against
-> the real production deploy; steps 11 and 12, plus AC-2.1's felt half and AC-2.3's two numbers,
-> are **owner-only** and are listed there as outstanding rather than ticked.
+> actually happened — is [`docs/VERIFICATION.md`](VERIFICATION.md).** **11 of 13 steps pass**
+> against the real production deploy. Step 11 (three real people, AC-11.5) is the only one
+> outstanding; step 12 was confirmed by the owner once 15b was pushed. Separately, AC-2.1's felt
+> half remains owner-only, and AC-2.3's warm-start target was measured and **missed** — see
+> `decisions/007`.
 
 1. **`npm test`** — fixture suite, recorded-run snapshots, visual snapshots all green.
 2. **`npm run typecheck && npm run build`** — clean.

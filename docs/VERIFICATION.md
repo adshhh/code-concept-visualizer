@@ -13,9 +13,10 @@ a **fresh browser context**, so "cold cache" is true by construction rather than
 
 ## Result
 
-**11 of 13 steps pass. Step 11 is the one still outstanding**, listed here rather than ticked — the
-same treatment AC-11.5 has had since it was written. Step 12 was confirmed by the owner on
-2026-08-25, once 15b was merged and pushed.
+**11 of 13 steps pass. Step 11 was retired unfulfilled** by owner decision
+([`decisions/008`](decisions/008-ac-11-5-replaced-by-owner-review.md)) and replaced with an owner
+review of v1 that seeds v2 — recorded as a replacement rather than as a pass, because the two check
+different things. Step 12 was confirmed by the owner on 2026-08-25, once 15b was merged and pushed.
 
 | # | Step | Where | Result |
 | --- | --- | --- | --- |
@@ -29,7 +30,7 @@ same treatment AC-11.5 has had since it was written. Step 12 was confirmed by th
 | 8 | Deliberate off-by-one explained in plain English | production | ✅ |
 | 9 | Challenge mode on bubble sort, ≤5 prompts | production | ✅ exactly 5 |
 | 10 | All 11 lessons open and run on first Run | production | ✅ 11/11 |
-| 11 | 3 real people, 10 seconds each (AC-11.5) | — | ⏳ **owner-only** |
+| 11 | 3 real people, 10 seconds each (AC-11.5) | — | ❌ **retired unfulfilled**, replaced — `decisions/008` |
 | 12 | Demo GIF auto-plays on the GitHub repo page | GitHub | ✅ owner-confirmed, 2026-08-25 |
 | 13 | Pyodide blocked → every lesson still animates | production | ✅ 11/11 |
 
@@ -223,31 +224,38 @@ against the cap.
 **11/11.** Each opened already animating from its shipped recording (AC-14.5), then completed a
 real Pyodide run on the first press of Run, with no error text.
 
-### 11. The 10-second test — owner-only
+### 11. The 10-second test — ❌ retired unfulfilled, replaced
 
-⏳ **Outstanding.** AC-11.5 requires at least 3 people unfamiliar with the project watching the
-landing page for 10 seconds with no explanation, and being able to say what the tool does.
+**Not performed.** AC-11.5 required 3 people unfamiliar with the project to watch the landing page
+for 10 seconds and say what the tool does. Per owner decision at m15b
+([`decisions/008`](decisions/008-ac-11-5-replaced-by-owner-review.md)) it is retired and replaced
+by the owner review below.
 
-**How to run it.** Open <https://code-concept-visualizer.netlify.app> in front of someone. Say
-nothing — no framing, no "this is my project that…", because the criterion is about what the page
-communicates on its own. Wait 10 seconds. Close the tab. Ask: *"What do you think that does?"*
+**Stated plainly because it matters:** this was the only check in the plan that the builder
+structurally cannot run on themselves, so v1 ships with §11's central claim — that the landing page
+is legible to a stranger in ten seconds, which is D15's whole reason for animating instantly rather
+than showing a hero image — **untested against an actual stranger.** `decisions/008` recommends
+running it early in v2, where it is cheapest to act on. It takes about a minute per person and is
+blocked by nothing.
 
-Write the answer down **verbatim, before discussing it.** Paraphrasing after a conversation is how
-this test quietly passes itself.
+### 11b. Owner review of v1 — the replacement
 
-| # | Who (role, not name) | Answer, verbatim | Got it? |
-| --- | --- | --- | --- |
-| 1 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
-| 2 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
-| 3 | _to fill in_ | _to fill in_ | _yes / partly / no_ |
+⏳ **To be run by the owner, at their own pace.** A full self-directed pass over the deployed v1:
+every lesson, Practice, Compare, flowcharts, Challenge mode. No time limit, no script. Record
+anything that reads wrong — bugs, confusing moments, rough edges, things that are fine but could be
+better.
 
-**Passes if** all three can state, in their own words, that it runs code and shows you what it does
-step by step. "Something about sorting" is a *partly* — it means the animation reads but the
-purpose doesn't.
+**This is the seed for v2 scope**, so err toward writing too much down rather than too little. A
+"that felt slightly off and I moved on" is exactly the kind of thing that is invisible by the time
+v2 planning starts.
 
-**If someone misses, that is a result, not a failed test run.** The misses are the only part of
-this exercise that can tell you anything you don't already know, so record them as carefully as the
-hits. §11's answer to a miss would be a change to the landing page, not a fourth person.
+| # | Where | What you found | Severity | v2? |
+| --- | --- | --- | --- | --- |
+| 1 | _to fill in_ | _to fill in_ | _bug / rough / idea_ | _yes / no_ |
+| 2 | | | | |
+| 3 | | | | |
+
+_(Add rows as needed.)_
 
 ### 12. The GIF on GitHub — owner-confirmed
 
@@ -266,6 +274,26 @@ produced the banner:
 
 The Run button is genuinely disabled in this state — verified as `disabled: true` with computed
 `opacity: 0.5`, not merely styled to look inert.
+
+#### The quiz clause, checked separately (AC-14.4)
+
+Step 13 as written covers *animates, steps and scrubs*. AC-14.4 also requires that every lesson
+**runs its quizzes** with the engine blocked — a third of the criterion that this step does not
+touch, and which was nearly signed off unverified. Found during the final v1 sweep and checked:
+
+| Lesson | Engine blocked | Engine available |
+| --- | --- | --- |
+| `10-bubble-sort` | cost guess + **5 prompts** / 43 steps | **5 prompts** / 43 steps |
+| `01-first-loop` | 0 prompts / 11 steps | 0 prompts / 11 steps |
+| `07-recursion` | 1 prompt / 12 steps | 1 prompt / 12 steps |
+
+With every `**/pyodide/**` request aborted and nothing ever run, switching to Challenge view still
+produces the full quiz flow from the shipped recording. **The control column is the point:** prompt
+counts are identical with the engine available, so the quiz layer behaves the same offline as
+online, which is what the criterion asks.
+
+`01-first-loop`'s zero is a property of that lesson, not a failure — an 11-step loop printing 0–4
+contains no moment worth asking anyone to predict. Confirmed by the control giving the same zero.
 
 *One observation, not a defect:* at 50% opacity, emerald on a near-black background still reads as
 a fairly prominent green button, so "disabled" is carried more by the banner than by the button's

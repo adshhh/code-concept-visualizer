@@ -1955,6 +1955,43 @@ now says, in a table near the bottom, that one of its own acceptance criteria fa
 right trade: a reader who finds it learns considerably more about how this project was built than
 one who finds fifteen green checkmarks.
 
+## 42. The one check that couldn't be self-served, and wasn't run
+
+AC-11.5 asked for three people unfamiliar with the project to watch the landing page for ten seconds
+and say what the tool does. It was the last thing outstanding in v1, and it did not get run. The
+owner replaced it with a self-directed review of the finished product, feeding v2.
+
+The replacement is a genuinely good idea. A builder sweeping their own finished work finds real
+defects, and it is a far better source of a v2 backlog than three strangers' ten-second impressions
+would ever be. But it answers a different question, and the difference is worth writing down rather
+than letting the substitution blur it.
+
+**Every other criterion in this plan can be verified by the person who wrote the code.** Tests,
+snapshots, guardrails, the import boundary, the thirteen-step walkthrough — all of them are things
+the builder can run and get an honest answer from. AC-11.5 is the only one that structurally cannot
+be, because the thing being measured is *whether someone who doesn't already know can tell*, and
+the builder cannot un-know it. There is no amount of care or honesty that lets you self-administer
+that test. That property is exactly why D-level planning specified real people, and why it stayed
+flagged owner-only across six milestones rather than being quietly ticked.
+
+So the entry in the plan says **not performed**, not ✅. Recording it as satisfied would have been
+the single dishonest line in a document whose entire value across fifteen milestones has been that
+it says what actually happened — including, repeatedly, where the plan was wrong. It would also
+have been the easiest one to get away with, which is a decent argument for being most careful
+exactly there.
+
+What it costs: v1 ships with §11's central claim untested. The landing page animates instantly
+instead of showing a hero image, and D15 justifies that entirely on ten-second legibility. If that
+premise is wrong, nothing currently in this project would reveal it. The cost of being wrong is
+bounded — a portfolio project with no users to harm — and the test remains cheap and unblocked, so
+deferring it to v2 is defensible. Arguing it away would not have been.
+
+There is a pattern across the last two entries. §41 was a criterion that failed and was recorded as
+failed rather than relaxed to fit. This is a criterion that went unrun and was recorded as unrun
+rather than swapped for something easier that resembles it. **The plan is only worth anything if
+the last few entries are as honest as the first ones**, and the last few are where the pressure to
+round up is strongest, because the project is otherwise done.
+
 ## How to use this document
 
 This is a living file — it should gain an entry every time a real design decision gets made, not

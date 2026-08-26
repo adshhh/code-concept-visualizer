@@ -3978,6 +3978,67 @@ git push origin main
 
 ### Still outstanding
 
-**AC-11.5 (walkthrough step 11)** — three real people, 10 seconds each, answers recorded verbatim
-in `docs/VERIFICATION.md`'s table. **AC-2.1's felt half** — the `PerformanceObserver` snippet in the
-same file. Both are owner-only. v1 is not fully signed off until they are run.
+**AC-2.1's felt half** — the `PerformanceObserver` snippet in `docs/VERIFICATION.md`. Owner-only.
+
+## Final v1 sweep (2026-08-26)
+
+A last pass over every acceptance criterion before closing v1, which turned up one real
+verification gap and two documentation ones.
+
+**AC-14.4 was about to be signed off a third unverified.** Its wording is "every lesson still
+animates, steps, scrubs, **and runs its quizzes**" with the engine blocked — walkthrough step 13
+covered animate/step/scrub and nothing else. Checked: with every `**/pyodide/**` request aborted
+and nothing ever run, `10-bubble-sort` in Challenge view still gives the cost guess plus 5 full
+prompts across 43 steps. A control run with the engine available produces **identical** counts on
+all three lessons sampled (5 / 0 / 1), so the quiz layer behaves the same offline as online.
+`01-first-loop`'s zero is a property of an 11-step print loop, confirmed by the control — without
+that control it would have looked like an offline defect.
+
+**AC-2.7's "final check at m15" was never written down.** Walkthrough step 13 *was* that check;
+now annotated.
+
+**AC-2.5 asks for a "committed bundle report" that does not exist.** It was satisfied at m3 by
+`worker.test.ts`'s structural + runtime assertions instead — strictly stronger, since a report goes
+stale silently while a test fails the build — but nothing in the plan said so. Now stated rather
+than quietly counted as done.
+
+Also corrected: three stale "10 of 13 / four owner-only checks" counts left over from before step
+12 passed and AC-2.3 was measured.
+
+## AC-11.5 retired (2026-08-26)
+
+Owner decision: the 10-second test is **retired unfulfilled** and replaced by a self-directed owner
+review of the finished v1, whose findings seed v2. `decisions/008` records it; §11 reopened and
+re-locked in the same pass, the second real exercise of the reopening rule after §13 at m1.
+
+Deliberately **not** recorded as AC-11.5 being met. It is the only criterion in the plan the builder
+structurally cannot run on themselves — a stranger either can or cannot say what the page does in
+ten seconds, and someone who built it already knows — so an owner review cannot produce that signal.
+v1 therefore ships with §11's central claim, and D15's justification for animating instantly rather
+than showing a hero image, untested against an actual stranger. `decisions/008` recommends running
+it early in v2. `DESIGN_RATIONALE.md` §42 has the reasoning.
+
+`docs/VERIFICATION.md` gained a **step 11b** with a findings table for the owner review.
+
+### Github commands for the sweep and the AC-11.5 change
+
+```bash
+git add docs/PLAN_v2.md docs/VERIFICATION.md docs/DESIGN_RATIONALE.md \
+  docs/checkpoint_report.md docs/decisions/008-ac-11-5-replaced-by-owner-review.md
+git commit -m "Final v1 sweep: verify AC-14.4's quiz clause offline, close AC-2.7, annotate AC-2.5; retire AC-11.5 per decisions/008"
+git push origin main
+```
+
+## v1 closing state
+
+| | |
+| --- | --- |
+| Milestones built | 15 of 15 |
+| Sections closed | 14 of 14 |
+| Walkthrough | 11 of 13 pass; step 11 retired unfulfilled |
+| Criteria not green | **AC-2.3** (warm start missed, `decisions/007`) · **AC-11.5** (unrun, `decisions/008`) |
+| Outstanding owner check | AC-2.1's felt half |
+| Suites | 1092 unit · 69 Playwright · typecheck, format, build clean · CI green on `main` |
+
+Two criteria ship not-green, both by explicit decision and both stated in the README, the plan and
+`VERIFICATION.md` rather than rounded up. Nothing else is open.
