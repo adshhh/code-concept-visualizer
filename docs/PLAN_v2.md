@@ -29,12 +29,12 @@ Three constraints shape every decision:
 3. **The scope contract is a supported Python subset, not a list of concepts.** This is testable: a
    fixture file of accepted and rejected programs, each with specified behavior.
 
-**Status: v1 COMPLETE. All 15 milestones built, all 14 sections closed.** Two criteria do not ship
-green, both deliberately and both recorded rather than relaxed: **AC-2.3's warm-start target is
-missed** (`decisions/007`) and **AC-11.5's 10-second test was retired unfulfilled**
-(`decisions/008`), replaced by an owner review of v1 that seeds v2. One owner-only check remains
-outstanding: **AC-2.1's felt half**. Details in the Resume box below and
-[`docs/VERIFICATION.md`](VERIFICATION.md).
+**Status: v1 COMPLETE AND SIGNED OFF. All 15 milestones built, all 14 sections closed, nothing
+outstanding.** Two criteria deliberately do not ship green, both recorded rather than relaxed:
+**AC-2.3's warm-start target is missed** (`decisions/007`) and **AC-11.5's 10-second test was
+retired unfulfilled** (`decisions/008`), replaced by an owner review of v1 that seeds v2.
+Everything else passes, including AC-2.1's felt half, measured on production at m15b. Details in
+the Resume box below and [`docs/VERIFICATION.md`](VERIFICATION.md).
 
 > ### ⏸ Resume here
 >
@@ -620,14 +620,19 @@ outstanding: **AC-2.1's felt half**. Details in the Resume box below and
 > structurally cannot self-administer, so §11's central claim ships untested against a stranger.
 > §11 reopened and re-locked in the same pass; see the status board.
 >
-> **One check remains owner-only and outstanding: AC-2.1's felt/measured half**, which has a
-> copy-paste `PerformanceObserver` snippet written out in `docs/VERIFICATION.md` rather than an
-> instruction to eyeball a flame chart.
+> **AC-2.1's felt half is done (2026-08-26) — the last outstanding check in v1.** A
+> `PerformanceObserver` on `longtask` entries during a real Run on production reported no long
+> tasks. Believed only because the instrument was controlled first: a deliberate 200ms main-thread
+> block is caught as `[200]`, so the empty result means "nothing blocked" rather than "nothing was
+> watching" — the same false-pass shape that step 9's prompt count had.
 >
 > **v1 closes with two criteria not green** — AC-2.3 measured and missed, AC-11.5 unrun — both
 > stated plainly in the README, the plan and `VERIFICATION.md` rather than rounded up. See
 > `DESIGN_RATIONALE.md` §41–§42 for why that was the right call at the point where the pressure to
 > round up is strongest.
+>
+> **Nothing else is outstanding. v1 is signed off.** The owner's own review pass (`decisions/008`)
+> runs on their own time and is v2 input, not a v1 gate.
 >
 > The owner creates every branch and runs all git/GitHub commands; the agent never touches git (D10).
 >
@@ -927,6 +932,13 @@ subtly wrong); server-side execution (needs a sandboxed backend).
    > DevTools' Performance tab") is a real-browser, human-judgment check the agent cannot perform
    > from this environment, same as AC-2.3's start-up timing and AC-11.5's 10-second test —
    > **owner-only, flagged here rather than marked done.**
+   > **✅ DONE at m15b (2026-08-26), on production.** The owner ran a `PerformanceObserver` on
+   > `longtask` entries during a real Run: **no long tasks**, twice. Backed by a control, because an
+   > empty array also happens to be what a broken observer returns (the same failure shape as the
+   > "0 challenge prompts" false pass): `longtask` is a supported entry type, and a deliberate
+   > 200ms main-thread block is caught as `[200]`, while a real Run plus 6s of playback stays empty.
+   > **Both halves of this criterion now hold** — the architectural guarantee by construction, the
+   > felt/measured half by measurement on the real deployed site. See `docs/VERIFICATION.md`.
 2. The landing page reaches first contentful paint **without waiting on Pyodide**. Only the editor
    panel shows a loading state.
    > **v2 re-sequencing:** this criterion names a landing page (m10) and an editor panel (m6),

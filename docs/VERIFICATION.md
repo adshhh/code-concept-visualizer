@@ -82,9 +82,31 @@ execution.
 Run in the page → stop recording. In the **Main** track, any task over 50ms is drawn with a red
 triangle in its top-right corner. Passing looks like no red triangles during the run.
 
-| Measured | Result |
+#### Result — ✅ passed, 2026-08-26
+
+| Check | Result |
 | --- | --- |
-| Long tasks during a run | _owner to fill in_ |
+| Owner, real browser on production, twice | `[]` — no long tasks |
+| `PerformanceObserver.supportedEntryTypes` includes `longtask` | `true` |
+| **Control:** deliberate 200 ms main-thread block | **`[200]` — caught** |
+| Agent, production, real Run + 6 s of playback | `[]` — no long tasks |
+
+**Why the control row exists.** An empty array passes "no task over 50ms" — and is also exactly
+what a *non-functioning* observer returns. That is the same failure shape as the "0 challenge
+prompts" false pass in step 9, so the instrument was tested before its zero was believed: blocking
+the main thread for 200 ms on purpose produces `[200]`, so the measurement demonstrably detects
+what it claims to.
+
+**A trap found while building that control.** The first version armed the observer and ran the
+busy-loop in the *same* task, and caught nothing — a long-task observer does not report the task it
+was created in. It looked exactly like a pass. Moving the block into a later task (via `setTimeout`)
+fixed it. This does not affect the owner's own measurement, where pasting the snippet and later
+clicking Run are separate tasks by construction — but it is worth knowing before anyone re-uses
+this control.
+
+**Verdict: AC-2.1 holds in both halves.** The architectural guarantee (Worker isolation) was never
+in question; the felt/measured half is now confirmed on the real deployed site, with a proven
+instrument.
 
 ### AC-2.3 — cold and warm Pyodide start-up ❌ **target not met**
 

@@ -3976,9 +3976,29 @@ git commit -m "Record AC-2.3 warm-start target as not met, with decisions/007; c
 git push origin main
 ```
 
-### Still outstanding
+### AC-2.1 — done (2026-08-26), the last outstanding check in v1
 
-**AC-2.1's felt half** — the `PerformanceObserver` snippet in `docs/VERIFICATION.md`. Owner-only.
+The owner ran a `PerformanceObserver` on `longtask` entries during a real Run on production: **no
+long tasks**, twice.
+
+That result was **not** taken at face value. An empty array passes "no task over 50ms" and is also
+precisely what a non-functioning observer returns — the same false-pass shape as step 9's "0
+challenge prompts". So the instrument was controlled first:
+
+| Check | Result |
+| --- | --- |
+| `supportedEntryTypes` includes `longtask` | `true` |
+| **Control:** deliberate 200 ms main-thread block | **`[200]` — caught** |
+| Real Run + 6 s of playback, on production | `[]` |
+
+**A trap found while writing that control:** the first version armed the observer and ran the busy
+loop in the *same* task and caught nothing — a long-task observer does not report the task it was
+created in. It looked exactly like a pass. Moving the block into a later task fixed it. The owner's
+own measurement was unaffected, since pasting a snippet and later clicking Run are separate tasks
+by construction.
+
+**AC-2.1 holds in both halves** — architecturally by Worker isolation, and now by measurement on
+the real deployed site with a proven instrument.
 
 ## Final v1 sweep (2026-08-26)
 
@@ -4037,8 +4057,11 @@ git push origin main
 | Sections closed | 14 of 14 |
 | Walkthrough | 11 of 13 pass; step 11 retired unfulfilled |
 | Criteria not green | **AC-2.3** (warm start missed, `decisions/007`) · **AC-11.5** (unrun, `decisions/008`) |
-| Outstanding owner check | AC-2.1's felt half |
+| Outstanding owner checks | **none** — AC-2.1 closed 2026-08-26 |
 | Suites | 1092 unit · 69 Playwright · typecheck, format, build clean · CI green on `main` |
 
 Two criteria ship not-green, both by explicit decision and both stated in the README, the plan and
-`VERIFICATION.md` rather than rounded up. Nothing else is open.
+`VERIFICATION.md` rather than rounded up. **Nothing else is open — v1 is signed off.**
+
+The owner's own review pass (`decisions/008`) runs on their own time and is input to v2, not a v1
+gate.
