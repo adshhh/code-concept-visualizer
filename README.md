@@ -100,3 +100,11 @@ Measured across three trials per state, each cold run in a fresh browser context
 a reload within it. Warm results landed within 12 ms of each other — a CPU-bound cost, with no
 network in it. Full method and the two measurement traps involved are in
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
+
+## How this project was reviewed
+
+v1 was built with an AI coding agent doing the implementation while I reviewed plans, checkpoints,
+and running code without reading most of the code itself. After signing off on v1, I sat down with
+the agent to work out what that review process actually was, where it broke down (mostly: approving
+things by reflex rather than by evidence), and what a better version looks like for the next
+project. That write-up is here: **[The Evidence Loop](https://claude.ai/code/artifact/cce2871b-cc2f-4f77-b4f1-0697305b545d)**.
